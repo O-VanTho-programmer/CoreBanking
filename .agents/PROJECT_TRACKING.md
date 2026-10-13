@@ -17,8 +17,8 @@ gantt
     Khởi tạo Dự án & Môi trường Maven/Java 21 :done, p1_env, 2026-10-13, 1d
     Thiết kế DDL Hot/Cold & Rule Matrix & CodeList :done, p1_ddl, 2026-10-13, 1d
     CodeList Module (Entity, Redis Cache, @ValidCodeList) :done, p1_codelist, 2026-10-13, 1d
-    Account Abstraction Resolver Service :active, p1_resolver, after p1_codelist, 3d
-    Double-Entry Rule Posting Engine :p1_posting, after p1_resolver, 5d
+    Account Abstraction Resolver Service :done, p1_resolver, after p1_codelist, 1d
+    Double-Entry Rule Posting Engine :active, p1_posting, after p1_resolver, 5d
     section Phase 2: Nghiệp Vụ Khách Hàng & Giao Dịch
     CIF Customer Management & Validation :p2_cif, 2026-10-25, 5d
     CASA Account & Hold Balance Invariant :p2_casa, after p2_cif, 5d
@@ -53,11 +53,12 @@ gantt
   - [x] Distributed Redis Cache Service: Tra cứu danh mục mã tốc độ cao qua Redis (`cbs:codelist:{group}`).
   - [x] Custom Jakarta Validation: `@ValidCodeList(group = "...")` cho các DTO/Record.
   - [x] Unit Test & Integration Test kiểm tra xác thực trạng thái (11/11 tests pass).
-- [-] **Tầng Phân Giải Tài Khoản (`AccountResolverService`)**:
-  - [ ] Entity JPA: `AccountMapping` & `AccountMappingDetail`.
-  - [ ] Thuật toán Resolver phân giải `SYS_CASH_VAULT` $\rightarrow$ GL vật lý theo Branch, Currency, Product.
-  - [ ] Fallback logic: Cụ thể $\rightarrow$ `product = ALL` $\rightarrow$ `branch = ALL`.
-- [ ] **Động Cơ Định Khoản Kế Toán (`PostingEngine`)**:
+- [x] **Tầng Phân Giải Tài Khoản (`AccountResolverService`)**:
+  - [x] Entity JPA: `GlAccount`, `AccountMapping` & `AccountMappingDetail` (sequence `CBS_GLOBAL_SEQ`).
+  - [x] Thuật toán Resolver phân giải `SYS_CASH_VAULT` $\rightarrow$ GL vật lý theo Branch, Currency, Product.
+  - [x] Fallback logic đa cấp: Cụ thể $\rightarrow$ `product = ALL` $\rightarrow$ `branch = ALL` $\rightarrow$ `ALL, ALL, ALL`.
+  - [x] Redis Caching cho kết quả phân giải tài khoản (`cbs:acctmap:...`) với DB fallback & Unit/Integration test (20/20 tests pass).
+- [-] **Động Cơ Định Khoản Kế Toán (`PostingEngine`)**:
   - [ ] Entity: `AccountingRuleDefinition`.
   - [ ] Bộ thông dịch Rule Matrix: Đọc quy tắc, gán số tiền và sinh các chân bút toán Nợ/Có.
   - [ ] Bộ kiểm tra cân bằng đối ứng: Chặn đứng nếu $\sum \text{Debit} \ne \sum \text{Credit}$.
@@ -117,3 +118,4 @@ gantt
 | **2026-10-13** | Cải tiến Schema: Xóa `DEFAULT 'VND'`, thêm ràng buộc thứ tự leg `uq_entry_act_leg`, Composite Idempotency, liên kết Storno Lineage, và hệ thống `CODELIST`. | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-13** | Thống nhất cách tiếp cận xác thực CodeList bằng **Cách 2 (Java Domain / Bean Validation)**. Thiết lập bộ tài liệu `.agents/` (`AGENTS.md`, `WORKFLOW.md`, `PROJECT_TRACKING.md`, ...). | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-13** | Hoàn thành **Phase 1a - CodeList Module**: Tích hợp Spring Data Redis, JPA Entities (`CodeList`, `CodeListValue`, `CodeListValueId`), `CodeListService` warm-up cache, `@ValidCodeList` Bean Validation. 11/11 tests pass. | AI Agent & User | `BUILD SUCCESS` |
+| **2026-10-13** | Hoàn thành **Phase 1b - Account Resolver**: JPA Entities (`GlAccount`, `AccountMapping`, `AccountMappingDetail`), 3-tier hierarchical fallback resolver, Redis cache (`cbs:acctmap:`), domain exception `AccountMappingNotFoundException`. 20/20 tests pass. | AI Agent & User | `BUILD SUCCESS` |
