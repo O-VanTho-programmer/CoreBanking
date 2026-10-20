@@ -18,9 +18,9 @@ gantt
     Thiết kế DDL Hot/Cold & Rule Matrix & CodeList :done, p1_ddl, 2026-10-13, 1d
     CodeList Module (Entity, Redis Cache, @ValidCodeList) :done, p1_codelist, 2026-10-13, 1d
     Account Abstraction Resolver Service :done, p1_resolver, after p1_codelist, 1d
-    Double-Entry Rule Posting Engine :active, p1_posting, after p1_resolver, 5d
+    Double-Entry Rule Posting Engine :done, p1_posting, after p1_resolver, 1d
     section Phase 2: Nghiệp Vụ Khách Hàng & Giao Dịch
-    CIF Customer Management & Validation :p2_cif, 2026-10-25, 5d
+    CIF Customer Management & Validation :active, p2_cif, 2026-10-25, 5d
     CASA Account & Hold Balance Invariant :p2_casa, after p2_cif, 5d
     Deterministic Locking & Transfer API :p2_transfer, after p2_casa, 5d
     Reversal / Storno Transaction Engine :p2_reversal, after p2_transfer, 4d
@@ -58,10 +58,12 @@ gantt
   - [x] Thuật toán Resolver phân giải `SYS_CASH_VAULT` $\rightarrow$ GL vật lý theo Branch, Currency, Product.
   - [x] Fallback logic đa cấp: Cụ thể $\rightarrow$ `product = ALL` $\rightarrow$ `branch = ALL` $\rightarrow$ `ALL, ALL, ALL`.
   - [x] Redis Caching cho kết quả phân giải tài khoản (`cbs:acctmap:...`) với DB fallback & Unit/Integration test (20/20 tests pass).
-- [-] **Động Cơ Định Khoản Kế Toán (`PostingEngine`)**:
-  - [ ] Entity: `AccountingRuleDefinition`.
-  - [ ] Bộ thông dịch Rule Matrix: Đọc quy tắc, gán số tiền và sinh các chân bút toán Nợ/Có.
-  - [ ] Bộ kiểm tra cân bằng đối ứng: Chặn đứng nếu $\sum \text{Debit} \ne \sum \text{Credit}$.
+- [x] **Động Cơ Định Khoản Kế Toán (`PostingEngine`)**:
+  - [x] Entity: `AccountingRuleDefinition` mapping bảng `ACCOUNTING_RULE_DEFINITION`.
+  - [x] Bộ thông dịch Rule Matrix: Đọc quy tắc động, gán số tiền (`amount_source`), phân giải GL (`AccountResolverService`) và sinh `JournalLeg`.
+  - [x] Bỏ qua chân phí khi `feeAmount == 0` (`requires_fee = 'Y'`).
+  - [x] Bộ kiểm tra cân bằng đối ứng (Invariant 1): Chặn đứng và ném `UnbalancedTransactionException` nếu $\sum \text{Debit} \ne \sum \text{Credit}$ theo Group và toàn giao dịch.
+  - [x] Unit Test & Integration Test kiểm tra định khoản mẫu (`CASH_DEP`, `CASH_WDR`, `TRF_INTERNAL`) thành công 30/30 tests.
 
 ---
 
@@ -119,3 +121,4 @@ gantt
 | **2026-10-13** | Thống nhất cách tiếp cận xác thực CodeList bằng **Cách 2 (Java Domain / Bean Validation)**. Thiết lập bộ tài liệu `.agents/` (`AGENTS.md`, `WORKFLOW.md`, `PROJECT_TRACKING.md`, ...). | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-13** | Hoàn thành **Phase 1a - CodeList Module**: Tích hợp Spring Data Redis, JPA Entities (`CodeList`, `CodeListValue`, `CodeListValueId`), `CodeListService` warm-up cache, `@ValidCodeList` Bean Validation. 11/11 tests pass. | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-13** | Hoàn thành **Phase 1b - Account Resolver**: JPA Entities (`GlAccount`, `AccountMapping`, `AccountMappingDetail`), 3-tier hierarchical fallback resolver, Redis cache (`cbs:acctmap:`), domain exception `AccountMappingNotFoundException`. 20/20 tests pass. | AI Agent & User | `BUILD SUCCESS` |
+| **2026-10-20** | Thêm tài liệu `.github/doc/POSTING_DRIVEN_ARCHITECTURE.md` (sequence diagram & flowchart tiếng Anh). Hoàn thành **Phase 1c - Posting Engine**: Entity `AccountingRuleDefinition`, DTOs (`JournalLeg`, `PostingRequest`, `PostingResult`), `PostingEngineService` với Two-Level Equilibrium Check, Zero-fee skipping, unit & integration tests. 30/30 tests pass. | AI Agent & User | `BUILD SUCCESS` |
