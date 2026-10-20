@@ -30,6 +30,21 @@ flowchart TD
 
 ### Enterprise Pattern: Posting-Driven Transaction Lifecycle (Adopted)
 
+#### High-Level Workflow (Flowchart)
+
+```mermaid
+flowchart TD
+    A["1. Incoming Request\n(e.g., Cash Deposit 1M VND)"] --> B["2. Evaluate Posting Rule Matrix\n(In-Memory on RAM)"]
+    B --> C["3. Resolve Abstract Roles to Physical GL\n(SYS_CASH_VAULT -> 1011, CASA -> 4211)"]
+    C --> D{"4. Pre-Validation Equilibrium in RAM\nSUM(Debit) == SUM(Credit)?"}
+    D -- "Unbalanced" --> E["Fast-Fail: Throw Exception\n(Zero DB mutations, Clean Reject)"]
+    D -- "Balanced" --> F["5. Apply Generic Balance Mutation\n(Driven by verified JournalLegs)"]
+    F --> G["6. Append Immutable Ledger Entries\n(TRX_JOURNAL + JOURNAL_ENTRY)"]
+    G --> H["7. Atomic Database Commit"]
+```
+
+#### Detailed Component Interaction (Sequence Diagram)
+
 ```mermaid
 sequenceDiagram
     autonumber
