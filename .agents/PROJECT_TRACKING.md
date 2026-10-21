@@ -20,9 +20,9 @@ gantt
     Account Abstraction Resolver Service :done, p1_resolver, after p1_codelist, 1d
     Double-Entry Rule Posting Engine :done, p1_posting, after p1_resolver, 1d
     section Phase 2: Nghiệp Vụ Khách Hàng & Giao Dịch
-    CIF Customer Management & Validation :active, p2_cif, 2026-10-25, 5d
-    CASA Account & Hold Balance Invariant :p2_casa, after p2_cif, 5d
-    Deterministic Locking & Transfer API :p2_transfer, after p2_casa, 5d
+    CIF Customer Management & Validation :done, p2_cif, 2026-10-25, 2d
+    CASA Account & Hold Balance Invariant :done, p2_casa, after p2_cif, 2d
+    Deterministic Locking & Transfer API :active, p2_transfer, after p2_casa, 5d
     Reversal / Storno Transaction Engine :p2_reversal, after p2_transfer, 4d
     section Phase 3: Vận Hành & Lô Cuối Ngày (EOD)
     Bank Calendar & Operational Working Date Context :p3_calendar, 2026-11-10, 4d
@@ -68,13 +68,19 @@ gantt
 ---
 
 ### Giai Đoạn 2: Khách Hàng, Tài Khoản & Giao Dịch Chống Deadlock (Tuần 4 – 6)
-- [ ] **Khách hàng (Customer / CIF)**:
-  - [ ] Quản lý hồ sơ CIF (Individual / Corporate) với mã CIF định dạng chuẩn ngân hàng.
-  - [ ] Xác thực KYC và trạng thái qua `@ValidCodeList(group = "CUST_STATUS")`.
-- [ ] **Tài khoản Tiền gửi (CASA & Holds)**:
-  - [ ] Mở tài khoản thanh toán liên kết với Product Catalog và GL Control Account.
-  - [ ] Quản lý Tạm giữ / Phong tỏa (`ACCOUNT_HOLD`): Thực thi bất biến $\text{Available} = \text{Ledger} - \text{Hold}$.
-- [ ] **Giao dịch Chuyển tiền & Chống Deadlock (Transfer API)**:
+- [x] **Khách hàng (Customer / CIF)**:
+  - [x] Quản lý hồ sơ CIF (Individual / Corporate) với mã CIF sinh tự động (`CIF-` + sequence `CBS_GLOBAL_SEQ`).
+  - [x] Ràng buộc duy nhất `national_id` (CCCD/Passport) và `cif_number`, chống tạo trùng lặp.
+  - [x] Xác thực KYC và trạng thái qua `@ValidCodeList` (`CUST_TYPE`, `KYC_STATUS`, `CUST_STATUS`).
+  - [x] Tích hợp `WorkingDateService` (Invariant 4: lấy ngày hệ thống từ `SYSTEM_OPERATIONAL_STATUS`).
+- [x] **Tài khoản Tiền gửi (CASA & Holds)**:
+  - [x] Mở tài khoản thanh toán `ACCOUNT` liên kết với `PRODUCT_CATALOG` (`CASA_VND`) và GL Control Account (`4211`).
+  - [x] Sinh số tài khoản chuẩn BBAN 16 chữ số (`Branch + Product + Sequence`).
+  - [x] Quản lý Tạm giữ / Phong tỏa (`ACCOUNT_HOLD`): Thực thi bất biến $\text{Available} = \text{Ledger} - \text{Hold}$ (Invariant 2).
+  - [x] Chặn đứng đặt Hold vượt số dư khả dụng bằng `InsufficientFundsException`.
+  - [x] Giải phóng Hold (`RELEASED`), cập nhật `released_at`, khôi phục số dư khả dụng và tuân thủ ràng buộc CSDL `chk_hold_status_dates`.
+  - [x] Unit Test & Integration Test đầu-cuối Customer + Account + Hold thành công (38/38 tests pass).
+- [-] **Giao dịch Chuyển tiền & Chống Deadlock (Transfer API)**:
   - [ ] Khóa bi quan có thứ tự tăng dần theo `account_id` (`ORDER BY account_id ASC FOR UPDATE`).
   - [ ] Kiểm tra tính duy nhất Composite Idempotency `(channel_id, idempotency_key)` 2 cấp (Hot/Cold).
   - [ ] Ghi nhận `TRX_JOURNAL_ACTIVE` và các dòng `JOURNAL_ENTRY_ACTIVE`.
@@ -122,3 +128,4 @@ gantt
 | **2026-10-13** | Hoàn thành **Phase 1a - CodeList Module**: Tích hợp Spring Data Redis, JPA Entities (`CodeList`, `CodeListValue`, `CodeListValueId`), `CodeListService` warm-up cache, `@ValidCodeList` Bean Validation. 11/11 tests pass. | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-13** | Hoàn thành **Phase 1b - Account Resolver**: JPA Entities (`GlAccount`, `AccountMapping`, `AccountMappingDetail`), 3-tier hierarchical fallback resolver, Redis cache (`cbs:acctmap:`), domain exception `AccountMappingNotFoundException`. 20/20 tests pass. | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-20** | Thêm tài liệu `.github/doc/POSTING_DRIVEN_ARCHITECTURE.md` (sequence diagram & flowchart tiếng Anh). Hoàn thành **Phase 1c - Posting Engine**: Entity `AccountingRuleDefinition`, DTOs (`JournalLeg`, `PostingRequest`, `PostingResult`), `PostingEngineService` với Two-Level Equilibrium Check, Zero-fee skipping, unit & integration tests. 30/30 tests pass. | AI Agent & User | `BUILD SUCCESS` |
+| **2026-10-21** | Hoàn thành **Phase 2a (Customer CIF)** & **Phase 2b (CASA & Holds)**: Entity `Customer`, `ProductCatalog`, `Account`, `AccountHold`, `SystemOperationalStatus`, `WorkingDateService`, `CustomerService`, `AccountService`, `HoldService`. Thực thi Bất biến 2 (`Available = Ledger - Hold`), optimistic concurrency `version`, sinh số CIF và BBAN. 38/38 tests pass. | AI Agent & User | `BUILD SUCCESS` |
