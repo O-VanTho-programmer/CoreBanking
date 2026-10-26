@@ -23,9 +23,9 @@ gantt
     CIF Customer Management & Validation :done, p2_cif, 2026-10-25, 2d
     CASA Account & Hold Balance Invariant :done, p2_casa, after p2_cif, 2d
     Deterministic Locking & Transfer API :done, p2_transfer, after p2_casa, 5d
-    Reversal / Storno Transaction Engine :active, p2_reversal, after p2_transfer, 4d
+    Reversal / Storno Transaction Engine :done, p2_reversal, after p2_transfer, 4d
     section Phase 3: Vận Hành & Lô Cuối Ngày (EOD)
-    Bank Calendar & Operational Working Date Context :p3_calendar, 2026-11-10, 4d
+    Bank Calendar & Operational Working Date Context :active, p3_calendar, 2026-11-10, 4d
     EOD Batch 1: Daily Savings Interest Accrual :p3_accrual, after p3_calendar, 6d
     EOD Batch 2: Trial Balance Ledger Verification :p3_trial, after p3_accrual, 4d
     EOD Batch 3: Data Archival (MoveDataHis Hot->Cold) :p3_move, after p3_trial, 4d
@@ -87,9 +87,14 @@ gantt
   - [x] Khắc phục triệt để lỗi Hibernate `ObjectOptimisticLockingFailureException` khi locking bi quan bằng phương thức tra cứu scalar ID `findIdByAccountNumber`.
   - [x] Concurrency stress test 50 giao dịch đối ứng song song ($A \rightarrow B$ và $B \rightarrow A$) đạt 0 deadlock (ORA-00060) và bảo toàn 100% tổng số dư hệ thống.
   - [x] Toàn bộ 51/51 automated tests chạy thành công (`BUILD SUCCESS`).
-- [-] **Động cơ Đảo Bút Toán (Reversal / Storno Engine)**:
-  - [ ] Sinh giao dịch đảo với `original_trx_id` và `reversal_reason`.
-  - [ ] Sinh các chân bút toán đảo ngược đối xứng hoàn toàn, đánh dấu `is_reversed = 'Y'` ở giao dịch gốc.
+- [x] **Động cơ Đảo Bút Toán (Reversal / Storno Engine)**:
+  - [x] Sinh giao dịch đảo với `original_trx_id` và `reversal_reason`.
+  - [x] Sinh các chân bút toán đảo ngược đối xứng hoàn toàn (`D` -> `C`, `C` -> `D`), đánh dấu `is_reversed = 'Y'` ở giao dịch gốc.
+  - [x] Kiểm soát ngăn chặn đảo 2 lần (`TransactionAlreadyReversedException`) và không cho đảo giao dịch đảo (`CannotReverseReversalException`).
+  - [x] Bất biến 2 Guard: Kiểm tra số dư khả dụng bên bị trích thu hồi (`InsufficientFundsException`).
+  - [x] Bất biến 3 Guard: Khóa bi quan có thứ tự tăng dần theo `account_id` trên các tài khoản liên quan (`ORDER BY account_id ASC FOR UPDATE`).
+  - [x] Bất biến 4 Guard: Chặn đảo bút toán khi hệ thống đang Cutoff và chỉ cho phép Storno trong ngày (`ReversalWorkingDateMismatchException`).
+  - [x] Test đơn vị và test tích hợp đầu cuối & concurrency race test thành công (63/63 tests pass).
 
 ---
 
@@ -133,3 +138,4 @@ gantt
 | **2026-10-20** | Thêm tài liệu `.github/doc/POSTING_DRIVEN_ARCHITECTURE.md` (sequence diagram & flowchart tiếng Anh). Hoàn thành **Phase 1c - Posting Engine**: Entity `AccountingRuleDefinition`, DTOs (`JournalLeg`, `PostingRequest`, `PostingResult`), `PostingEngineService` với Two-Level Equilibrium Check, Zero-fee skipping, unit & integration tests. 30/30 tests pass. | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-21** | Hoàn thành **Phase 2a (Customer CIF)** & **Phase 2b (CASA & Holds)**: Entity `Customer`, `ProductCatalog`, `Account`, `AccountHold`, `SystemOperationalStatus`, `WorkingDateService`, `CustomerService`, `AccountService`, `HoldService`. Thực thi Bất biến 2 (`Available = Ledger - Hold`), optimistic concurrency `version`, sinh số CIF và BBAN. 38/38 tests pass. | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-22** | Hoàn thành **Phase 2c - Deterministic Locking, Idempotency & Transfer API**: Thêm sequence diagram vòng đời giao dịch `.github/doc/TRANSACTION_LIFECYCLE.md`. Thực thi Early Claim `IN_FLIGHT` $\rightarrow$ `COMPLETED`, 3-tier composite idempotency (`IdempotencyService`), Invariant 3 deterministic pessimistic locking (`ORDER BY account_id ASC FOR UPDATE`), Invariant 2 hold & cutoff guards. Chống stale entity versioning bằng `findIdByAccountNumber`. Kiểm thử 50 luồng đối ứng $A \rightarrow B$ & $B \rightarrow A$ đạt 0 deadlock (ORA-00060). Toàn bộ 51/51 tests pass. | AI Agent & User | `BUILD SUCCESS` |
+| **2026-10-26** | Hoàn thành **Phase 2d - Reversal / Storno Transaction Engine**: Triển khai `reverse(ReverseCommand)`, tạo giao dịch đảo với `original_trx_id` và `reversal_reason`, sinh các chân đối xứng ngược chiều (`D` $\rightarrow$ `C`, `C` $\rightarrow$ `D`), cập nhật `is_reversed = 'Y'`. Thực thi 5 tầng bảo vệ: Double-Reversal Guard, Reversal-of-Reversal Guard, Invariant 2 Available Balance Guard, Invariant 3 Deterministic Locking, Invariant 4 Working Date & Cutoff Guard. Thêm 12 tests mới (9 unit tests + 3 integration tests). Toàn bộ 63/63 tests pass. | AI Agent & User | `BUILD SUCCESS` |

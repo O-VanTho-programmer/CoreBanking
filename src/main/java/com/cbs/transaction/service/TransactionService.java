@@ -7,11 +7,11 @@ import com.cbs.accounting.dto.PostingRequest;
 import com.cbs.accounting.dto.PostingResult;
 import com.cbs.accounting.service.PostingEngineService;
 import com.cbs.admin.service.WorkingDateService;
-import com.cbs.common.exception.AccountNotFoundException;
-import com.cbs.common.exception.InsufficientFundsException;
+import com.cbs.common.exception.*;
 import com.cbs.transaction.domain.JournalEntryActive;
 import com.cbs.transaction.domain.TrxJournalActive;
 import com.cbs.transaction.dto.DepositCommand;
+import com.cbs.transaction.dto.ReverseCommand;
 import com.cbs.transaction.dto.TransactionReceipt;
 import com.cbs.transaction.dto.TransferCommand;
 import com.cbs.transaction.dto.WithdrawCommand;
@@ -29,9 +29,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -383,6 +381,201 @@ public class TransactionService {
                 .build();
 
         idempotencyService.recordCompletion(command.channelId(), command.idempotencyKey(), receipt);
+        return receipt;
+    }
+
+    /**
+     * Executes financial reversal (Storno) of an active transaction.
+     * Implements:
+     * - Double-Reversal Prevention
+     * - Reversal of Reversal Prevention
+     * - Invariant 1: Symmetric opposite journal legs
+     * - Invariant 2: Balance integrity on newly debited accounts
+     * - Invariant 3: Deterministic multi-account locking (ORDER BY account_id ASC FOR UPDATE)
+     * - Invariant 4: In-day storno check (working_date must match) & Cutoff guard
+     * - Invariant 5: Composite idempotency
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public TransactionReceipt reverse(ReverseCommand command) {
+        log.info("Executing reversal: channel='{}', key='{}', originalTrx='{}', reason='{}'",
+                command.channelId(), command.idempotencyKey(), command.originalTrxNumber(), command.reason());
+
+        // 1. Idempotency Check (Redis -> Hot -> Cold)
+        Optional<TransactionReceipt> existing = idempotencyService.checkExisting(
+                command.channelId(), command.idempotencyKey());
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+
+        // 2. Cutoff Guard (Invariant 4)
+        checkCutoff();
+
+        LocalDate currentWorkingDate = workingDateService.getCurrentWorkingDate();
+
+        // 3. Find and lock original transaction header
+        TrxJournalActive orig = trxJournalActiveRepository.findByTrxNumberForUpdate(command.originalTrxNumber())
+                .orElseThrow(() -> new TransactionNotFoundException(command.originalTrxNumber()));
+
+        // 4. Pre-condition Guards
+        if (!"COMPLETED".equals(orig.getStatus())) {
+            throw new IllegalStateException(String.format(
+                    "Only COMPLETED transactions can be reversed (original '%s' has status '%s')",
+                    orig.getTrxNumber(), orig.getStatus()));
+        }
+
+        if ("Y".equals(orig.getIsReversed())) {
+            throw new TransactionAlreadyReversedException(orig.getTrxNumber());
+        }
+
+        if (orig.getOriginalTrxId() != null) {
+            throw new CannotReverseReversalException(orig.getTrxNumber());
+        }
+
+        if (!orig.getWorkingDate().equals(currentWorkingDate)) {
+            throw new ReversalWorkingDateMismatchException(orig.getTrxNumber(), orig.getWorkingDate(), currentWorkingDate);
+        }
+
+        // 5. Fetch original journal legs
+        List<JournalEntryActive> origLegs = journalEntryActiveRepository
+                .findByTrxIdOrderByEntryGroupAscEntryIndexAsc(orig.getTrxId());
+        if (origLegs.isEmpty()) {
+            throw new IllegalStateException("Original transaction " + orig.getTrxNumber() + " has no journal legs");
+        }
+
+        // 6. Invariant 3: Deterministic row locking of affected customer accounts
+        List<Long> customerAccountIds = origLegs.stream()
+                .map(JournalEntryActive::getAccountId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted()
+                .toList();
+
+        Map<Long, Account> accountMap;
+        if (!customerAccountIds.isEmpty()) {
+            List<Account> lockedAccounts = accountRepository.findAndLockAccountsByIds(customerAccountIds);
+            accountMap = lockedAccounts.stream()
+                    .collect(Collectors.toMap(Account::getAccountId, Function.identity()));
+            for (Account acc : lockedAccounts) {
+                validateAccountStatus(acc);
+            }
+        } else {
+            accountMap = Collections.emptyMap();
+        }
+
+        // 7. Build symmetric inverted legs and verify Invariant 2 (Available Balance Guard)
+        Map<Long, BigDecimal> debitTotalsByAccount = new HashMap<>();
+        List<JournalLeg> invertedLegs = new ArrayList<>();
+
+        for (JournalEntryActive origLeg : origLegs) {
+            String invertedDrCr = "D".equals(origLeg.getDrCr()) ? "C" : "D";
+            invertedLegs.add(new JournalLeg(
+                    origLeg.getEntryGroup(),
+                    origLeg.getEntryIndex(),
+                    origLeg.getAccountId(),
+                    origLeg.getGlCode(),
+                    invertedDrCr,
+                    origLeg.getAmount(),
+                    origLeg.getCurrency(),
+                    currentWorkingDate,
+                    "[REVERSAL] " + command.reason()
+            ));
+
+            if ("D".equals(invertedDrCr) && origLeg.getAccountId() != null) {
+                debitTotalsByAccount.merge(origLeg.getAccountId(), origLeg.getAmount(), BigDecimal::add);
+            }
+        }
+
+        // Invariant 2 Check: Available Balance on all newly debited customer accounts
+        for (Map.Entry<Long, BigDecimal> debitEntry : debitTotalsByAccount.entrySet()) {
+            Long accId = debitEntry.getKey();
+            BigDecimal totalDebitRequired = debitEntry.getValue();
+            Account acc = accountMap.get(accId);
+            if (acc != null) {
+                BigDecimal available = acc.getAvailableBalance();
+                if (available.compareTo(totalDebitRequired) < 0) {
+                    log.warn("Reversal rejected: Insufficient funds on account={}: Available={}, Required={}",
+                            accId, available, totalDebitRequired);
+                    throw new InsufficientFundsException(accId, available, totalDebitRequired);
+                }
+            }
+        }
+
+        // 8. Early Claim: Insert Reversal Header with status = 'IN_FLIGHT'
+        String reversalTrxNumber = generateTrxNumber(currentWorkingDate);
+        TrxJournalActive reversalHeader = TrxJournalActive.builder()
+                .trxNumber(reversalTrxNumber)
+                .channelId(command.channelId())
+                .idempotencyKey(command.idempotencyKey())
+                .trxCode(orig.getTrxCode())
+                .workingDate(currentWorkingDate)
+                .status("IN_FLIGHT")
+                .makerId(command.makerId())
+                .isReversed("N")
+                .originalTrxId(orig.getTrxId())
+                .reversalReason(command.reason())
+                .createdAt(OffsetDateTime.now())
+                .build();
+
+        reversalHeader = trxJournalActiveRepository.saveAndFlush(reversalHeader);
+
+        // 9. Apply Inverted Balance Mutations
+        for (JournalLeg leg : invertedLegs) {
+            if (leg.accountId() != null) {
+                Account acc = accountMap.get(leg.accountId());
+                if (acc != null) {
+                    mutateBalance(acc, leg);
+                }
+            }
+        }
+        if (!accountMap.isEmpty()) {
+            accountRepository.saveAll(accountMap.values());
+        }
+
+        // 10. Save Inverted Journal Entry Rows
+        saveJournalEntries(reversalHeader.getTrxId(), invertedLegs);
+
+        // 11. Mark Original Transaction as Reversed
+        orig.setIsReversed("Y");
+        trxJournalActiveRepository.save(orig);
+
+        // 12. Finalize Reversal Header to COMPLETED
+        reversalHeader.setStatus("COMPLETED");
+        trxJournalActiveRepository.save(reversalHeader);
+
+        // 13. Calculate principal & fee amounts from inverted legs
+        BigDecimal totalPrincipal = origLegs.stream()
+                .filter(l -> l.getEntryGroup() == 1 && "D".equals(l.getDrCr()))
+                .map(JournalEntryActive::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalFee = origLegs.stream()
+                .filter(l -> l.getEntryGroup() > 1 && "D".equals(l.getDrCr()))
+                .map(JournalEntryActive::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        String currency = origLegs.get(0).getCurrency();
+
+        TransactionReceipt receipt = TransactionReceipt.builder()
+                .trxId(reversalHeader.getTrxId())
+                .trxNumber(reversalHeader.getTrxNumber())
+                .channelId(command.channelId())
+                .idempotencyKey(command.idempotencyKey())
+                .trxCode(orig.getTrxCode())
+                .workingDate(currentWorkingDate)
+                .status("COMPLETED")
+                .currency(currency)
+                .totalAmount(totalPrincipal)
+                .feeAmount(totalFee)
+                .legs(invertedLegs)
+                .timestamp(reversalHeader.getCreatedAt())
+                .originalTrxId(orig.getTrxId())
+                .originalTrxNumber(orig.getTrxNumber())
+                .reversalReason(command.reason())
+                .build();
+
+        idempotencyService.recordCompletion(command.channelId(), command.idempotencyKey(), receipt);
+        log.info("Reversal COMPLETED successfully: reversalTrxNumber='{}', originalTrxNumber='{}'",
+                reversalTrxNumber, orig.getTrxNumber());
         return receipt;
     }
 

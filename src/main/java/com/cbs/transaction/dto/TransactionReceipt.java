@@ -26,5 +26,8 @@ public record TransactionReceipt(
         BigDecimal fromAccountAvailableBalance,
         BigDecimal toAccountAvailableBalance,
         List<JournalLeg> legs,
-        OffsetDateTime timestamp
+        OffsetDateTime timestamp,
+        Long originalTrxId,
+        String originalTrxNumber,
+        String reversalReason
 ) {}

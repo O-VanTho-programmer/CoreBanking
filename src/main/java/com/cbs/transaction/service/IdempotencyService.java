@@ -111,6 +111,8 @@ public class IdempotencyService {
                 .workingDate(hot.getWorkingDate())
                 .status(hot.getStatus())
                 .currency("VND")
+                .originalTrxId(hot.getOriginalTrxId())
+                .reversalReason(hot.getReversalReason())
                 .legs(Collections.emptyList())
                 .timestamp(hot.getCreatedAt())
                 .build();
@@ -126,6 +128,8 @@ public class IdempotencyService {
                 .workingDate(done.getWorkingDate())
                 .status(done.getStatus())
                 .currency("VND")
+                .originalTrxId(done.getOriginalTrxId())
+                .reversalReason(done.getReversalReason())
                 .legs(Collections.emptyList())
                 .timestamp(done.getCreatedAt())
                 .build();
