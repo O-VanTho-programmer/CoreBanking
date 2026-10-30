@@ -105,10 +105,13 @@ gantt
   - [x] Seed migration `V4__seed_bank_calendar.sql` 450 ngày lịch ngân hàng.
   - [x] Cung cấp API quản trị `enableCutoff()`, `disableCutoff()`, `rolloverWorkingDate()`.
   - [x] Interceptor / Guard chặn giao dịch chuyển tiền ban ngày khi cờ `is_system_cutoff = 'Y'`.
-- [ ] **Phase 3b: Tính Lãi Dồn Tích Cuối Ngày (Daily Savings & CASA Interest Accrual)**:
-  - [ ] Rule matrix `EOD_ACCRUAL`: Nợ Chi phí trả lãi (`8011`), Có Lãi dồn tích phải trả (`4911`).
-  - [ ] Tích lũy dồn tích hàng ngày: $\text{Daily Interest} = \text{round}(\text{ledger\_balance} \times \frac{\text{annual\_rate}}{\text{day\_count\_basis}}, 4)$ theo `ACT_365` / `ACT_360`.
-  - [ ] Cập nhật `accrued_interest` và sinh bút toán tổng hợp cân đối qua `PostingEngineService`.
+- [x] **Phase 3b: Tính Lãi Dồn Tích Cuối Ngày (Daily Savings & CASA Interest Accrual)**:
+  - [x] Rule matrix `EOD_ACCRUAL`: Nợ Chi phí trả lãi (`8011`), Có Lãi dồn tích phải trả (`4911`).
+  - [x] Seed migration `V5__seed_eod_accrual_rules.sql` (Rule 401 & 402).
+  - [x] Tích lũy dồn tích hàng ngày: $\text{Daily Interest} = \text{round}(\text{ledger\_balance} \times \frac{\text{annual\_rate}}{\text{day\_count\_basis}}, 4)$ theo `ACT_365` / `ACT_360`.
+  - [x] `InterestAccrualService`, DTOs `AccountAccrualDetail`, `AccrualBatchResult`, ngoại lệ `DuplicateAccrualException`.
+  - [x] Cập nhật `accrued_interest` và sinh bút toán tổng hợp cân đối qua `PostingEngineService`.
+  - [x] Bảo vệ tính lũy kế duy nhất qua Idempotency Key `ACCRUAL:<workingDate>`.
 - [ ] **Phase 3c: Chụp Ảnh Số Dư Đóng Sổ (EOD Balance Snapshot Buckets)**:
   - [ ] Lưu trữ số dư cuối ngày vào `ACCOUNT_BALANCE_BUCKET` phục vụ báo cáo và tra soát lịch sử.
 - [ ] **Phase 3d: Phân Vùng Dữ Liệu Nóng Sang Lạnh (MoveDataHis Data Archival)**:
@@ -147,3 +150,4 @@ gantt
 | **2026-10-22** | Hoàn thành **Phase 2c - Deterministic Locking, Idempotency & Transfer API**: Thêm sequence diagram vòng đời giao dịch `.github/doc/TRANSACTION_LIFECYCLE.md`. Thực thi Early Claim `IN_FLIGHT` $\rightarrow$ `COMPLETED`, 3-tier composite idempotency (`IdempotencyService`), Invariant 3 deterministic pessimistic locking (`ORDER BY account_id ASC FOR UPDATE`), Invariant 2 hold & cutoff guards. Chống stale entity versioning bằng `findIdByAccountNumber`. Kiểm thử 50 luồng đối ứng $A \rightarrow B$ & $B \rightarrow A$ đạt 0 deadlock (ORA-00060). Toàn bộ 51/51 tests pass. | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-26** | Hoàn thành **Phase 2d - Reversal / Storno Transaction Engine**: Triển khai `reverse(ReverseCommand)`, tạo giao dịch đảo với `original_trx_id` và `reversal_reason`, sinh các chân đối xứng ngược chiều (`D` $\rightarrow$ `C`, `C` $\rightarrow$ `D`), cập nhật `is_reversed = 'Y'`. Thực thi 5 tầng bảo vệ: Double-Reversal Guard, Reversal-of-Reversal Guard, Invariant 2 Available Balance Guard, Invariant 3 Deterministic Locking, Invariant 4 Working Date & Cutoff Guard. Thêm 12 tests mới (9 unit tests + 3 integration tests). Toàn bộ 63/63 tests pass. | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-30** | Hoàn thành **Phase 3a - Bank Calendar & Operational Controls**: Thêm tài liệu `.github/doc/EOD_BATCH_PIPELINE.md`. Migration `V4__seed_bank_calendar.sql` (450 ngày lịch ngân hàng). Entity `BankCalendar`, `BankCalendarRepository`, `BankCalendarService` (xác định ngày làm việc, nhảy qua cuối tuần/ngày lễ, cấu hình ngày lễ). Bổ sung `setCutoff()`, `enableCutoff()`, `disableCutoff()`, và `rolloverWorkingDate()` vào `WorkingDateService`. Thêm 14 tests mới (10 unit tests + 4 integration tests). Toàn bộ 77/77 tests pass. | AI Agent & User | `BUILD SUCCESS` |
+| **2026-10-30** | Hoàn thành **Phase 3b - Daily Savings & CASA Interest Accrual**: Migration `V5__seed_eod_accrual_rules.sql` (`EOD_ACCRUAL` DR 8011, CR 4911). Triển khai `InterestAccrualService`, công thức chuẩn `ACT_365` / `ACT_360`, kiểm tra ngưỡng số dư tối thiểu `min_balance`, cập nhật `accrued_interest`, sinh bút toán kép cân đối Invariant 1 qua `PostingEngineService`. Cơ chế chống chạy trùng lặp `DuplicateAccrualException` với composite idempotency `ACCRUAL:<workingDate>`. Thêm 7 tests mới (6 unit tests + 1 integration test). Toàn bộ 84/84 tests pass. | AI Agent & User | `BUILD SUCCESS` |
