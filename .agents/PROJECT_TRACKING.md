@@ -99,16 +99,23 @@ gantt
 ---
 
 ### Giai Đoạn 3: Vận Hành Ngân Hàng & Chạy Lô Cuối Ngày (EOD) (Tuần 7 – 9)
-- [ ] **Ngữ Cảnh Ngày Làm Việc (Bank Working Date Context)**:
-  - [ ] Tách rời hoàn toàn khỏi đồng hồ vật lý `LocalDate.now()`.
-  - [ ] Interceptor chặn giao dịch nếu cờ `is_system_cutoff = 'Y'`.
-- [ ] **Spring Batch Pipeline EOD**:
-  - [ ] Step 1: Cắt sổ giao dịch ban ngày (`Cut-off`).
-  - [ ] Step 2: Tính lãi dồn tích hàng ngày cho tài khoản tiết kiệm/thanh toán theo công thức chuẩn (`Actual/365`).
-  - [ ] Step 3: Chụp ảnh số dư đóng sổ vào `ACCOUNT_BALANCE_BUCKET`.
-  - [ ] Step 4: Di chuyển dữ liệu đã hoàn tất từ bảng Hot sang bảng Cold (`MoveDataHisTask`).
-  - [ ] Step 5: Thẩm định Cân đối Kế toán Toàn hàng (Trial Balance Balancing Check).
-  - [ ] Step 6: Chuyển ngày làm việc sang ngày làm việc tiếp theo trong `BANK_CALENDAR`.
+- [x] **Phase 3a: Ngữ Cảnh Ngày Làm Việc & Kiểm Soát Vận Hành (Bank Calendar & Operational Controls)**:
+  - [x] Tách rời hoàn toàn khỏi đồng hồ vật lý `LocalDate.now()` (Bất biến 4).
+  - [x] Entity `BankCalendar`, `BankCalendarRepository`, `BankCalendarService` (xác định ngày làm việc, nhảy qua cuối tuần/ngày lễ).
+  - [x] Seed migration `V4__seed_bank_calendar.sql` 450 ngày lịch ngân hàng.
+  - [x] Cung cấp API quản trị `enableCutoff()`, `disableCutoff()`, `rolloverWorkingDate()`.
+  - [x] Interceptor / Guard chặn giao dịch chuyển tiền ban ngày khi cờ `is_system_cutoff = 'Y'`.
+- [ ] **Phase 3b: Tính Lãi Dồn Tích Cuối Ngày (Daily Savings & CASA Interest Accrual)**:
+  - [ ] Rule matrix `EOD_ACCRUAL`: Nợ Chi phí trả lãi (`8011`), Có Lãi dồn tích phải trả (`4911`).
+  - [ ] Tích lũy dồn tích hàng ngày: $\text{Daily Interest} = \text{round}(\text{ledger\_balance} \times \frac{\text{annual\_rate}}{\text{day\_count\_basis}}, 4)$ theo `ACT_365` / `ACT_360`.
+  - [ ] Cập nhật `accrued_interest` và sinh bút toán tổng hợp cân đối qua `PostingEngineService`.
+- [ ] **Phase 3c: Chụp Ảnh Số Dư Đóng Sổ (EOD Balance Snapshot Buckets)**:
+  - [ ] Lưu trữ số dư cuối ngày vào `ACCOUNT_BALANCE_BUCKET` phục vụ báo cáo và tra soát lịch sử.
+- [ ] **Phase 3d: Phân Vùng Dữ Liệu Nóng Sang Lạnh (MoveDataHis Data Archival)**:
+  - [ ] Di chuyển giao dịch và bút toán hoàn tất từ `TRX_JOURNAL_ACTIVE` / `JOURNAL_ENTRY_ACTIVE` sang `_HIS` (`TRX_JOURNAL_DONE` / `JOURNAL_ENTRY_HIS`).
+- [ ] **Phase 3e: Thẩm Định Cân Đối Kế Toán Toàn Hàng & Spring Batch EOD Pipeline**:
+  - [ ] Kiểm tra cân đối kế toán tổng hợp (Trial Balance Check: $\sum \text{Debit} = \sum \text{Credit}$).
+  - [ ] Đóng gói toàn bộ các bước vào Spring Batch Job `EOD_JOB` tuần tự, an toàn, hỗ trợ retry/restart.
 
 ---
 
@@ -139,3 +146,4 @@ gantt
 | **2026-10-21** | Hoàn thành **Phase 2a (Customer CIF)** & **Phase 2b (CASA & Holds)**: Entity `Customer`, `ProductCatalog`, `Account`, `AccountHold`, `SystemOperationalStatus`, `WorkingDateService`, `CustomerService`, `AccountService`, `HoldService`. Thực thi Bất biến 2 (`Available = Ledger - Hold`), optimistic concurrency `version`, sinh số CIF và BBAN. 38/38 tests pass. | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-22** | Hoàn thành **Phase 2c - Deterministic Locking, Idempotency & Transfer API**: Thêm sequence diagram vòng đời giao dịch `.github/doc/TRANSACTION_LIFECYCLE.md`. Thực thi Early Claim `IN_FLIGHT` $\rightarrow$ `COMPLETED`, 3-tier composite idempotency (`IdempotencyService`), Invariant 3 deterministic pessimistic locking (`ORDER BY account_id ASC FOR UPDATE`), Invariant 2 hold & cutoff guards. Chống stale entity versioning bằng `findIdByAccountNumber`. Kiểm thử 50 luồng đối ứng $A \rightarrow B$ & $B \rightarrow A$ đạt 0 deadlock (ORA-00060). Toàn bộ 51/51 tests pass. | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-26** | Hoàn thành **Phase 2d - Reversal / Storno Transaction Engine**: Triển khai `reverse(ReverseCommand)`, tạo giao dịch đảo với `original_trx_id` và `reversal_reason`, sinh các chân đối xứng ngược chiều (`D` $\rightarrow$ `C`, `C` $\rightarrow$ `D`), cập nhật `is_reversed = 'Y'`. Thực thi 5 tầng bảo vệ: Double-Reversal Guard, Reversal-of-Reversal Guard, Invariant 2 Available Balance Guard, Invariant 3 Deterministic Locking, Invariant 4 Working Date & Cutoff Guard. Thêm 12 tests mới (9 unit tests + 3 integration tests). Toàn bộ 63/63 tests pass. | AI Agent & User | `BUILD SUCCESS` |
+| **2026-10-30** | Hoàn thành **Phase 3a - Bank Calendar & Operational Controls**: Thêm tài liệu `.github/doc/EOD_BATCH_PIPELINE.md`. Migration `V4__seed_bank_calendar.sql` (450 ngày lịch ngân hàng). Entity `BankCalendar`, `BankCalendarRepository`, `BankCalendarService` (xác định ngày làm việc, nhảy qua cuối tuần/ngày lễ, cấu hình ngày lễ). Bổ sung `setCutoff()`, `enableCutoff()`, `disableCutoff()`, và `rolloverWorkingDate()` vào `WorkingDateService`. Thêm 14 tests mới (10 unit tests + 4 integration tests). Toàn bộ 77/77 tests pass. | AI Agent & User | `BUILD SUCCESS` |
