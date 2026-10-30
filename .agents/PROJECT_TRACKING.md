@@ -112,8 +112,12 @@ gantt
   - [x] `InterestAccrualService`, DTOs `AccountAccrualDetail`, `AccrualBatchResult`, ngoại lệ `DuplicateAccrualException`.
   - [x] Cập nhật `accrued_interest` và sinh bút toán tổng hợp cân đối qua `PostingEngineService`.
   - [x] Bảo vệ tính lũy kế duy nhất qua Idempotency Key `ACCRUAL:<workingDate>`.
-- [ ] **Phase 3c: Chụp Ảnh Số Dư Đóng Sổ (EOD Balance Snapshot Buckets)**:
-  - [ ] Lưu trữ số dư cuối ngày vào `ACCOUNT_BALANCE_BUCKET` phục vụ báo cáo và tra soát lịch sử.
+- [x] **Phase 3c: Chụp Ảnh Số Dư Đóng Sổ (EOD Balance Snapshot Buckets)**:
+  - [x] Entity `AccountBalanceBucket` & composite key `AccountBalanceBucketId` `(account_id, working_date)`.
+  - [x] Gom nhóm tổng phát sinh Nợ/Có trong ngày bằng truy vấn đơn lẻ `aggregateDailyTurnoverByValueDate` trên `JOURNAL_ENTRY_ACTIVE` (loại bỏ $N+1$).
+  - [x] Lưu trữ `closing_balance`, `daily_debit_sum`, `daily_credit_sum`, `accrued_interest_day` vào `ACCOUNT_BALANCE_BUCKET`.
+  - [x] Thẩm định phương trình bất biến dòng tiền: $\text{Previous Closing} + \text{Credit Turnover} - \text{Debit Turnover} \equiv \text{Closing Balance}$.
+  - [x] Ngăn chặn chụp ảnh trùng lặp qua ngoại lệ `DuplicateSnapshotException`.
 - [ ] **Phase 3d: Phân Vùng Dữ Liệu Nóng Sang Lạnh (MoveDataHis Data Archival)**:
   - [ ] Di chuyển giao dịch và bút toán hoàn tất từ `TRX_JOURNAL_ACTIVE` / `JOURNAL_ENTRY_ACTIVE` sang `_HIS` (`TRX_JOURNAL_DONE` / `JOURNAL_ENTRY_HIS`).
 - [ ] **Phase 3e: Thẩm Định Cân Đối Kế Toán Toàn Hàng & Spring Batch EOD Pipeline**:
@@ -151,3 +155,4 @@ gantt
 | **2026-10-26** | Hoàn thành **Phase 2d - Reversal / Storno Transaction Engine**: Triển khai `reverse(ReverseCommand)`, tạo giao dịch đảo với `original_trx_id` và `reversal_reason`, sinh các chân đối xứng ngược chiều (`D` $\rightarrow$ `C`, `C` $\rightarrow$ `D`), cập nhật `is_reversed = 'Y'`. Thực thi 5 tầng bảo vệ: Double-Reversal Guard, Reversal-of-Reversal Guard, Invariant 2 Available Balance Guard, Invariant 3 Deterministic Locking, Invariant 4 Working Date & Cutoff Guard. Thêm 12 tests mới (9 unit tests + 3 integration tests). Toàn bộ 63/63 tests pass. | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-30** | Hoàn thành **Phase 3a - Bank Calendar & Operational Controls**: Thêm tài liệu `.github/doc/EOD_BATCH_PIPELINE.md`. Migration `V4__seed_bank_calendar.sql` (450 ngày lịch ngân hàng). Entity `BankCalendar`, `BankCalendarRepository`, `BankCalendarService` (xác định ngày làm việc, nhảy qua cuối tuần/ngày lễ, cấu hình ngày lễ). Bổ sung `setCutoff()`, `enableCutoff()`, `disableCutoff()`, và `rolloverWorkingDate()` vào `WorkingDateService`. Thêm 14 tests mới (10 unit tests + 4 integration tests). Toàn bộ 77/77 tests pass. | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-30** | Hoàn thành **Phase 3b - Daily Savings & CASA Interest Accrual**: Migration `V5__seed_eod_accrual_rules.sql` (`EOD_ACCRUAL` DR 8011, CR 4911). Triển khai `InterestAccrualService`, công thức chuẩn `ACT_365` / `ACT_360`, kiểm tra ngưỡng số dư tối thiểu `min_balance`, cập nhật `accrued_interest`, sinh bút toán kép cân đối Invariant 1 qua `PostingEngineService`. Cơ chế chống chạy trùng lặp `DuplicateAccrualException` với composite idempotency `ACCRUAL:<workingDate>`. Thêm 7 tests mới (6 unit tests + 1 integration test). Toàn bộ 84/84 tests pass. | AI Agent & User | `BUILD SUCCESS` |
+| **2026-10-30** | Hoàn thành **Phase 3c - Balance Snapshot Buckets**: Entity `AccountBalanceBucket` & composite key `AccountBalanceBucketId` `(account_id, working_date)`. Triển khai `BalanceSnapshotService`, truy vấn tối ưu đơn lẻ `aggregateDailyTurnoverByValueDate` trên `JOURNAL_ENTRY_ACTIVE`, tính toán `daily_debit_sum`, `daily_credit_sum`, `accrued_interest_day`, và đóng băng `closing_balance`. Thẩm định phương trình bất biến dòng tiền $O + C - D = E$. Ngăn trùng lặp với `DuplicateSnapshotException`. Thêm 4 tests mới (3 unit tests + 1 integration test). Toàn bộ 88/88 tests pass. | AI Agent & User | `BUILD SUCCESS` |
