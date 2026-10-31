@@ -2,6 +2,7 @@ package com.cbs.transaction.repository;
 
 import com.cbs.transaction.domain.JournalEntryActive;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,6 +16,12 @@ public interface JournalEntryActiveRepository extends JpaRepository<JournalEntry
     List<JournalEntryActive> findByTrxIdOrderByEntryGroupAscEntryIndexAsc(Long trxId);
 
     List<JournalEntryActive> findByAccountId(Long accountId);
+
+    List<JournalEntryActive> findByTrxIdIn(List<Long> trxIds);
+
+    @Modifying
+    @Query("DELETE FROM JournalEntryActive j WHERE j.trxId IN :trxIds")
+    void deleteByTrxIdIn(@Param("trxIds") List<Long> trxIds);
 
     /**
      * Aggregates total debit and credit amounts per customer account for a specific value date.
