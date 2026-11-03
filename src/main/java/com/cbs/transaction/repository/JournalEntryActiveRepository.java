@@ -32,4 +32,10 @@ public interface JournalEntryActiveRepository extends JpaRepository<JournalEntry
            "WHERE j.valueDate = :valueDate AND j.accountId IS NOT NULL " +
            "GROUP BY j.accountId, j.drCr")
     List<Object[]> aggregateDailyTurnoverByValueDate(@Param("valueDate") LocalDate valueDate);
+
+    @Query("SELECT j.drCr, COALESCE(SUM(j.amount), 0) FROM JournalEntryActive j WHERE j.valueDate = :valueDate GROUP BY j.drCr")
+    List<Object[]> sumTurnoverByDrCr(@Param("valueDate") LocalDate valueDate);
+
+    @Query("SELECT j.drCr, COALESCE(SUM(j.amount), 0) FROM JournalEntryActive j WHERE j.valueDate = :valueDate AND j.glCode = :glCode GROUP BY j.drCr")
+    List<Object[]> sumTurnoverByGlCodeAndDrCr(@Param("valueDate") LocalDate valueDate, @Param("glCode") String glCode);
 }

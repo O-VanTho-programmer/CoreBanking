@@ -15,6 +15,7 @@ import com.cbs.transaction.domain.JournalEntryActive;
 import com.cbs.transaction.domain.TrxJournalActive;
 import com.cbs.transaction.repository.JournalEntryActiveRepository;
 import com.cbs.transaction.repository.TrxJournalActiveRepository;
+import com.cbs.transaction.repository.TrxJournalDoneRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,9 @@ class InterestAccrualServiceTest {
 
     @Mock
     private TrxJournalActiveRepository trxJournalActiveRepository;
+
+    @Mock
+    private TrxJournalDoneRepository trxJournalDoneRepository;
 
     @Mock
     private JournalEntryActiveRepository journalEntryActiveRepository;

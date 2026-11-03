@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface TrxJournalDoneRepository extends JpaRepository<TrxJournalDone, Long> {
 
     Optional<TrxJournalDone> findByChannelIdAndIdempotencyKey(String channelId, String idempotencyKey);
+
+    boolean existsByChannelIdAndIdempotencyKey(String channelId, String idempotencyKey);
 }

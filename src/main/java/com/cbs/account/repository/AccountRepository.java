@@ -38,4 +38,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM Account a WHERE a.accountId IN :ids ORDER BY a.accountId ASC")
     List<Account> findAndLockAccountsByIds(@Param("ids") List<Long> ids);
+
+    @Query("SELECT COALESCE(SUM(a.ledgerBalance), 0) FROM Account a WHERE a.glCode = :glCode")
+    java.math.BigDecimal sumLedgerBalanceByGlCode(@Param("glCode") String glCode);
 }

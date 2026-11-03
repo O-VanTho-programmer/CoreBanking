@@ -11,6 +11,7 @@ import com.cbs.eod.domain.AccountBalanceBucketId;
 import com.cbs.eod.dto.BalanceSnapshotBatchResult;
 import com.cbs.eod.repository.AccountBalanceBucketRepository;
 import com.cbs.transaction.repository.JournalEntryActiveRepository;
+import com.cbs.transaction.repository.JournalEntryDoneRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,7 @@ public class BalanceSnapshotService {
     private final AccountRepository accountRepository;
     private final ProductCatalogRepository productCatalogRepository;
     private final JournalEntryActiveRepository journalEntryActiveRepository;
+    private final JournalEntryDoneRepository journalEntryDoneRepository;
     private final AccountBalanceBucketRepository bucketRepository;
     private final WorkingDateService workingDateService;
     private final InterestAccrualService interestAccrualService;
@@ -68,8 +70,10 @@ public class BalanceSnapshotService {
             throw new DuplicateSnapshotException(effectiveWorkingDate);
         }
 
-        // 2. Aggregate daily debit and credit turnovers in a single query
-        List<Object[]> rawTurnovers = journalEntryActiveRepository.aggregateDailyTurnoverByValueDate(effectiveWorkingDate);
+        // 2. Aggregate daily debit and credit turnovers in a single query across active and done
+        List<Object[]> rawTurnovers = new ArrayList<>();
+        rawTurnovers.addAll(journalEntryActiveRepository.aggregateDailyTurnoverByValueDate(effectiveWorkingDate));
+        rawTurnovers.addAll(journalEntryDoneRepository.aggregateDailyTurnoverByValueDate(effectiveWorkingDate));
         Map<Long, BigDecimal[]> turnoverMap = new HashMap<>();
 
         for (Object[] row : rawTurnovers) {

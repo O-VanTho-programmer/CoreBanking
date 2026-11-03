@@ -10,6 +10,7 @@ import com.cbs.eod.domain.AccountBalanceBucket;
 import com.cbs.eod.dto.BalanceSnapshotBatchResult;
 import com.cbs.eod.repository.AccountBalanceBucketRepository;
 import com.cbs.transaction.repository.JournalEntryActiveRepository;
+import com.cbs.transaction.repository.JournalEntryDoneRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,9 @@ class BalanceSnapshotServiceTest {
 
     @Mock
     private JournalEntryActiveRepository journalEntryActiveRepository;
+
+    @Mock
+    private JournalEntryDoneRepository journalEntryDoneRepository;
 
     @Mock
     private AccountBalanceBucketRepository bucketRepository;

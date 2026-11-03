@@ -16,6 +16,7 @@ import com.cbs.transaction.domain.JournalEntryActive;
 import com.cbs.transaction.domain.TrxJournalActive;
 import com.cbs.transaction.repository.JournalEntryActiveRepository;
 import com.cbs.transaction.repository.TrxJournalActiveRepository;
+import com.cbs.transaction.repository.TrxJournalDoneRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -58,6 +59,7 @@ public class InterestAccrualService {
     private final PostingEngineService postingEngineService;
     private final WorkingDateService workingDateService;
     private final TrxJournalActiveRepository trxJournalActiveRepository;
+    private final TrxJournalDoneRepository trxJournalDoneRepository;
     private final JournalEntryActiveRepository journalEntryActiveRepository;
 
     /**
@@ -78,7 +80,8 @@ public class InterestAccrualService {
         log.info("Starting EOD Daily Interest Accrual for working date: {}", effectiveWorkingDate);
 
         // Idempotency check: Ensure accrual is only run once per working date
-        if (trxJournalActiveRepository.existsByChannelIdAndIdempotencyKey(ACCRUAL_CHANNEL, idempotencyKey)) {
+        if (trxJournalActiveRepository.existsByChannelIdAndIdempotencyKey(ACCRUAL_CHANNEL, idempotencyKey)
+                || trxJournalDoneRepository.existsByChannelIdAndIdempotencyKey(ACCRUAL_CHANNEL, idempotencyKey)) {
             log.warn("EOD Accrual has already been executed for working date: {}", effectiveWorkingDate);
             throw new DuplicateAccrualException(effectiveWorkingDate);
         }
