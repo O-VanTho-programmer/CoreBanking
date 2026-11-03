@@ -2,6 +2,7 @@ package com.cbs.lending.service;
 
 import com.cbs.account.domain.Account;
 import com.cbs.account.repository.AccountRepository;
+import com.cbs.common.codelist.service.CodeListService;
 import com.cbs.common.exception.AccountNotFoundException;
 import com.cbs.common.exception.CustomerNotFoundException;
 import com.cbs.common.exception.InvalidLoanParameterException;
@@ -11,6 +12,9 @@ import com.cbs.customer.repository.CustomerRepository;
 import com.cbs.lending.domain.CreditProductCatalog;
 import com.cbs.lending.domain.LoanAccount;
 import com.cbs.lending.domain.LoanSchedule;
+import com.cbs.lending.domain.LoanScheduleStatus;
+import com.cbs.lending.domain.LoanStatus;
+import com.cbs.lending.domain.RepaymentType;
 import com.cbs.lending.dto.AmortizationResult;
 import com.cbs.lending.dto.AmortizationScheduleItem;
 import com.cbs.lending.dto.CreateLoanContractCommand;
@@ -46,6 +50,7 @@ public class LoanAccountService {
     private final CustomerRepository customerRepository;
     private final AccountRepository accountRepository;
     private final AmortizationScheduleService amortizationScheduleService;
+    private final CodeListService codeListService;
     private final JdbcTemplate jdbcTemplate;
 
     /**
@@ -116,6 +121,14 @@ public class LoanAccountService {
                 ? command.repaymentTypeOverride().toUpperCase()
                 : product.getDefaultRepaymentType();
 
+        if (!codeListService.isValid("REPAYMENT_TYPE", repaymentType)) {
+            throw new InvalidLoanParameterException("Invalid repayment type: " + repaymentType);
+        }
+
+        if (!codeListService.isValid("LOAN_STATUS", LoanStatus.APPROVED.name())) {
+            throw new InvalidLoanParameterException("Invalid initial loan status: " + LoanStatus.APPROVED.name());
+        }
+
         LocalDate firstDueDate = (command.firstDueDate() != null)
                 ? command.firstDueDate()
                 : LocalDate.now().plusMonths(1);
@@ -135,7 +148,7 @@ public class LoanAccountService {
                 .termMonths(command.termMonths())
                 .repaymentType(repaymentType)
                 .dayCountBasis(product.getDayCountBasis())
-                .loanStatus("APPROVED")
+                .loanStatus(LoanStatus.APPROVED.name())
                 .createdAt(OffsetDateTime.now())
                 .build();
 
@@ -163,7 +176,7 @@ public class LoanAccountService {
                     .interestPaid(BigDecimal.ZERO.setScale(4, RoundingMode.HALF_UP))
                     .penaltyDue(BigDecimal.ZERO.setScale(4, RoundingMode.HALF_UP))
                     .penaltyPaid(BigDecimal.ZERO.setScale(4, RoundingMode.HALF_UP))
-                    .status("PENDING")
+                    .status(LoanScheduleStatus.PENDING.name())
                     .createdAt(OffsetDateTime.now())
                     .build());
         }

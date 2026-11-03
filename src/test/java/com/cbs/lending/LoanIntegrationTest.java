@@ -8,6 +8,9 @@ import com.cbs.customer.dto.CreateCustomerCommand;
 import com.cbs.customer.service.CustomerService;
 import com.cbs.lending.domain.LoanAccount;
 import com.cbs.lending.domain.LoanSchedule;
+import com.cbs.lending.domain.LoanScheduleStatus;
+import com.cbs.lending.domain.LoanStatus;
+import com.cbs.lending.domain.RepaymentType;
 import com.cbs.lending.dto.CreateLoanContractCommand;
 import com.cbs.lending.service.LoanAccountService;
 import org.junit.jupiter.api.DisplayName;
@@ -70,12 +73,12 @@ class LoanIntegrationTest {
 
         assertThat(loan.getLoanId()).isNotNull();
         assertThat(loan.getLoanAccountNumber()).startsWith("LN");
-        assertThat(loan.getLoanStatus()).isEqualTo("APPROVED");
+        assertThat(loan.getLoanStatus()).isEqualTo(LoanStatus.APPROVED.name());
         assertThat(loan.getPrincipalAmount()).isEqualByComparingTo("50000000.0000");
         assertThat(loan.getRemainingPrincipal()).isEqualByComparingTo("50000000.0000");
         assertThat(loan.getAnnualInterestRate()).isEqualByComparingTo("0.0950"); // 9.5%
         assertThat(loan.getOverdueInterestRate()).isEqualByComparingTo("0.1425"); // 14.25%
-        assertThat(loan.getRepaymentType()).isEqualTo("ANNUITY_EMI");
+        assertThat(loan.getRepaymentType()).isEqualTo(RepaymentType.ANNUITY_EMI.name());
         assertThat(loan.getMaturityDate()).isEqualTo(firstDueDate.plusMonths(11));
 
         // 4. Verify LOAN_SCHEDULE generated in Database
@@ -87,7 +90,7 @@ class LoanIntegrationTest {
             LoanSchedule s = schedules.get(i);
             assertThat(s.getPeriodNumber()).isEqualTo(i + 1);
             assertThat(s.getDueDate()).isEqualTo(firstDueDate.plusMonths(i));
-            assertThat(s.getStatus()).isEqualTo("PENDING");
+            assertThat(s.getStatus()).isEqualTo(LoanScheduleStatus.PENDING.name());
             assertThat(s.getPrincipalDue()).isGreaterThan(BigDecimal.ZERO);
             assertThat(s.getInterestDue()).isGreaterThan(BigDecimal.ZERO);
             assertThat(s.getTotalInstallment()).isEqualByComparingTo(s.getPrincipalDue().add(s.getInterestDue()));
@@ -134,7 +137,7 @@ class LoanIntegrationTest {
                 .build());
 
         assertThat(loan.getLoanId()).isNotNull();
-        assertThat(loan.getRepaymentType()).isEqualTo("EQUAL_PRINCIPAL");
+        assertThat(loan.getRepaymentType()).isEqualTo(RepaymentType.EQUAL_PRINCIPAL.name());
         assertThat(loan.getAnnualInterestRate()).isEqualByComparingTo("0.0800"); // 8.0%
         assertThat(loan.getOverdueInterestRate()).isEqualByComparingTo("0.1200"); // 12.0%
 

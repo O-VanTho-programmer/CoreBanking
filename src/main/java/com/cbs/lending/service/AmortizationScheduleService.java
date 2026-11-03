@@ -1,5 +1,6 @@
 package com.cbs.lending.service;
 
+import com.cbs.lending.domain.RepaymentType;
 import com.cbs.lending.dto.AmortizationResult;
 import com.cbs.lending.dto.AmortizationScheduleItem;
 import lombok.extern.slf4j.Slf4j;
@@ -47,9 +48,9 @@ public class AmortizationScheduleService {
             throw new IllegalArgumentException("First due date cannot be null");
         }
 
-        if ("EQUAL_PRINCIPAL".equalsIgnoreCase(repaymentType)) {
+        if (RepaymentType.EQUAL_PRINCIPAL.name().equalsIgnoreCase(repaymentType)) {
             return generateEqualPrincipalSchedule(principal, annualRate, termMonths, firstDueDate);
-        } else if ("ANNUITY_EMI".equalsIgnoreCase(repaymentType)) {
+        } else if (RepaymentType.ANNUITY_EMI.name().equalsIgnoreCase(repaymentType)) {
             return generateAnnuityEmiSchedule(principal, annualRate, termMonths, firstDueDate);
         } else {
             throw new IllegalArgumentException("Unsupported repayment type: " + repaymentType);
@@ -107,7 +108,7 @@ public class AmortizationScheduleService {
         }
 
         return AmortizationResult.builder()
-                .repaymentType("EQUAL_PRINCIPAL")
+                .repaymentType(RepaymentType.EQUAL_PRINCIPAL.name())
                 .totalPrincipal(totalPrincipal)
                 .totalInterest(totalInterest)
                 .totalPayment(totalPrincipal.add(totalInterest))
@@ -180,7 +181,7 @@ public class AmortizationScheduleService {
         }
 
         return AmortizationResult.builder()
-                .repaymentType("ANNUITY_EMI")
+                .repaymentType(RepaymentType.ANNUITY_EMI.name())
                 .totalPrincipal(totalPrincipal)
                 .totalInterest(totalInterest)
                 .totalPayment(totalPrincipal.add(totalInterest))

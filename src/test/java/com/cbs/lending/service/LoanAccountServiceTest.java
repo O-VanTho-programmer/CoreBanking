@@ -2,6 +2,7 @@ package com.cbs.lending.service;
 
 import com.cbs.account.domain.Account;
 import com.cbs.account.repository.AccountRepository;
+import com.cbs.common.codelist.service.CodeListService;
 import com.cbs.common.exception.AccountNotFoundException;
 import com.cbs.common.exception.CustomerNotFoundException;
 import com.cbs.common.exception.InvalidLoanParameterException;
@@ -59,6 +60,9 @@ class LoanAccountServiceTest {
     private AmortizationScheduleService amortizationScheduleService;
 
     @Mock
+    private CodeListService codeListService;
+
+    @Mock
     private JdbcTemplate jdbcTemplate;
 
     @InjectMocks
@@ -111,6 +115,8 @@ class LoanAccountServiceTest {
         when(accountRepository.findById(200L)).thenReturn(Optional.of(casaAccount));
         when(creditProductCatalogRepository.findByProductCodeAndIsActive("LN_CONSUMER_VND", "Y"))
                 .thenReturn(Optional.of(consumerProduct));
+        when(codeListService.isValid(eq("REPAYMENT_TYPE"), eq("ANNUITY_EMI"))).thenReturn(true);
+        when(codeListService.isValid(eq("LOAN_STATUS"), eq("APPROVED"))).thenReturn(true);
         when(jdbcTemplate.queryForObject(anyString(), eq(Long.class))).thenReturn(5555L);
 
         when(loanAccountRepository.save(any(LoanAccount.class))).thenAnswer(invocation -> {
@@ -226,5 +232,28 @@ class LoanAccountServiceTest {
         assertThatThrownBy(() -> loanAccountService.createLoanContract(cmdAboveMax))
                 .isInstanceOf(InvalidLoanParameterException.class)
                 .hasMessageContaining("exceeds product maximum");
+    }
+
+    @Test
+    @DisplayName("Validation: Rejects when Repayment Type is not recognized in CodeList")
+    void testInvalidRepaymentType() {
+        CreateLoanContractCommand cmd = CreateLoanContractCommand.builder()
+                .customerId(100L)
+                .linkedCasaAccountId(200L)
+                .productCode("LN_CONSUMER_VND")
+                .principalAmount(new BigDecimal("50000000.0000"))
+                .termMonths(12)
+                .repaymentTypeOverride("UNKNOWN_METHOD")
+                .build();
+
+        when(customerRepository.existsById(100L)).thenReturn(true);
+        when(accountRepository.findById(200L)).thenReturn(Optional.of(casaAccount));
+        when(creditProductCatalogRepository.findByProductCodeAndIsActive("LN_CONSUMER_VND", "Y"))
+                .thenReturn(Optional.of(consumerProduct));
+        when(codeListService.isValid(eq("REPAYMENT_TYPE"), eq("UNKNOWN_METHOD"))).thenReturn(false);
+
+        assertThatThrownBy(() -> loanAccountService.createLoanContract(cmd))
+                .isInstanceOf(InvalidLoanParameterException.class)
+                .hasMessageContaining("Invalid repayment type: UNKNOWN_METHOD");
     }
 }
