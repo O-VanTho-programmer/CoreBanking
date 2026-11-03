@@ -1,9 +1,9 @@
 package com.cbs.eod.service;
 
 import com.cbs.account.domain.Account;
-import com.cbs.account.domain.ProductCatalog;
+import com.cbs.account.domain.DptProductCatalog;
 import com.cbs.account.repository.AccountRepository;
-import com.cbs.account.repository.ProductCatalogRepository;
+import com.cbs.account.repository.DptProductCatalogRepository;
 import com.cbs.accounting.dto.JournalLeg;
 import com.cbs.accounting.dto.PostingRequest;
 import com.cbs.accounting.dto.PostingResult;
@@ -55,7 +55,7 @@ public class InterestAccrualService {
     public static final String ACCRUAL_MAKER_ID = "SYSTEM_EOD";
 
     private final AccountRepository accountRepository;
-    private final ProductCatalogRepository productCatalogRepository;
+    private final DptProductCatalogRepository dptProductCatalogRepository;
     private final PostingEngineService postingEngineService;
     private final WorkingDateService workingDateService;
     private final TrxJournalActiveRepository trxJournalActiveRepository;
@@ -89,15 +89,15 @@ public class InterestAccrualService {
         List<Account> activeAccounts = accountRepository.findByStatus("ACTIVE");
         log.info("Found {} active accounts for interest accrual evaluation", activeAccounts.size());
 
-        Map<String, ProductCatalog> productCache = new HashMap<>();
+        Map<String, DptProductCatalog> productCache = new HashMap<>();
         List<AccountAccrualDetail> accountDetails = new ArrayList<>();
         BigDecimal totalInterestAccrued = BigDecimal.ZERO.setScale(4, RoundingMode.HALF_UP);
         int accountsAccruedCount = 0;
 
         for (Account account : activeAccounts) {
-            ProductCatalog product = productCache.computeIfAbsent(
+            DptProductCatalog product = productCache.computeIfAbsent(
                     account.getProductCode(),
-                    code -> productCatalogRepository.findById(code).orElse(null)
+                    code -> dptProductCatalogRepository.findById(code).orElse(null)
             );
 
             if (product == null || !"Y".equals(product.getIsActive())) {

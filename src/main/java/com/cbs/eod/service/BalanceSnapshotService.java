@@ -1,9 +1,9 @@
 package com.cbs.eod.service;
 
 import com.cbs.account.domain.Account;
-import com.cbs.account.domain.ProductCatalog;
+import com.cbs.account.domain.DptProductCatalog;
 import com.cbs.account.repository.AccountRepository;
-import com.cbs.account.repository.ProductCatalogRepository;
+import com.cbs.account.repository.DptProductCatalogRepository;
 import com.cbs.admin.service.WorkingDateService;
 import com.cbs.common.exception.DuplicateSnapshotException;
 import com.cbs.eod.domain.AccountBalanceBucket;
@@ -41,7 +41,7 @@ import java.util.Map;
 public class BalanceSnapshotService {
 
     private final AccountRepository accountRepository;
-    private final ProductCatalogRepository productCatalogRepository;
+    private final DptProductCatalogRepository dptProductCatalogRepository;
     private final JournalEntryActiveRepository journalEntryActiveRepository;
     private final JournalEntryDoneRepository journalEntryDoneRepository;
     private final AccountBalanceBucketRepository bucketRepository;
@@ -97,7 +97,7 @@ public class BalanceSnapshotService {
         List<Account> accounts = accountRepository.findAll();
         log.info("Processing {} accounts for balance snapshot", accounts.size());
 
-        Map<String, ProductCatalog> productCache = new HashMap<>();
+        Map<String, DptProductCatalog> productCache = new HashMap<>();
         List<AccountBalanceBucket> buckets = new ArrayList<>(accounts.size());
 
         BigDecimal totalClosingBalance = BigDecimal.ZERO.setScale(4, RoundingMode.HALF_UP);
@@ -120,9 +120,9 @@ public class BalanceSnapshotService {
 
             // Resolve daily accrued interest for this specific day
             BigDecimal dailyAccruedInterest = BigDecimal.ZERO.setScale(4, RoundingMode.HALF_UP);
-            ProductCatalog product = productCache.computeIfAbsent(
+            DptProductCatalog product = productCache.computeIfAbsent(
                     account.getProductCode(),
-                    code -> productCatalogRepository.findById(code).orElse(null)
+                    code -> dptProductCatalogRepository.findById(code).orElse(null)
             );
 
             if (product != null && "Y".equals(product.getIsActive())) {

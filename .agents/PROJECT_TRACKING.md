@@ -131,13 +131,19 @@ gantt
 ---
 
 ### Giai Đoạn 4: Module Tín Dụng & Hoàn Thiện Portfolio (Tuần 10 – 12)
-- [ ] **Hợp Đồng Vay & Lập Lịch Trả Nợ (Loan Amortization)**:
-  - [ ] Lập lịch trả nợ Gốc đều (Equal Principal) và Niên kim cố định (Annuity / EMI) bằng `BigDecimal` chuẩn xác.
-  - [ ] Giải ngân vào tài khoản CASA của khách hàng thông qua Rule Matrix.
-- [ ] **Thu Nợ Tự Động & Phân Bổ Quá Hạn**:
+- [x] **Phase 4a: Danh Mục Sản Phẩm Tín Dụng, Hợp Đồng Vay & Khấu Hao (Credit Product, Loan Contract & Amortization Engine)**:
+  - [x] Migration `V6__rename_to_dpt_product_catalog.sql`: Tách riêng danh mục tiền gửi `DPT_PRODUCT_CATALOG`.
+  - [x] Migration `V7__create_lending_schema.sql`: Seed GL Tín dụng (`2000`, `2111`, `2112`, `3000`, `3911`, `7020`), tạo bảng danh mục sản phẩm cho vay `CREDIT_PRODUCT_CATALOG` (`LN_CONSUMER_VND`, `LN_MORTGAGE_VND`), hợp đồng vay `LOAN_ACCOUNT` và bảng lịch trả nợ $N$ kỳ `LOAN_SCHEDULE`.
+  - [x] Entities & Repositories: `CreditProductCatalog`, `LoanAccount`, `LoanSchedule`.
+  - [x] `AmortizationScheduleService`: Tính toán chính xác lịch trả nợ Gốc đều (`EQUAL_PRINCIPAL`) và Niên kim cố định (`ANNUITY_EMI`), xử lý hấp thu chênh lệch làm tròn ở kỳ cuối cùng (bảo đảm dư nợ cuối cùng về đúng `0.0000`).
+  - [x] `LoanAccountService`: Tạo hợp đồng vay, thẩm định chính sách sản phẩm, tạo lịch $N$ kỳ `PENDING`. Thêm 12 tests mới (10 unit tests + 2 integration tests). Toàn bộ 110/110 tests pass.
+- [ ] **Phase 4b: Giải Ngân Khoản Vay Qua Posting Matrix (Loan Disbursement)**:
+  - [ ] Seed Rule Matrix `LOAN_DISBURSE`: Nợ `2111` (Dư nợ cho vay), Có `4211` (Tài khoản CASA khách hàng).
+  - [ ] `LoanDisbursementService`: Kích hoạt giải ngân, ghi có vào CASA và chuyển hợp đồng sang `ACTIVE`.
+- [ ] **Phase 4c: Thu Nợ Tự Động & Thác Phân Bổ (EOD Auto-Repayment Waterfall)**:
   - [ ] Tự động trích nợ từ CASA trong EOD batch.
-  - [ ] Phân bổ thứ tự thu hồi nợ: Phí $\rightarrow$ Phạt quá hạn $\rightarrow$ Lãi quá hạn $\rightarrow$ Gốc quá hạn.
-- [ ] **Kiểm Thử Hiệu Năng & Tài Liệu Portfolio**:
+  - [ ] Phân bổ thứ tự thu hồi nợ: Phí $\rightarrow$ Phạt quá hạn $\rightarrow$ Lãi quá hạn $\rightarrow$ Lãi trong hạn $\rightarrow$ Gốc quá hạn $\rightarrow$ Gốc trong hạn.
+- [ ] **Phase 4d: Kiểm Thử Hiệu Năng & Tài Liệu Portfolio (Stress Test & Showcase)**:
   - [ ] Stress-test mô phỏng hàng nghìn luồng Virtual Threads nộp/rút/chuyển tiền đồng thời.
   - [ ] Viết báo cáo kỹ thuật và sơ đồ kiến trúc sẵn sàng cho phỏng vấn Senior Backend Core Banking.
 
@@ -162,3 +168,4 @@ gantt
 | **2026-10-30** | Hoàn thành **Phase 3c - Balance Snapshot Buckets**: Entity `AccountBalanceBucket` & composite key `AccountBalanceBucketId` `(account_id, working_date)`. Triển khai `BalanceSnapshotService`, truy vấn tối ưu đơn lẻ `aggregateDailyTurnoverByValueDate` trên `JOURNAL_ENTRY_ACTIVE`, tính toán `daily_debit_sum`, `daily_credit_sum`, `accrued_interest_day`, và đóng băng `closing_balance`. Thẩm định phương trình bất biến dòng tiền $O + C - D = E$. Ngăn trùng lặp với `DuplicateSnapshotException`. Thêm 4 tests mới (3 unit tests + 1 integration test). Toàn bộ 88/88 tests pass. | AI Agent & User | `BUILD SUCCESS` |
 | **2026-10-31** | Hoàn thành **Phase 3d - Hot-to-Cold Data Archival (MoveDataHis)**: Entity `JournalEntryDone` & `JournalEntryDoneRepository`. Triển khai `DataArchivalService` di chuyển an toàn toàn bộ giao dịch và bút toán `COMPLETED`/`FAILED` từ bảng Hot sang Cold (`TRX_JOURNAL_DONE`, `JOURNAL_ENTRY_DONE`), ngắt khóa ngoại tự tham chiếu `original_trx_id` trên Active trước khi xóa, bảo toàn toàn vẹn gia phả Storno lineage. Anomaly Guard chặn lưu trữ nếu còn giao dịch `IN_FLIGHT` (`InFlightTransactionFoundException`). Thêm 5 tests mới (3 unit tests + 2 integration tests). Toàn bộ 93/93 tests pass. | AI Agent & User | `BUILD SUCCESS` |
 | **2026-11-02** | Hoàn thành **Phase 3e - Trial Balance Reconciler & Spring Batch EOD Pipeline (`eodJob`)**: Triển khai `TrialBalanceService` thực thi Triple Reconciliation (Macro Equilibrium, Subledger vs GL Control 4211, Live Account vs Snapshot Bucket). Spring Batch 5 `EodBatchConfig` với 6 tasklet steps tuần tự: Cutoff $\rightarrow$ Accrual $\rightarrow$ Snapshot $\rightarrow$ Archival $\rightarrow$ Trial Balance $\rightarrow$ Rollover. `EodJobLauncherService` xuất báo cáo tổng hợp `EodExecutionReport`. Thêm 5 tests mới (4 unit tests + 1 full pipeline integration test). Toàn bộ 98/98 tests pass. | AI Agent & User | `BUILD SUCCESS` |
+| **2026-11-03** | Hoàn thành **Phase 4a - Credit Product, Loan Contract & Amortization Engine**: Migration `V6` tách riêng `DPT_PRODUCT_CATALOG`. Migration `V7` tạo `CREDIT_PRODUCT_CATALOG`, `LOAN_ACCOUNT`, `LOAN_SCHEDULE`, seed GL 2000, 2111, 2112, 3000, 3911, 7020. Triển khai `AmortizationScheduleService` tính toán chính xác hai phương pháp `EQUAL_PRINCIPAL` và `ANNUITY_EMI` (xử lý triệt để phần dư làm tròn cent kỳ cuối). Triển khai `LoanAccountService` mở hợp đồng vay và sinh $N$ kỳ `LOAN_SCHEDULE`. Thêm 12 tests mới (10 unit tests + 2 integration tests). Toàn bộ 110/110 tests pass. | AI Agent & User | `BUILD SUCCESS` |

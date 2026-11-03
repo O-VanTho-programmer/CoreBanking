@@ -1,9 +1,9 @@
 package com.cbs.eod.service;
 
 import com.cbs.account.domain.Account;
-import com.cbs.account.domain.ProductCatalog;
+import com.cbs.account.domain.DptProductCatalog;
 import com.cbs.account.repository.AccountRepository;
-import com.cbs.account.repository.ProductCatalogRepository;
+import com.cbs.account.repository.DptProductCatalogRepository;
 import com.cbs.accounting.dto.JournalLeg;
 import com.cbs.accounting.dto.PostingRequest;
 import com.cbs.accounting.dto.PostingResult;
@@ -45,7 +45,7 @@ class InterestAccrualServiceTest {
     private AccountRepository accountRepository;
 
     @Mock
-    private ProductCatalogRepository productCatalogRepository;
+    private DptProductCatalogRepository dptProductCatalogRepository;
 
     @Mock
     private PostingEngineService postingEngineService;
@@ -67,11 +67,11 @@ class InterestAccrualServiceTest {
 
     private final LocalDate testDate = LocalDate.of(2026, 10, 14);
 
-    private ProductCatalog standardProduct;
+    private DptProductCatalog standardProduct;
 
     @BeforeEach
     void setUp() {
-        standardProduct = ProductCatalog.builder()
+        standardProduct = DptProductCatalog.builder()
                 .productCode("CASA_VND")
                 .productName("Tai khoan thanh toan ca nhan VND")
                 .currency("VND")
@@ -149,7 +149,7 @@ class InterestAccrualServiceTest {
         when(trxJournalActiveRepository.existsByChannelIdAndIdempotencyKey("BATCH", "ACCRUAL:" + testDate))
                 .thenReturn(false);
         when(accountRepository.findByStatus("ACTIVE")).thenReturn(List.of(account1, account2));
-        when(productCatalogRepository.findById("CASA_VND")).thenReturn(Optional.of(standardProduct));
+        when(dptProductCatalogRepository.findById("CASA_VND")).thenReturn(Optional.of(standardProduct));
 
         // Account 1: 10M * 0.005 / 365 = 136.9863
         // Account 2: 20M * 0.005 / 365 = 273.9726
@@ -210,7 +210,7 @@ class InterestAccrualServiceTest {
         when(trxJournalActiveRepository.existsByChannelIdAndIdempotencyKey("BATCH", "ACCRUAL:" + testDate))
                 .thenReturn(false);
         when(accountRepository.findByStatus("ACTIVE")).thenReturn(List.of(accountBelowMin));
-        when(productCatalogRepository.findById("CASA_VND")).thenReturn(Optional.of(standardProduct));
+        when(dptProductCatalogRepository.findById("CASA_VND")).thenReturn(Optional.of(standardProduct));
 
         AccrualBatchResult result = accrualService.executeDailyAccrual(testDate);
 

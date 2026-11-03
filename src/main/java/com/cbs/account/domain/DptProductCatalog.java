@@ -15,17 +15,17 @@ import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 
 /**
- * Entity mapping table PRODUCT_CATALOG.
+ * Entity mapping table DPT_PRODUCT_CATALOG.
  * Master configuration template for deposit products (CASA, Term Deposits).
  */
 @Entity
-@Table(name = "PRODUCT_CATALOG")
+@Table(name = "DPT_PRODUCT_CATALOG")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProductCatalog {
+public class DptProductCatalog {
 
     @Id
     @Column(name = "product_code", length = 10, nullable = false)

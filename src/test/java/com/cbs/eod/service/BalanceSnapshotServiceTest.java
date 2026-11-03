@@ -1,9 +1,9 @@
 package com.cbs.eod.service;
 
 import com.cbs.account.domain.Account;
-import com.cbs.account.domain.ProductCatalog;
+import com.cbs.account.domain.DptProductCatalog;
 import com.cbs.account.repository.AccountRepository;
-import com.cbs.account.repository.ProductCatalogRepository;
+import com.cbs.account.repository.DptProductCatalogRepository;
 import com.cbs.admin.service.WorkingDateService;
 import com.cbs.common.exception.DuplicateSnapshotException;
 import com.cbs.eod.domain.AccountBalanceBucket;
@@ -37,7 +37,7 @@ class BalanceSnapshotServiceTest {
     private AccountRepository accountRepository;
 
     @Mock
-    private ProductCatalogRepository productCatalogRepository;
+    private DptProductCatalogRepository dptProductCatalogRepository;
 
     @Mock
     private JournalEntryActiveRepository journalEntryActiveRepository;
@@ -58,11 +58,11 @@ class BalanceSnapshotServiceTest {
     private BalanceSnapshotService balanceSnapshotService;
 
     private final LocalDate testDate = LocalDate.of(2026, 10, 14);
-    private ProductCatalog product;
+    private DptProductCatalog product;
 
     @BeforeEach
     void setUp() {
-        product = ProductCatalog.builder()
+        product = DptProductCatalog.builder()
                 .productCode("CASA_VND")
                 .annualRate(new BigDecimal("0.0050"))
                 .dayCountBasis("ACT_365")
@@ -90,7 +90,7 @@ class BalanceSnapshotServiceTest {
 
         when(bucketRepository.existsByWorkingDate(testDate)).thenReturn(false);
         when(accountRepository.findAll()).thenReturn(List.of(account1, account2));
-        when(productCatalogRepository.findById("CASA_VND")).thenReturn(Optional.of(product));
+        when(dptProductCatalogRepository.findById("CASA_VND")).thenReturn(Optional.of(product));
 
         // Mock aggregated turnover: Account 101 has Debit 1M, Credit 3M; Account 102 has 0
         List<Object[]> rawTurnovers = List.of(

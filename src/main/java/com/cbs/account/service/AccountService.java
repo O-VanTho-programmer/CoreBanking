@@ -1,10 +1,10 @@
 package com.cbs.account.service;
 
 import com.cbs.account.domain.Account;
-import com.cbs.account.domain.ProductCatalog;
+import com.cbs.account.domain.DptProductCatalog;
 import com.cbs.account.dto.OpenAccountCommand;
 import com.cbs.account.repository.AccountRepository;
-import com.cbs.account.repository.ProductCatalogRepository;
+import com.cbs.account.repository.DptProductCatalogRepository;
 import com.cbs.admin.service.WorkingDateService;
 import com.cbs.common.codelist.service.CodeListService;
 import com.cbs.common.exception.AccountNotFoundException;
@@ -31,7 +31,7 @@ import java.util.List;
 public class AccountService {
 
     private final AccountRepository accountRepository;
-    private final ProductCatalogRepository productCatalogRepository;
+    private final DptProductCatalogRepository dptProductCatalogRepository;
     private final CustomerRepository customerRepository;
     private final WorkingDateService workingDateService;
     private final CodeListService codeListService;
@@ -51,7 +51,7 @@ public class AccountService {
         }
 
         // 2. Verify product catalog exists and is active
-        ProductCatalog product = productCatalogRepository.findByProductCodeAndIsActive(command.productCode(), "Y")
+        DptProductCatalog product = dptProductCatalogRepository.findByProductCodeAndIsActive(command.productCode(), "Y")
                 .orElseThrow(() -> new ProductNotFoundException(command.productCode()));
 
         // 3. Validate account status
