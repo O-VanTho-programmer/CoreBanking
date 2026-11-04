@@ -23,4 +23,7 @@ public interface LoanAccountRepository extends JpaRepository<LoanAccount, Long> 
     List<LoanAccount> findByCustomerId(Long customerId);
 
     List<LoanAccount> findByLoanStatus(String loanStatus);
+
+    @Query("SELECT l FROM LoanAccount l WHERE l.loanStatus IN ('ACTIVE', 'OVERDUE')")
+    List<LoanAccount> findActiveOrOverdueLoans();
 }

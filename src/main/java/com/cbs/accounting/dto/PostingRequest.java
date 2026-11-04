@@ -18,6 +18,8 @@ public record PostingRequest(
         BigDecimal feeAmount,
         BigDecimal taxAmount,
         BigDecimal penaltyAmount,
+        BigDecimal principalAmount,
+        BigDecimal interestAmount,
         Long customerAccountId,
         String customerGlCode,
         Long targetAccountId,

@@ -75,6 +75,27 @@ public class LoanAccount {
     @Builder.Default
     private String loanStatus = "APPROVED";
 
+    @Column(name = "loan_group", nullable = false)
+    @Builder.Default
+    private Integer loanGroup = 1;
+
+    @Column(name = "days_past_due", nullable = false)
+    @Builder.Default
+    private Integer daysPastDue = 0;
+
+    @Column(name = "specific_provision_amount", nullable = false)
+    @Builder.Default
+    private BigDecimal specificProvisionAmount = BigDecimal.ZERO;
+
+    @Column(name = "general_provision_amount", nullable = false)
+    @Builder.Default
+    private BigDecimal generalProvisionAmount = BigDecimal.ZERO;
+
+    public BigDecimal getTotalProvisionAmount() {
+        return (generalProvisionAmount != null ? generalProvisionAmount : BigDecimal.ZERO)
+                .add(specificProvisionAmount != null ? specificProvisionAmount : BigDecimal.ZERO);
+    }
+
     @Column(name = "disbursed_at")
     private OffsetDateTime disbursedAt;
 

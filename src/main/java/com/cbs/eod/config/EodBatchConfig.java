@@ -5,6 +5,8 @@ import com.cbs.eod.service.BalanceSnapshotService;
 import com.cbs.eod.service.DataArchivalService;
 import com.cbs.eod.service.InterestAccrualService;
 import com.cbs.eod.service.TrialBalanceService;
+import com.cbs.lending.service.LoanAgingService;
+import com.cbs.lending.service.LoanRepaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -42,6 +44,8 @@ public class EodBatchConfig {
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
     private final WorkingDateService workingDateService;
+    private final LoanRepaymentService loanRepaymentService;
+    private final LoanAgingService loanAgingService;
     private final InterestAccrualService interestAccrualService;
     private final BalanceSnapshotService balanceSnapshotService;
     private final DataArchivalService dataArchivalService;
@@ -49,6 +53,8 @@ public class EodBatchConfig {
 
     @Bean
     public Job eodJob(Step cutoffStep,
+                      Step loanRepaymentStep,
+                      Step loanAgingStep,
                       Step accrualStep,
                       Step snapshotStep,
                       Step archivalStep,
@@ -56,6 +62,8 @@ public class EodBatchConfig {
                       Step rolloverStep) {
         return new JobBuilder(EOD_JOB_NAME, jobRepository)
                 .start(cutoffStep)
+                .next(loanRepaymentStep)
+                .next(loanAgingStep)
                 .next(accrualStep)
                 .next(snapshotStep)
                 .next(archivalStep)
@@ -68,8 +76,32 @@ public class EodBatchConfig {
     public Step cutoffStep() {
         return new StepBuilder("cutoffStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
-                    log.info("[EOD Step 1/6] Enabling Cut-off: Locking daytime transaction channels");
+                    log.info("[EOD Step 1/8] Enabling Cut-off: Locking daytime transaction channels");
                     workingDateService.enableCutoff();
+                    return RepeatStatus.FINISHED;
+                }, transactionManager)
+                .build();
+    }
+
+    @Bean
+    public Step loanRepaymentStep() {
+        return new StepBuilder("loanRepaymentStep", jobRepository)
+                .tasklet((contribution, chunkContext) -> {
+                    LocalDate workingDate = extractWorkingDate(chunkContext);
+                    log.info("[EOD Step 2/8] Executing Automated Loan Repayment for date: {}", workingDate);
+                    loanRepaymentService.executeAutoRepayment(workingDate);
+                    return RepeatStatus.FINISHED;
+                }, transactionManager)
+                .build();
+    }
+
+    @Bean
+    public Step loanAgingStep() {
+        return new StepBuilder("loanAgingStep", jobRepository)
+                .tasklet((contribution, chunkContext) -> {
+                    LocalDate workingDate = extractWorkingDate(chunkContext);
+                    log.info("[EOD Step 3/8] Executing Loan Aging, Classification & Provisioning for date: {}", workingDate);
+                    loanAgingService.executeAgingAndProvisioning(workingDate);
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
                 .build();
@@ -80,7 +112,7 @@ public class EodBatchConfig {
         return new StepBuilder("accrualStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     LocalDate workingDate = extractWorkingDate(chunkContext);
-                    log.info("[EOD Step 2/6] Executing Daily Savings and CASA Interest Accrual for date: {}", workingDate);
+                    log.info("[EOD Step 4/8] Executing Daily Savings and CASA Interest Accrual for date: {}", workingDate);
                     interestAccrualService.executeDailyAccrual(workingDate);
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
@@ -92,7 +124,7 @@ public class EodBatchConfig {
         return new StepBuilder("snapshotStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     LocalDate workingDate = extractWorkingDate(chunkContext);
-                    log.info("[EOD Step 3/6] Taking Daily Balance Snapshot Buckets for date: {}", workingDate);
+                    log.info("[EOD Step 5/8] Taking Daily Balance Snapshot Buckets for date: {}", workingDate);
                     balanceSnapshotService.takeDailySnapshot(workingDate);
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
@@ -104,7 +136,7 @@ public class EodBatchConfig {
         return new StepBuilder("archivalStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     LocalDate workingDate = extractWorkingDate(chunkContext);
-                    log.info("[EOD Step 4/6] Archiving completed data to cold storage (MoveDataHis) for date: {}", workingDate);
+                    log.info("[EOD Step 6/8] Archiving completed data to cold storage (MoveDataHis) for date: {}", workingDate);
                     dataArchivalService.archiveCompletedTransactions(workingDate);
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
@@ -116,7 +148,7 @@ public class EodBatchConfig {
         return new StepBuilder("trialBalanceStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     LocalDate workingDate = extractWorkingDate(chunkContext);
-                    log.info("[EOD Step 5/6] Verifying General Ledger Trial Balance for date: {}", workingDate);
+                    log.info("[EOD Step 7/8] Verifying General Ledger Trial Balance for date: {}", workingDate);
                     trialBalanceService.verifyTrialBalance(workingDate);
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
@@ -127,7 +159,7 @@ public class EodBatchConfig {
     public Step rolloverStep() {
         return new StepBuilder("rolloverStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
-                    log.info("[EOD Step 6/6] Rolling over operational date and releasing cut-off");
+                    log.info("[EOD Step 8/8] Rolling over operational date and releasing cut-off");
                     LocalDate nextDate = workingDateService.rolloverWorkingDate();
                     log.info("[EOD Pipeline Complete] New operational working date is: {}", nextDate);
                     return RepeatStatus.FINISHED;

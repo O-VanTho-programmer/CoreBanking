@@ -66,6 +66,12 @@ public class PostingEngineService {
             // 2. Resolve amount by amount_source
             BigDecimal rawAmount = resolveAmount(rule.getAmountSource(), request);
             if (rawAmount == null || rawAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                if ("PRINCIPAL_AMOUNT".equals(rule.getAmountSource()) || "INTEREST_AMOUNT".equals(rule.getAmountSource())
+                        || "FEE_AMOUNT".equals(rule.getAmountSource()) || "PENALTY_AMOUNT".equals(rule.getAmountSource())) {
+                    log.debug("Skipping zero/null amount leg for source '{}' (ruleId={}, trxCode={})",
+                            rule.getAmountSource(), rule.getRuleId(), request.trxCode());
+                    continue;
+                }
                 throw new IllegalArgumentException(String.format(
                         "Amount for source '%s' in rule %d must be strictly positive, received: %s",
                         rule.getAmountSource(), rule.getRuleId(), rawAmount));
@@ -84,8 +90,11 @@ public class PostingEngineService {
                             request.branchCode(),
                             request.currency(),
                             request.productCode());
-                    if ("SYS_LOAN_PRINCIPAL".equals(rule.getAbstractAcctName())) {
-                        loanId = request.loanId();
+                    if (request.loanId() != null) {
+                        String name = rule.getAbstractAcctName();
+                        if (name.contains("LOAN") || name.contains("PROV") || name.contains("INT_REVENUE")) {
+                            loanId = request.loanId();
+                        }
                     }
                 }
                 case "CUSTOMER_ACCOUNT" -> {
@@ -160,6 +169,8 @@ public class PostingEngineService {
             case "FEE_AMOUNT" -> request.feeAmount();
             case "TAX_AMOUNT" -> request.taxAmount();
             case "PENALTY_AMOUNT" -> request.penaltyAmount();
+            case "PRINCIPAL_AMOUNT" -> request.principalAmount() != null ? request.principalAmount() : request.trxAmount();
+            case "INTEREST_AMOUNT" -> request.interestAmount();
             default -> throw new IllegalArgumentException("Unknown amountSource: " + amountSource);
         };
     }
