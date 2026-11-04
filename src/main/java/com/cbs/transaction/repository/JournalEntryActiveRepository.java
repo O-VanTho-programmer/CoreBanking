@@ -15,6 +15,8 @@ public interface JournalEntryActiveRepository extends JpaRepository<JournalEntry
 
     List<JournalEntryActive> findByTrxIdOrderByEntryGroupAscEntryIndexAsc(Long trxId);
 
+    List<JournalEntryActive> findByTrxId(Long trxId);
+
     List<JournalEntryActive> findByAccountId(Long accountId);
 
     List<JournalEntryActive> findByTrxIdIn(List<Long> trxIds);

@@ -115,6 +115,7 @@ public class DataArchivalService {
                         .entryGroup(e.getEntryGroup())
                         .entryIndex(e.getEntryIndex())
                         .accountId(e.getAccountId())
+                        .loanId(e.getLoanId())
                         .glCode(e.getGlCode())
                         .drCr(e.getDrCr())
                         .amount(e.getAmount())

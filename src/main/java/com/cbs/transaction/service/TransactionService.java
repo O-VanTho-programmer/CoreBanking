@@ -596,6 +596,7 @@ public class TransactionService {
                     .entryGroup(leg.entryGroup())
                     .entryIndex(leg.entryIndex())
                     .accountId(leg.accountId())
+                    .loanId(leg.loanId())
                     .glCode(leg.glCode())
                     .drCr(leg.drCr())
                     .amount(leg.amount())

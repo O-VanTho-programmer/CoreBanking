@@ -72,8 +72,9 @@ public class PostingEngineService {
             }
             BigDecimal scaledAmount = rawAmount.setScale(4, RoundingMode.HALF_UP);
 
-            // 3. Resolve account ID and physical GL code by account_role
+            // 3. Resolve account ID, loan ID, and physical GL code by account_role
             Long accountId = null;
+            Long loanId = null;
             String physicalGlCode;
 
             switch (rule.getAccountRole()) {
@@ -83,6 +84,9 @@ public class PostingEngineService {
                             request.branchCode(),
                             request.currency(),
                             request.productCode());
+                    if ("SYS_LOAN_PRINCIPAL".equals(rule.getAbstractAcctName())) {
+                        loanId = request.loanId();
+                    }
                 }
                 case "CUSTOMER_ACCOUNT" -> {
                     if (request.customerAccountId() == null) {
@@ -121,6 +125,7 @@ public class PostingEngineService {
                     rule.getEntryGroup(),
                     rule.getEntryIndex(),
                     accountId,
+                    loanId,
                     physicalGlCode,
                     rule.getDebitOrCredit(),
                     scaledAmount,

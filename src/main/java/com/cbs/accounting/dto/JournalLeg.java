@@ -10,6 +10,7 @@ public record JournalLeg(
         int entryGroup,
         int entryIndex,
         Long accountId,        // NULL for internal bank GL accounts; non-null for customer CASA accounts
+        Long loanId,           // Non-null for lending asset GL legs (e.g. 2111, 2112)
         String glCode,         // Physical GL code from Chart of Accounts (e.g. "1011", "4211")
         String drCr,           // "D" (Debit) or "C" (Credit)
         BigDecimal amount,     // Always positive with scale 4
@@ -17,6 +18,20 @@ public record JournalLeg(
         LocalDate valueDate,   // Accounting value date
         String narration       // Transaction narration / description
 ) {
+    public JournalLeg(
+            int entryGroup,
+            int entryIndex,
+            Long accountId,
+            String glCode,
+            String drCr,
+            BigDecimal amount,
+            String currency,
+            LocalDate valueDate,
+            String narration
+    ) {
+        this(entryGroup, entryIndex, accountId, null, glCode, drCr, amount, currency, valueDate, narration);
+    }
+
     public JournalLeg {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Journal leg amount must be strictly greater than zero");

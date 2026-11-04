@@ -22,6 +22,7 @@ public record PostingRequest(
         String customerGlCode,
         Long targetAccountId,
         String targetGlCode,
+        Long loanId,
         String branchCode,
         String productCode,
         String narrationOverride

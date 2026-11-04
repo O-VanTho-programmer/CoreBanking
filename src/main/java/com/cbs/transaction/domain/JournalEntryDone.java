@@ -45,6 +45,9 @@ public class JournalEntryDone {
     @Column(name = "account_id")
     private Long accountId;
 
+    @Column(name = "loan_id")
+    private Long loanId;
+
     @Column(name = "gl_code", length = 20, nullable = false)
     private String glCode;
 
