@@ -138,24 +138,39 @@ flowchart TD
   - **Credit**: GL `4911` (Lãi phải trả cho tiền gửi CASA / `SYS_ACCRUED_INTEREST_PAYABLE`).
   - Verified by `PostingEngineService` to guarantee $\sum \text{Debit} == \sum \text{Credit}$.
 
-### Stage 3: Account Balance Snapshot Buckets
+### Stage 3: Loan Auto-Repayment (Waterfall Allocation)
+- **Purpose**: Automatically recovers due and overdue loan installments by debiting linked borrower CASA accounts.
+- **Deduction Priority**: Late Fee / Penalty $\rightarrow$ Overdue Interest $\rightarrow$ Normal Interest $\rightarrow$ Overdue Principal $\rightarrow$ Normal Principal.
+- **Accounting Matrix (`LOAN_REPAY`)**:
+  - **Debit**: GL `4211` (`CUSTOMER_ACCOUNT` - CASA Deposit reduction)
+  - **Credit**: GL `7020` (`SYS_INT_REVENUE` - Interest Income recognition)
+  - **Credit**: GL `2111` / `2112` (`SYS_LOAN_PRINCIPAL` / `SYS_LOAN_OVERDUE` - Loan Asset reduction)
+- **Detailed Specification**: See [Waterfall Repayment Mechanism](file:///D:/MyProgram/CoreBanking/.github/doc/WATERFALL_REPAYMENT_MECHANISM.md).
+
+### Stage 4: Loan Aging, Classification & Dual Provisioning
+- **Purpose**: Calculates Days Past Due (DPD) for loans, updates classification groups (Groups 1–5), transfers overdue principal to GL `2112`, and posts dual loan loss provisions.
+- **General Provision**: $0.75\%$ on Groups 1–4 (DR `8822` / CR `2191`).
+- **Specific Provision**: $0\%$ G1, $5\%$ G2, $20\%$ G3, $50\%$ G4, $100\%$ G5 (DR `8821` / CR `2192`).
+- **Provision Reversal on Payoff**: When loans are settled, provisions are reversed into income (DR `2191`/`2192`, CR `7911` `SYS_PROV_REVERSAL_INCOME`).
+
+### Stage 5: Account Balance Snapshot Buckets
 - **Purpose**: Creates an immutable audit snapshot for every account as of the closing working date.
 - **Target Table**: `ACCOUNT_BALANCE_BUCKET (account_id, working_date, closing_balance, accrued_interest, hold_balance)`.
 - **Benefit**: Enables fast monthly interest capitalization, historical customer account statements, and tax reporting without scanning raw transaction logs.
 
-### Stage 4: Hot-to-Cold Data Archival (`MoveDataHis`)
+### Stage 6: Hot-to-Cold Data Archival (`MoveDataHis`)
 - **Criteria**: Migrates all transactions in `TRX_JOURNAL_ACTIVE` having status `COMPLETED` or `FAILED` with `working_date <= current_working_date`.
 - **Exclusion**: Transactions in `IN_FLIGHT` are **never archived** (flagged for administrator inspection).
 - **Execution**: Copies data to `TRX_JOURNAL_DONE` and `JOURNAL_ENTRY_DONE`, then purges the corresponding rows from `TRX_JOURNAL_ACTIVE` and `JOURNAL_ENTRY_ACTIVE` in a single atomic database transaction.
 
-### Stage 5: Trial Balance General Ledger Reconciliation
+### Stage 7: Trial Balance General Ledger Reconciliation
 - **Equilibrium Check**:
   $$\sum_{\text{All Postable GLs}} \text{Debit Total} - \sum_{\text{All Postable GLs}} \text{Credit Total} = 0$$
 - **Sub-Ledger Parity Check**:
   $$\text{GL 4211 Net Balance} \equiv \sum_{a \in \text{CASA Accounts}} a.\text{ledger\_balance}$$
-- **Fail-Safe Mechanism**: If even 0.0001 discrepancy is detected, `TrialBalanceUnbalancedException` is raised, aborting Step 6.
+- **Fail-Safe Mechanism**: If even 0.0001 discrepancy is detected, `TrialBalanceUnbalancedException` is raised, aborting Step 8.
 
-### Stage 6: Operational Date Rollover & Cut-off Release
+### Stage 8: Operational Date Rollover & Cut-off Release
 - **Next Date Determination**:
   ```sql
   SELECT MIN(calendar_date) 
