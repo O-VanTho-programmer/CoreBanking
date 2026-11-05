@@ -74,6 +74,7 @@ class TransactionServiceTest {
         lenient().when(workingDateService.getCurrentWorkingDate()).thenReturn(workingDate);
         lenient().when(workingDateService.isSystemCutoff()).thenReturn(false);
         lenient().when(jdbcTemplate.queryForObject(anyString(), eq(Long.class))).thenReturn(12345L);
+        lenient().when(idempotencyService.acquireLock(any(), any())).thenReturn(true);
     }
 
     @Test

@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -72,7 +73,18 @@ public class TransactionService {
             return existing.get();
         }
 
-        // 2. Cutoff Guard (Invariant 4)
+        // Distributed Thundering Herd Guard
+        if (!idempotencyService.acquireLock(command.channelId(), command.idempotencyKey())) {
+            Optional<TransactionReceipt> completed = idempotencyService.waitForCompletion(
+                    command.channelId(), command.idempotencyKey(), Duration.ofSeconds(10));
+            if (completed.isPresent()) {
+                return completed.get();
+            }
+            throw new IllegalStateException("Transaction is currently processing (IN_FLIGHT). Please retry shortly.");
+        }
+
+        try {
+            // 2. Cutoff Guard (Invariant 4)
         checkCutoff();
 
         LocalDate workingDate = workingDateService.getCurrentWorkingDate();
@@ -196,6 +208,9 @@ public class TransactionService {
         idempotencyService.recordCompletion(command.channelId(), command.idempotencyKey(), receipt);
         log.info("Transfer COMPLETED successfully: trxNumber='{}'", trxNumber);
         return receipt;
+        } finally {
+            idempotencyService.releaseLock(command.channelId(), command.idempotencyKey());
+        }
     }
 
     /**
@@ -407,7 +422,18 @@ public class TransactionService {
             return existing.get();
         }
 
-        // 2. Cutoff Guard (Invariant 4)
+        // Distributed Thundering Herd Guard
+        if (!idempotencyService.acquireLock(command.channelId(), command.idempotencyKey())) {
+            Optional<TransactionReceipt> completed = idempotencyService.waitForCompletion(
+                    command.channelId(), command.idempotencyKey(), Duration.ofSeconds(10));
+            if (completed.isPresent()) {
+                return completed.get();
+            }
+            throw new IllegalStateException("Transaction is currently processing (IN_FLIGHT). Please retry shortly.");
+        }
+
+        try {
+            // 2. Cutoff Guard (Invariant 4)
         checkCutoff();
 
         LocalDate currentWorkingDate = workingDateService.getCurrentWorkingDate();
@@ -577,6 +603,9 @@ public class TransactionService {
         log.info("Reversal COMPLETED successfully: reversalTrxNumber='{}', originalTrxNumber='{}'",
                 reversalTrxNumber, orig.getTrxNumber());
         return receipt;
+        } finally {
+            idempotencyService.releaseLock(command.channelId(), command.idempotencyKey());
+        }
     }
 
     private void mutateBalance(Account account, JournalLeg leg) {

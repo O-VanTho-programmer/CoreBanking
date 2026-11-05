@@ -88,6 +88,56 @@ public class IdempotencyService {
         cacheReceipt(cacheKey, receipt);
     }
 
+    /**
+     * Acquires a transient distributed lock in Redis to guard against thundering herd.
+     */
+    public boolean acquireLock(String channelId, String idempotencyKey) {
+        String lockKey = buildLockKey(channelId, idempotencyKey);
+        try {
+            Boolean ok = stringRedisTemplate.opsForValue().setIfAbsent(lockKey, "LOCKED", Duration.ofSeconds(15));
+            return Boolean.TRUE.equals(ok);
+        } catch (Exception e) {
+            log.warn("Redis error acquiring idempotency lock [{}]: {}", lockKey, e.getMessage());
+            return true;
+        }
+    }
+
+    /**
+     * Releases transient distributed lock in Redis.
+     */
+    public void releaseLock(String channelId, String idempotencyKey) {
+        String lockKey = buildLockKey(channelId, idempotencyKey);
+        try {
+            stringRedisTemplate.delete(lockKey);
+        } catch (Exception e) {
+            log.warn("Redis error releasing idempotency lock [{}]: {}", lockKey, e.getMessage());
+        }
+    }
+
+    /**
+     * Waits for an in-flight transaction with the same idempotency key to complete and produce a receipt.
+     */
+    public Optional<TransactionReceipt> waitForCompletion(String channelId, String idempotencyKey, Duration timeout) {
+        long endNanos = System.nanoTime() + timeout.toNanos();
+        while (System.nanoTime() < endNanos) {
+            Optional<TransactionReceipt> existing = checkExisting(channelId, idempotencyKey);
+            if (existing.isPresent()) {
+                return existing;
+            }
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return Optional.empty();
+            }
+        }
+        return checkExisting(channelId, idempotencyKey);
+    }
+
+    private String buildLockKey(String channelId, String idempotencyKey) {
+        return "cbs:idemp:lock:" + channelId + ":" + idempotencyKey;
+    }
+
     private void cacheReceipt(String cacheKey, TransactionReceipt receipt) {
         try {
             String json = objectMapper.writeValueAsString(receipt);

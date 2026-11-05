@@ -64,6 +64,7 @@ class ReversalServiceTest {
         lenient().when(workingDateService.getCurrentWorkingDate()).thenReturn(workingDate);
         lenient().when(workingDateService.isSystemCutoff()).thenReturn(false);
         lenient().when(jdbcTemplate.queryForObject(anyString(), eq(Long.class))).thenReturn(99999L);
+        lenient().when(idempotencyService.acquireLock(any(), any())).thenReturn(true);
     }
 
     @Test
