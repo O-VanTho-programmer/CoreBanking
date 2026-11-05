@@ -55,6 +55,18 @@ public class CreditProductCatalog {
     @Column(name = "base_interest_rate", nullable = false)
     private BigDecimal baseInterestRate;
 
+    @Column(name = "default_margin_rate", nullable = false)
+    @Builder.Default
+    private BigDecimal defaultMarginRate = BigDecimal.ZERO;
+
+    @Column(name = "min_margin_rate", nullable = false)
+    @Builder.Default
+    private BigDecimal minMarginRate = BigDecimal.ZERO;
+
+    @Column(name = "max_margin_rate", nullable = false)
+    @Builder.Default
+    private BigDecimal maxMarginRate = new BigDecimal("0.1000");
+
     @Column(name = "overdue_rate_multiplier", nullable = false)
     @Builder.Default
     private BigDecimal overdueRateMultiplier = new BigDecimal("1.50");

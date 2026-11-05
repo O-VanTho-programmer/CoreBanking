@@ -36,3 +36,14 @@ Khi một khoản vay tín dụng được thanh toán, tất toán hoàn tất 
    - Tổng chi phí rủi ro phát sinh trong kỳ (Tổng phát sinh Nợ của `88xx`).
    - Tổng thu hồi từ các khoản nợ đã xử lý rủi ro / hoàn nhập (Tổng phát sinh Có của `79xx`).
    Nếu ghi Có trực tiếp vào `88xx`, hai chỉ tiêu này sẽ bị triệt tiêu (net off), che giấu quy mô rủi ro thực tế của ngân hàng.
+
+---
+
+## III. Bank Account Numbering Standard (Chuẩn Số Tài Khoản Ngân Hàng Thuần Số)
+* Mọi số tài khoản mở mới trong hệ thống (cả Deposit `ACCOUNT` và Credit `LOAN_ACCOUNT`) phải tuân thủ chuẩn **16 chữ số thuần túy (Pure Numeric String)**:
+  $$\mathbf{AccountNumber} = \mathbf{BranchCode} \ (3\text{ số}) + \mathbf{GL\ Code} \ (4\text{ số}) + \mathbf{Sequence} \ (9\text{ số})$$
+* **Ví dụ**:
+  - Tiền gửi (CASA): `0014211000001001` (Chi nhánh 001, GL 4211)
+  - Tiền vay (Credit): `0012111000000101` (Chi nhánh 001, GL 2111)
+* **Quy tắc**: Tuyệt đối **không thêm tiền tố chữ** (như `"LN"`) vào số tài khoản khi mã GL đã phân biệt rõ ràng bản chất kế toán (Asset vs. Liability).
+* Xem chi tiết tại: [account_numbering_rules.md](file:///.agents/rules/account_numbering_rules.md).

@@ -9,9 +9,11 @@ import java.time.LocalDate;
 public record CreateLoanContractCommand(
         Long customerId,
         Long linkedCasaAccountId,
+        String branchCode,
         String productCode,
         BigDecimal principalAmount,
         Integer termMonths,
+        BigDecimal interestMargin,
         BigDecimal interestRateOverride,
         String repaymentTypeOverride,
         LocalDate firstDueDate

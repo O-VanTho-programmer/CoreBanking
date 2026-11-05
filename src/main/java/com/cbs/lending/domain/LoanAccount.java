@@ -58,6 +58,10 @@ public class LoanAccount {
     @Column(name = "annual_interest_rate", nullable = false)
     private BigDecimal annualInterestRate;
 
+    @Column(name = "interest_margin", nullable = false)
+    @Builder.Default
+    private BigDecimal interestMargin = BigDecimal.ZERO;
+
     @Column(name = "overdue_interest_rate", nullable = false)
     private BigDecimal overdueInterestRate;
 

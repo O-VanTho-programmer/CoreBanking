@@ -72,12 +72,13 @@ class LoanIntegrationTest {
                 .build());
 
         assertThat(loan.getLoanId()).isNotNull();
-        assertThat(loan.getLoanAccountNumber()).startsWith("LN");
+        assertThat(loan.getLoanAccountNumber()).matches("^[0-9]{16}$");
+        assertThat(loan.getLoanAccountNumber()).contains("2111");
         assertThat(loan.getLoanStatus()).isEqualTo(LoanStatus.APPROVED.name());
         assertThat(loan.getPrincipalAmount()).isEqualByComparingTo("50000000.0000");
         assertThat(loan.getRemainingPrincipal()).isEqualByComparingTo("50000000.0000");
-        assertThat(loan.getAnnualInterestRate()).isEqualByComparingTo("0.0950"); // 9.5%
-        assertThat(loan.getOverdueInterestRate()).isEqualByComparingTo("0.1425"); // 14.25%
+        assertThat(loan.getAnnualInterestRate()).isEqualByComparingTo("0.1200"); // 9.5% base + 2.5% margin
+        assertThat(loan.getOverdueInterestRate()).isEqualByComparingTo("0.1800"); // 12.0% * 1.50
         assertThat(loan.getRepaymentType()).isEqualTo(RepaymentType.ANNUITY_EMI.name());
         assertThat(loan.getMaturityDate()).isEqualTo(firstDueDate.plusMonths(11));
 
@@ -137,9 +138,11 @@ class LoanIntegrationTest {
                 .build());
 
         assertThat(loan.getLoanId()).isNotNull();
+        assertThat(loan.getLoanAccountNumber()).matches("^[0-9]{16}$");
+        assertThat(loan.getLoanAccountNumber()).contains("2111");
         assertThat(loan.getRepaymentType()).isEqualTo(RepaymentType.EQUAL_PRINCIPAL.name());
-        assertThat(loan.getAnnualInterestRate()).isEqualByComparingTo("0.0800"); // 8.0%
-        assertThat(loan.getOverdueInterestRate()).isEqualByComparingTo("0.1200"); // 12.0%
+        assertThat(loan.getAnnualInterestRate()).isEqualByComparingTo("0.1150"); // 8.0% base + 3.5% margin
+        assertThat(loan.getOverdueInterestRate()).isEqualByComparingTo("0.1725"); // 11.5% * 1.50
 
         List<LoanSchedule> schedules = loanAccountService.getLoanSchedule(loan.getLoanId());
         assertThat(schedules).hasSize(24);

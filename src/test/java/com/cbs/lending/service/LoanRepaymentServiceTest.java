@@ -76,7 +76,7 @@ class LoanRepaymentServiceTest {
     void setUp() {
         loan = LoanAccount.builder()
                 .loanId(101L)
-                .loanAccountNumber("LN00000000000101")
+                .loanAccountNumber("0012111000000101")
                 .customerId(1001L)
                 .linkedCasaAccountId(2001L)
                 .productCode("LN_CONSUMER_VND")

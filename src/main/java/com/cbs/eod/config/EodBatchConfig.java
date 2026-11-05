@@ -6,6 +6,7 @@ import com.cbs.eod.service.DataArchivalService;
 import com.cbs.eod.service.InterestAccrualService;
 import com.cbs.eod.service.TrialBalanceService;
 import com.cbs.lending.service.LoanAgingService;
+import com.cbs.lending.service.LoanBalanceSnapshotService;
 import com.cbs.lending.service.LoanRepaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,7 @@ public class EodBatchConfig {
     private final LoanAgingService loanAgingService;
     private final InterestAccrualService interestAccrualService;
     private final BalanceSnapshotService balanceSnapshotService;
+    private final LoanBalanceSnapshotService loanBalanceSnapshotService;
     private final DataArchivalService dataArchivalService;
     private final TrialBalanceService trialBalanceService;
 
@@ -126,6 +128,7 @@ public class EodBatchConfig {
                     LocalDate workingDate = extractWorkingDate(chunkContext);
                     log.info("[EOD Step 5/8] Taking Daily Balance Snapshot Buckets for date: {}", workingDate);
                     balanceSnapshotService.takeDailySnapshot(workingDate);
+                    loanBalanceSnapshotService.takeDailyLoanSnapshot(workingDate);
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
                 .build();

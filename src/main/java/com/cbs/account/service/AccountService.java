@@ -1,9 +1,13 @@
 package com.cbs.account.service;
 
 import com.cbs.account.domain.Account;
+import com.cbs.account.domain.AccountIfc;
+import com.cbs.account.domain.DepositProductIfcMapping;
 import com.cbs.account.domain.DptProductCatalog;
 import com.cbs.account.dto.OpenAccountCommand;
+import com.cbs.account.repository.AccountIfcRepository;
 import com.cbs.account.repository.AccountRepository;
+import com.cbs.account.repository.DepositProductIfcMappingRepository;
 import com.cbs.account.repository.DptProductCatalogRepository;
 import com.cbs.admin.service.WorkingDateService;
 import com.cbs.common.codelist.service.CodeListService;
@@ -33,6 +37,8 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final DptProductCatalogRepository dptProductCatalogRepository;
     private final CustomerRepository customerRepository;
+    private final DepositProductIfcMappingRepository depositProductIfcMappingRepository;
+    private final AccountIfcRepository accountIfcRepository;
     private final WorkingDateService workingDateService;
     private final CodeListService codeListService;
     private final JdbcTemplate jdbcTemplate;
@@ -78,8 +84,23 @@ public class AccountService {
                 .build();
 
         Account saved = accountRepository.save(account);
-        log.info("CASA account opened successfully. accountId={}, accountNumber='{}', glCode='{}'",
-                saved.getAccountId(), saved.getAccountNumber(), saved.getGlCode());
+
+        // Clone bundled IFC charges from Product Catalog to Account IFC
+        List<DepositProductIfcMapping> mappings = depositProductIfcMappingRepository.findByProductCode(product.getProductCode());
+        for (DepositProductIfcMapping mapping : mappings) {
+            AccountIfc accountIfc = AccountIfc.builder()
+                    .accountId(saved.getAccountId())
+                    .ifcCode(mapping.getIfcCode())
+                    .appliedRate(mapping.getDefaultRate())
+                    .isWaived("N")
+                    .effectiveFrom(workingDate)
+                    .createdAt(OffsetDateTime.now())
+                    .build();
+            accountIfcRepository.save(accountIfc);
+        }
+
+        log.info("CASA account opened successfully. accountId={}, accountNumber='{}', glCode='{}', ifcsBound={}",
+                saved.getAccountId(), saved.getAccountNumber(), saved.getGlCode(), mappings.size());
         return saved;
     }
 

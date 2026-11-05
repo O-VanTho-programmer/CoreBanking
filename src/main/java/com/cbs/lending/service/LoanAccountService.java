@@ -10,7 +10,9 @@ import com.cbs.common.exception.LoanAccountNotFoundException;
 import com.cbs.common.exception.LoanProductNotFoundException;
 import com.cbs.customer.repository.CustomerRepository;
 import com.cbs.lending.domain.CreditProductCatalog;
+import com.cbs.lending.domain.CreditProductIfcMapping;
 import com.cbs.lending.domain.LoanAccount;
+import com.cbs.lending.domain.LoanAccountIfc;
 import com.cbs.lending.domain.LoanSchedule;
 import com.cbs.lending.domain.LoanScheduleStatus;
 import com.cbs.lending.domain.LoanStatus;
@@ -19,6 +21,8 @@ import com.cbs.lending.dto.AmortizationResult;
 import com.cbs.lending.dto.AmortizationScheduleItem;
 import com.cbs.lending.dto.CreateLoanContractCommand;
 import com.cbs.lending.repository.CreditProductCatalogRepository;
+import com.cbs.lending.repository.CreditProductIfcMappingRepository;
+import com.cbs.lending.repository.LoanAccountIfcRepository;
 import com.cbs.lending.repository.LoanAccountRepository;
 import com.cbs.lending.repository.LoanScheduleRepository;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +51,8 @@ public class LoanAccountService {
     private final LoanAccountRepository loanAccountRepository;
     private final LoanScheduleRepository loanScheduleRepository;
     private final CreditProductCatalogRepository creditProductCatalogRepository;
+    private final CreditProductIfcMappingRepository creditProductIfcMappingRepository;
+    private final LoanAccountIfcRepository loanAccountIfcRepository;
     private final CustomerRepository customerRepository;
     private final AccountRepository accountRepository;
     private final AmortizationScheduleService amortizationScheduleService;
@@ -109,10 +115,20 @@ public class LoanAccountService {
                     + " exceeds product maximum " + product.getMaxTermMonths());
         }
 
-        // 6. Resolve rates and repayment type
+        // 6. Resolve margin and effective interest rate
+        BigDecimal margin = (command.interestMargin() != null)
+                ? command.interestMargin()
+                : product.getDefaultMarginRate();
+
+        if (margin.compareTo(product.getMinMarginRate()) < 0 || margin.compareTo(product.getMaxMarginRate()) > 0) {
+            throw new InvalidLoanParameterException(String.format(
+                    "Interest margin %s is outside allowed bounds [%s, %s] for product '%s'",
+                    margin, product.getMinMarginRate(), product.getMaxMarginRate(), product.getProductCode()));
+        }
+
         BigDecimal annualRate = (command.interestRateOverride() != null)
                 ? command.interestRateOverride()
-                : product.getBaseInterestRate();
+                : product.getBaseInterestRate().add(margin).setScale(4, RoundingMode.HALF_UP);
 
         BigDecimal overdueRate = annualRate.multiply(product.getOverdueRateMultiplier())
                 .setScale(4, RoundingMode.HALF_UP);
@@ -133,7 +149,11 @@ public class LoanAccountService {
                 ? command.firstDueDate()
                 : LocalDate.now().plusMonths(1);
 
-        String loanAccountNumber = generateLoanAccountNumber();
+        String branchCode = (command.branchCode() != null && !command.branchCode().isBlank())
+                ? command.branchCode()
+                : linkedCasa.getBranchCode();
+
+        String loanAccountNumber = generateLoanAccountNumber(branchCode);
 
         // 7. Persist Loan Account
         LoanAccount loanAccount = LoanAccount.builder()
@@ -144,6 +164,7 @@ public class LoanAccountService {
                 .principalAmount(command.principalAmount().setScale(4, RoundingMode.HALF_UP))
                 .remainingPrincipal(command.principalAmount().setScale(4, RoundingMode.HALF_UP))
                 .annualInterestRate(annualRate.setScale(4, RoundingMode.HALF_UP))
+                .interestMargin(margin.setScale(4, RoundingMode.HALF_UP))
                 .overdueInterestRate(overdueRate)
                 .termMonths(command.termMonths())
                 .repaymentType(repaymentType)
@@ -154,7 +175,29 @@ public class LoanAccountService {
 
         loanAccount = loanAccountRepository.save(loanAccount);
 
-        // 8. Generate and persist Amortization Schedule
+        // 8. Clone bundled IFC charges from Product Catalog to Loan Account IFC
+        List<CreditProductIfcMapping> mappings = creditProductIfcMappingRepository.findByProductCode(product.getProductCode());
+        for (CreditProductIfcMapping mapping : mappings) {
+            BigDecimal applied = mapping.getDefaultRate();
+            BigDecimal mRate = BigDecimal.ZERO;
+            if ("NORMAL_INT".equals(mapping.getIfcCode())) {
+                applied = annualRate;
+                mRate = margin;
+            } else if ("OVERDUE_INT".equals(mapping.getIfcCode())) {
+                applied = overdueRate;
+            }
+            LoanAccountIfc loanIfc = LoanAccountIfc.builder()
+                    .loanId(loanAccount.getLoanId())
+                    .ifcCode(mapping.getIfcCode())
+                    .appliedRate(applied)
+                    .marginRate(mRate)
+                    .isWaived("N")
+                    .createdAt(OffsetDateTime.now())
+                    .build();
+            loanAccountIfcRepository.save(loanIfc);
+        }
+
+        // 9. Generate and persist Amortization Schedule
         AmortizationResult result = amortizationScheduleService.calculateSchedule(
                 loanAccount.getPrincipalAmount(),
                 loanAccount.getAnnualInterestRate(),
@@ -187,8 +230,8 @@ public class LoanAccountService {
         loanAccount.setMaturityDate(maturityDate);
         loanAccount = loanAccountRepository.save(loanAccount);
 
-        log.info("Loan contract created successfully: loanId={}, accountNumber='{}', maturityDate={}",
-                loanAccount.getLoanId(), loanAccount.getLoanAccountNumber(), maturityDate);
+        log.info("Loan contract created successfully: loanId={}, accountNumber='{}', maturityDate={}, ifcsBound={}",
+                loanAccount.getLoanId(), loanAccount.getLoanAccountNumber(), maturityDate, mappings.size());
 
         return loanAccount;
     }
@@ -210,8 +253,15 @@ public class LoanAccountService {
         return loanScheduleRepository.findByLoanIdOrderByPeriodNumberAsc(loanId);
     }
 
-    private String generateLoanAccountNumber() {
+    private String generateLoanAccountNumber(String branchCode) {
         Long seq = jdbcTemplate.queryForObject("SELECT CBS_GLOBAL_SEQ.NEXTVAL FROM DUAL", Long.class);
-        return String.format("LN%014d", seq);
+        String branchClean = branchCode != null ? branchCode.replaceAll("\\D", "") : "001";
+        if (branchClean.length() < 3) {
+            branchClean = ("000" + branchClean);
+            branchClean = branchClean.substring(branchClean.length() - 3);
+        } else if (branchClean.length() > 3) {
+            branchClean = branchClean.substring(0, 3);
+        }
+        return String.format("%s2111%09d", branchClean, seq % 1000000000L);
     }
 }
