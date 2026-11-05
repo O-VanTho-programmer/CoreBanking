@@ -29,5 +29,8 @@ desktop.ini
 *.log
 logs/
 
-# Sensitive or local machine overrides
-*.local
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
