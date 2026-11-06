@@ -8,6 +8,17 @@ const apiClient = axios.create({
   timeout: 30000,
 });
 
+// Normalize request URL if it already includes /api/v1 to prevent duplicate path segments
+apiClient.interceptors.request.use(
+  (config) => {
+    if (config.url && config.url.startsWith('/api/v1/')) {
+      config.url = config.url.substring('/api/v1'.length);
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {

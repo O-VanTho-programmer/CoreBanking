@@ -11,21 +11,7 @@ import {
   Mail,
   MapPin,
   FileQuestion,
-  UserPlus,
-  CreditCard,
-  Plus,
-  ArrowRight,
-  TrendingUp,
 } from 'lucide-react';
-
-// Dynamic icon resolver for top actions
-const ICON_MAP = {
-  UserPlus,
-  CreditCard,
-  Plus,
-  TrendingUp,
-  ArrowRight,
-};
 
 export default function GenericSearchWidget({ schema, onNavigate }) {
   const [keyword, setKeyword] = useState('');
@@ -318,20 +304,19 @@ export default function GenericSearchWidget({ schema, onNavigate }) {
           )}
         </div>
 
-        {/* Top Action Buttons (e.g. + Add New Customer, + Open Account) */}
+        {/* Top Action Buttons (e.g. Add New Customer, Open Account) */}
         {schema.topActions && schema.topActions.length > 0 && (
           <div className="flex items-center space-x-2">
             {schema.topActions.map((action) => {
-              const IconComp = ICON_MAP[action.icon] || Plus;
+              const label = (action.label || '').replace(/^\+\s*/, '');
               return (
                 <button
                   key={action.code}
                   type="button"
                   onClick={() => onNavigate && onNavigate(action.targetFormCode, {})}
-                  className="flex items-center space-x-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition"
+                  className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition"
                 >
-                  <IconComp className="h-4 w-4" />
-                  <span>{action.label}</span>
+                  <span>{label}</span>
                 </button>
               );
             })}
@@ -510,6 +495,7 @@ export default function GenericSearchWidget({ schema, onNavigate }) {
                       <td className="py-3 px-3 text-right">
                         <div className="flex items-center justify-end space-x-1.5">
                           {schema.rowActions.map((action) => {
+                            const label = (action.label || '').replace(/^\+\s*/, '');
                             let btnStyle = 'border-slate-200 bg-white text-slate-700 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-800';
                             if (action.style === 'emerald') {
                               btnStyle = 'border-slate-200 bg-white text-slate-700 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-800';
@@ -526,10 +512,10 @@ export default function GenericSearchWidget({ schema, onNavigate }) {
                                 key={action.code}
                                 type="button"
                                 onClick={() => handleRowAction(action, record)}
-                                className={`rounded-md border px-2 py-1 text-[10px] font-bold transition ${btnStyle}`}
-                                title={action.title || action.label}
+                                className={`rounded-md border px-2.5 py-1 text-[10px] font-bold transition ${btnStyle}`}
+                                title={action.title || label}
                               >
-                                {action.label}
+                                {label}
                               </button>
                             );
                           })}
