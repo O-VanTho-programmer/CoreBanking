@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DynamicForm from '../engine/DynamicForm';
 import ReceiptModal from '../common/ReceiptModal';
+import CustomerSearchWidget from './CustomerSearchWidget';
 import { formApi } from '../../services/formApi';
 import { transactionApi } from '../../services/transactionApi';
 import { lendingApi } from '../../services/lendingApi';
@@ -23,6 +24,10 @@ export default function TabFormContainer({
 
   useEffect(() => {
     let isMounted = true;
+    if (tab.formCode === 'FORM_CUST_PROFILE') {
+      setIsLoading(false);
+      return;
+    }
     async function loadFormSchema() {
       try {
         setIsLoading(true);
@@ -141,6 +146,15 @@ export default function TabFormContainer({
           customerType: formData.customerType || 'INDIVIDUAL',
           kycStatus: formData.kycStatus || 'VERIFIED',
           status: 'ACTIVE',
+          gender: formData.gender || 'OTHER',
+          phoneNumber: formData.phoneNumber || null,
+          emailAddress: formData.emailAddress || null,
+          taxNumber: formData.taxNumber || null,
+          streetAddress: formData.streetAddress || null,
+          commune: formData.commune || null,
+          district: formData.district || null,
+          province: formData.province || null,
+          country: formData.country || 'VN',
         });
         resReceipt = {
           trxId: custRes.data.cifNumber,
@@ -179,6 +193,14 @@ export default function TabFormContainer({
         <p className="text-xs font-medium text-slate-500">
           Loading Form Schema [${tab.formCode}] from Oracle 19c Catalog...
         </p>
+      </div>
+    );
+  }
+
+  if (tab.formCode === 'FORM_CUST_PROFILE') {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs animate-fadeIn">
+        <CustomerSearchWidget onNavigate={onNavigate} />
       </div>
     );
   }

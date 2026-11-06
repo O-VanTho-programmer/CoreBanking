@@ -5,16 +5,22 @@ import com.cbs.common.codelist.service.CodeListService;
 import com.cbs.common.exception.CustomerNotFoundException;
 import com.cbs.common.exception.DuplicateCustomerException;
 import com.cbs.customer.domain.Customer;
+import com.cbs.customer.domain.CustomerCatalog;
 import com.cbs.customer.dto.CreateCustomerCommand;
+import com.cbs.customer.dto.CustomerSearchCriteria;
+import com.cbs.customer.repository.CustomerCatalogRepository;
 import com.cbs.customer.repository.CustomerRepository;
+import com.cbs.customer.repository.CustomerSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * Customer Information File (CIF) Management Service.
@@ -25,6 +31,7 @@ import java.time.OffsetDateTime;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final CustomerCatalogRepository customerCatalogRepository;
     private final WorkingDateService workingDateService;
     private final CodeListService codeListService;
     private final JdbcTemplate jdbcTemplate;
@@ -42,8 +49,8 @@ public class CustomerService {
                     "Customer with nationalId '" + command.nationalId() + "' already exists");
         }
 
-        // Validate code lists
-        validateCodeList("CUST_TYPE", command.customerType());
+        // Validate customer type against Customer Catalog or CodeList
+        validateCustomerType(command.customerType());
         validateCodeList("KYC_STATUS", command.kycStatus());
         validateCodeList("CUST_STATUS", command.status());
 
@@ -54,8 +61,16 @@ public class CustomerService {
                 .cifNumber(cifNumber)
                 .customerType(command.customerType())
                 .fullName(command.fullName().trim())
+                .gender(command.gender() != null ? command.gender().trim().toUpperCase() : "OTHER")
                 .nationalId(command.nationalId().trim())
+                .phoneNumber(command.phoneNumber() != null ? command.phoneNumber().trim() : null)
+                .emailAddress(command.emailAddress() != null ? command.emailAddress().trim() : null)
                 .taxNumber(command.taxNumber() != null ? command.taxNumber().trim() : null)
+                .streetAddress(command.streetAddress() != null ? command.streetAddress().trim() : null)
+                .commune(command.commune() != null ? command.commune().trim() : null)
+                .district(command.district() != null ? command.district().trim() : null)
+                .province(command.province() != null ? command.province().trim() : null)
+                .country(command.country() != null ? command.country().trim() : "VN")
                 .kycStatus(command.kycStatus())
                 .status(command.status())
                 .createdWorkingDate(workingDate)
@@ -66,6 +81,23 @@ public class CustomerService {
         log.info("Customer registered successfully with cifNumber='{}', customerId={}",
                 saved.getCifNumber(), saved.getCustomerId());
         return saved;
+    }
+
+    /**
+     * Searches customers matching dynamic keyword and advance criteria.
+     */
+    @Transactional(readOnly = true)
+    public List<Customer> searchCustomers(CustomerSearchCriteria criteria) {
+        Specification<Customer> spec = CustomerSpecification.buildSpecification(criteria);
+        return customerRepository.findAll(spec);
+    }
+
+    /**
+     * Returns all active customer types from customer catalog.
+     */
+    @Transactional(readOnly = true)
+    public List<CustomerCatalog> getCustomerCatalog() {
+        return customerCatalogRepository.findByIsActiveOrderByDisplayOrderAsc("Y");
     }
 
     @Transactional(readOnly = true)
@@ -101,6 +133,18 @@ public class CustomerService {
     private String generateCifNumber() {
         Long seq = jdbcTemplate.queryForObject("SELECT CBS_GLOBAL_SEQ.NEXTVAL FROM DUAL", Long.class);
         return String.format("CIF-%08d", seq);
+    }
+
+    private void validateCustomerType(String typeCode) {
+        if (typeCode == null || typeCode.isBlank()) return;
+        boolean inCatalog = customerCatalogRepository.existsById(typeCode.trim());
+        if (!inCatalog) {
+            // Fallback check in CODELIST CUST_TYPE
+            if (!codeListService.isValid("CUST_TYPE", typeCode.trim())) {
+                throw new IllegalArgumentException(
+                        String.format("Invalid customer type '%s' in catalog", typeCode));
+            }
+        }
     }
 
     private void validateCodeList(String group, String value) {

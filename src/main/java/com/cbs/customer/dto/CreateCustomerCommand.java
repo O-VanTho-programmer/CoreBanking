@@ -9,16 +9,31 @@ import lombok.Builder;
  */
 @Builder
 public record CreateCustomerCommand(
-        @ValidCodeList(group = "CUST_TYPE")
         String customerType,
 
         @NotBlank(message = "fullName is required")
         String fullName,
 
+        String gender,
+
         @NotBlank(message = "nationalId is required")
         String nationalId,
 
+        String phoneNumber,
+
+        String emailAddress,
+
         String taxNumber,
+
+        String streetAddress,
+
+        String commune,
+
+        String district,
+
+        String province,
+
+        String country,
 
         @ValidCodeList(group = "KYC_STATUS")
         String kycStatus,
@@ -29,6 +44,12 @@ public record CreateCustomerCommand(
     public CreateCustomerCommand {
         if (customerType == null || customerType.isBlank()) {
             customerType = "INDIVIDUAL";
+        }
+        if (gender == null || gender.isBlank()) {
+            gender = "OTHER";
+        }
+        if (country == null || country.isBlank()) {
+            country = "VN";
         }
         if (kycStatus == null || kycStatus.isBlank()) {
             kycStatus = "PENDING";

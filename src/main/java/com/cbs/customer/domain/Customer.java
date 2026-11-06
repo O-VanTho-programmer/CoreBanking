@@ -49,6 +49,32 @@ public class Customer {
     @Column(name = "tax_number", length = 30)
     private String taxNumber;
 
+    @Column(name = "gender", length = 10, nullable = false)
+    @Builder.Default
+    private String gender = "OTHER";
+
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
+
+    @Column(name = "email_address", length = 100)
+    private String emailAddress;
+
+    @Column(name = "street_address", length = 255)
+    private String streetAddress;
+
+    @Column(name = "commune", length = 100)
+    private String commune;
+
+    @Column(name = "district", length = 100)
+    private String district;
+
+    @Column(name = "province", length = 100)
+    private String province;
+
+    @Column(name = "country", length = 50, nullable = false)
+    @Builder.Default
+    private String country = "VN";
+
     @Column(name = "kyc_status", length = 30, nullable = false)
     @Builder.Default
     private String kycStatus = "PENDING";

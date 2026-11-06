@@ -6,6 +6,7 @@ import com.cbs.common.exception.CustomerNotFoundException;
 import com.cbs.common.exception.DuplicateCustomerException;
 import com.cbs.customer.domain.Customer;
 import com.cbs.customer.dto.CreateCustomerCommand;
+import com.cbs.customer.repository.CustomerCatalogRepository;
 import com.cbs.customer.repository.CustomerRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,9 @@ class CustomerServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
+
+    @Mock
+    private CustomerCatalogRepository customerCatalogRepository;
 
     @Mock
     private WorkingDateService workingDateService;

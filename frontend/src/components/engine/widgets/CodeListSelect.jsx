@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import apiClient from '../../../services/apiClient';
 
 export default function CodeListSelect({
   id,
@@ -7,11 +8,33 @@ export default function CodeListSelect({
   onChange,
   onBlur,
   options = [],
+  optionsEndpoint,
   disabled = false,
   required = false,
   placeholder = '-- Select --',
   error,
 }) {
+  const [selectOptions, setSelectOptions] = useState(options);
+
+  useEffect(() => {
+    if (optionsEndpoint && (!options || options.length === 0)) {
+      apiClient
+        .get(optionsEndpoint)
+        .then((res) => {
+          if (Array.isArray(res.data)) {
+            const mapped = res.data.map((item) => ({
+              value: item.typeCode || item.codeValue || item.code || item.id,
+              label: item.typeName ? `${item.typeName} (${item.typeCode})` : item.displayNameEn || item.name || item.typeCode,
+            }));
+            setSelectOptions(mapped);
+          }
+        })
+        .catch((err) => console.warn('Failed to load options from', optionsEndpoint, err.message));
+    } else if (options && options.length > 0) {
+      setSelectOptions(options);
+    }
+  }, [optionsEndpoint, options]);
+
   return (
     <select
       id={id || name}
@@ -30,7 +53,7 @@ export default function CodeListSelect({
       }`}
     >
       <option value="">{placeholder}</option>
-      {options.map((opt) => {
+      {selectOptions.map((opt) => {
         const optVal = typeof opt === 'object' ? opt.value : opt;
         const optLabel = typeof opt === 'object' ? opt.label : opt;
         return (

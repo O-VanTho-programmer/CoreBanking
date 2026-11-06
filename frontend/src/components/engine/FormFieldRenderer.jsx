@@ -56,6 +56,7 @@ export default function FormFieldRenderer({
             onChange={onChange}
             onBlur={onBlur}
             options={options}
+            optionsEndpoint={field.optionsEndpoint}
             disabled={disabled}
             required={required}
             placeholder={placeholder}
