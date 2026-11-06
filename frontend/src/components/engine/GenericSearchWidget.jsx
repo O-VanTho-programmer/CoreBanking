@@ -13,7 +13,12 @@ import {
   FileQuestion,
 } from 'lucide-react';
 
-export default function GenericSearchWidget({ schema, onNavigate }) {
+export default function GenericSearchWidget({
+  schema,
+  onNavigate,
+  modalMode = false,
+  onSelectRecord = null,
+}) {
   const [keyword, setKeyword] = useState('');
   const [filters, setFilters] = useState({});
   const [isAdvanceOpen, setIsAdvanceOpen] = useState(false);
@@ -224,9 +229,8 @@ export default function GenericSearchWidget({ schema, onNavigate }) {
           <div className="space-y-1">
             <div>
               <span
-                className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${
-                  isAct ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
-                }`}
+                className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${isAct ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                  }`}
               >
                 {val || '-'}
               </span>
@@ -234,11 +238,10 @@ export default function GenericSearchWidget({ schema, onNavigate }) {
             {subStatus && (
               <div>
                 <span
-                  className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${
-                    subStatus === 'VERIFIED'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-amber-100 text-amber-800'
-                  }`}
+                  className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${subStatus === 'VERIFIED'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-amber-100 text-amber-800'
+                    }`}
                 >
                   {subStatus}
                 </span>
@@ -304,8 +307,8 @@ export default function GenericSearchWidget({ schema, onNavigate }) {
           )}
         </div>
 
-        {/* Top Action Buttons (e.g. Add New Customer, Open Account) */}
-        {schema.topActions && schema.topActions.length > 0 && (
+        {/* Top Action Buttons (hidden in modalMode) */}
+        {!modalMode && schema.topActions && schema.topActions.length > 0 && (
           <div className="flex items-center space-x-2">
             {schema.topActions.map((action) => {
               const label = (action.label || '').replace(/^\+\s*/, '');
@@ -358,11 +361,10 @@ export default function GenericSearchWidget({ schema, onNavigate }) {
             <button
               type="button"
               onClick={() => setIsAdvanceOpen(!isAdvanceOpen)}
-              className={`flex items-center justify-center space-x-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition ${
-                isAdvanceOpen || activeFilterCount > 0
-                  ? 'border-blue-600 bg-blue-50 text-blue-700'
-                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-              }`}
+              className={`flex items-center justify-center space-x-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition ${isAdvanceOpen || activeFilterCount > 0
+                ? 'border-blue-600 bg-blue-50 text-blue-700'
+                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                }`}
             >
               <Filter className="h-3.5 w-3.5" />
               <span>Advance Filters</span>
@@ -466,7 +468,7 @@ export default function GenericSearchWidget({ schema, onNavigate }) {
           )}
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
+        <div className="overflow-x-auto overflow-y-scroll max-h-[500px] rounded-xl border border-slate-200 bg-white shadow-xs">
           <table className="w-full text-left text-xs border-collapse">
             <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500">
               <tr>
@@ -475,59 +477,71 @@ export default function GenericSearchWidget({ schema, onNavigate }) {
                     {col.label}
                   </th>
                 ))}
-                {schema.rowActions && schema.rowActions.length > 0 && (
-                  <th className="py-3 px-3 text-right">Actions</th>
+                {(modalMode || (schema.rowActions && schema.rowActions.length > 0)) && (
+                  <th className="py-3 px-3 text-right">{modalMode ? 'Action' : 'Actions'}</th>
                 )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {records.length > 0 ? (
                 records.map((record, rIdx) => (
-                  <tr key={record.id || record.accountId || record.customerId || rIdx} className="hover:bg-blue-50/40 transition">
+                  <tr key={record.id || record.accountId || record.customerId || record.productCode || rIdx} className="hover:bg-blue-50/40 transition">
                     {(schema.columns || []).map((col) => (
                       <td key={`${col.key}-${rIdx}`} className="py-3 px-3">
                         {renderCell(record, col)}
                       </td>
                     ))}
 
-                    {/* Row Actions */}
-                    {schema.rowActions && schema.rowActions.length > 0 && (
+                    {/* Row Action / Modal Select */}
+                    {modalMode ? (
                       <td className="py-3 px-3 text-right">
-                        <div className="flex items-center justify-end space-x-1.5">
-                          {schema.rowActions.map((action) => {
-                            const label = (action.label || '').replace(/^\+\s*/, '');
-                            let btnStyle = 'border-slate-200 bg-white text-slate-700 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-800';
-                            if (action.style === 'emerald') {
-                              btnStyle = 'border-slate-200 bg-white text-slate-700 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-800';
-                            } else if (action.style === 'indigo') {
-                              btnStyle = 'border-slate-200 bg-white text-slate-700 hover:border-indigo-500 hover:bg-indigo-50 hover:text-indigo-800';
-                            } else if (action.style === 'amber') {
-                              btnStyle = 'border-slate-200 bg-white text-slate-700 hover:border-amber-500 hover:bg-amber-50 hover:text-amber-800';
-                            } else if (action.style === 'blue') {
-                              btnStyle = 'border-slate-200 bg-white text-slate-700 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-800';
-                            }
-
-                            return (
-                              <button
-                                key={action.code}
-                                type="button"
-                                onClick={() => handleRowAction(action, record)}
-                                className={`rounded-md border px-2.5 py-1 text-[10px] font-bold transition ${btnStyle}`}
-                                title={action.title || label}
-                              >
-                                {label}
-                              </button>
-                            );
-                          })}
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onSelectRecord && onSelectRecord(record)}
+                          className="rounded-md bg-blue-600 px-3 py-1 text-[11px] font-bold text-white hover:bg-blue-700 shadow-xs transition"
+                        >
+                          Select
+                        </button>
                       </td>
+                    ) : (
+                      schema.rowActions && schema.rowActions.length > 0 && (
+                        <td className="py-3 px-3 text-right">
+                          <div className="flex items-center justify-end space-x-1.5">
+                            {schema.rowActions.map((action) => {
+                              const label = (action.label || '').replace(/^\+\s*/, '');
+                              let btnStyle = 'border-slate-200 bg-white text-slate-700 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-800';
+                              if (action.style === 'emerald') {
+                                btnStyle = 'border-slate-200 bg-white text-slate-700 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-800';
+                              } else if (action.style === 'indigo') {
+                                btnStyle = 'border-slate-200 bg-white text-slate-700 hover:border-indigo-500 hover:bg-indigo-50 hover:text-indigo-800';
+                              } else if (action.style === 'amber') {
+                                btnStyle = 'border-slate-200 bg-white text-slate-700 hover:border-amber-500 hover:bg-amber-50 hover:text-amber-800';
+                              } else if (action.style === 'blue') {
+                                btnStyle = 'border-slate-200 bg-white text-slate-700 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-800';
+                              }
+
+                              return (
+                                <button
+                                  key={action.code}
+                                  type="button"
+                                  onClick={() => handleRowAction(action, record)}
+                                  className={`rounded-md border px-2.5 py-1 text-[10px] font-bold transition ${btnStyle}`}
+                                  title={action.title || label}
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </td>
+                      )
                     )}
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td
-                    colSpan={(schema.columns?.length || 0) + (schema.rowActions?.length ? 1 : 0)}
+                    colSpan={(schema.columns?.length || 0) + (modalMode || schema.rowActions?.length ? 1 : 0)}
                     className="py-10 text-center text-slate-400"
                   >
                     <FileQuestion className="h-8 w-8 mx-auto mb-2 text-slate-300" />

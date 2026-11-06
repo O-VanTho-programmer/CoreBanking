@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import FormFieldRenderer from './FormFieldRenderer';
+import LookupModal from './LookupModal';
 import { formApi } from '../../services/formApi';
 import { Loader2, AlertTriangle, CheckCircle, Send } from 'lucide-react';
 
@@ -18,6 +19,59 @@ export default function DynamicForm({
   const [hiddenFields, setHiddenFields] = useState(new Set());
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evaluationNotice, setEvaluationNotice] = useState(null);
+  const [lookupModalState, setLookupModalState] = useState({
+    isOpen: false,
+    modalFormCode: null,
+    field: null,
+  });
+
+  const handleOpenLookup = useCallback((modalFormCode, field) => {
+    setLookupModalState({
+      isOpen: true,
+      modalFormCode,
+      field,
+    });
+  }, []);
+
+  const handleSelectLookupRecord = useCallback(
+    (record) => {
+      const field = lookupModalState.field;
+      if (!field || !record) return;
+
+      const lookupConfig = field.look_up || field.lookUp || field.lookup || {};
+      const valueKey = lookupConfig.value_key || lookupConfig.valueKey || field.name;
+      const selectedValue =
+        record[valueKey] ?? record.productCode ?? record.id ?? record.code ?? '';
+
+      setFormData((prev) => {
+        const next = { ...prev, [field.name]: selectedValue };
+
+        const mapping = lookupConfig.mapping || lookupConfig.fieldMapping;
+        if (mapping && typeof mapping === 'object') {
+          Object.entries(mapping).forEach(([targetFieldName, srcRecordKey]) => {
+            if (record[srcRecordKey] !== undefined) {
+              next[targetFieldName] = record[srcRecordKey];
+            }
+          });
+        }
+        return next;
+      });
+
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field.name];
+        return next;
+      });
+
+      if (field.steps && field.steps.length > 0) {
+        const updatedData = { ...formData, [field.name]: selectedValue };
+        triggerEvaluation(field.name, updatedData, field.steps);
+      }
+
+      setLookupModalState({ isOpen: false, modalFormCode: null, field: null });
+    },
+    [lookupModalState, formData, triggerEvaluation]
+  );
 
   // Initialize form data when schema or initialData changes
   useEffect(() => {
@@ -241,6 +295,7 @@ export default function DynamicForm({
               error={errors[field.name]}
               disabled={disabledFields.has(field.name) || isSubmitting}
               formData={formData}
+              onOpenLookup={handleOpenLookup}
             />
           ))}
       </div>
@@ -367,6 +422,15 @@ export default function DynamicForm({
           </>
         )}
       </div>
+
+      {/* Catalogue & Entity Lookup Modal */}
+      <LookupModal
+        isOpen={lookupModalState.isOpen}
+        onClose={() => setLookupModalState({ isOpen: false, modalFormCode: null, field: null })}
+        modalFormCode={lookupModalState.modalFormCode}
+        onSelectRecord={handleSelectLookupRecord}
+        title={lookupModalState.field?.label ? `Lookup ${lookupModalState.field.label}` : null}
+      />
     </form>
   );
 }

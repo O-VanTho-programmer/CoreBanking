@@ -3,6 +3,7 @@ import CurrencyInput from './widgets/CurrencyInput';
 import AccountLookup from './widgets/AccountLookup';
 import CodeListSelect from './widgets/CodeListSelect';
 import DateInput from './widgets/DateInput';
+import { Search } from 'lucide-react';
 
 export default function FormFieldRenderer({
   field,
@@ -12,6 +13,7 @@ export default function FormFieldRenderer({
   error,
   disabled,
   formData,
+  onOpenLookup,
 }) {
   const { name, label, type, placeholder, required, options, suffix, colSpan = 1 } = field;
 
@@ -133,27 +135,49 @@ export default function FormFieldRenderer({
         );
 
       case 'TEXT':
-      default:
+      default: {
+        const lookupConfig = field.look_up || field.lookUp || field.lookup;
+        const isLookupEnabled = Boolean(lookupConfig?.is_enable || lookupConfig?.isEnable);
+
         return (
-          <input
-            type="text"
-            id={name}
-            name={name}
-            value={value ?? ''}
-            onChange={onChange}
-            onBlur={onBlur}
-            disabled={disabled}
-            required={required}
-            placeholder={placeholder}
-            className={`block w-full rounded-lg border px-3 py-2.5 text-sm transition focus:outline-none focus:ring-2 ${
-              disabled
-                ? 'bg-slate-100 text-slate-500 border-slate-300 cursor-not-allowed'
-                : error
-                ? 'border-red-400 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-200'
-                : 'border-slate-300 bg-white text-slate-900 focus:border-blue-600 focus:ring-blue-100'
-            }`}
-          />
+          <div className="relative flex items-center">
+            <input
+              type="text"
+              id={name}
+              name={name}
+              value={value ?? ''}
+              onChange={onChange}
+              onBlur={onBlur}
+              disabled={disabled}
+              required={required}
+              placeholder={placeholder}
+              className={`block w-full rounded-lg border px-3 py-2.5 text-sm transition focus:outline-none focus:ring-2 ${
+                isLookupEnabled ? 'pr-10' : ''
+              } ${
+                disabled
+                  ? 'bg-slate-100 text-slate-500 border-slate-300 cursor-not-allowed'
+                  : error
+                  ? 'border-red-400 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-200'
+                  : 'border-slate-300 bg-white text-slate-900 focus:border-blue-600 focus:ring-blue-100'
+              }`}
+            />
+            {isLookupEnabled && (
+              <button
+                type="button"
+                onClick={() =>
+                  onOpenLookup &&
+                  onOpenLookup(lookupConfig.modal_form || lookupConfig.modalForm, field)
+                }
+                disabled={disabled}
+                className="absolute right-2 p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition disabled:opacity-50"
+                title="Lookup from catalogue"
+              >
+                <Search className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         );
+      }
     }
   };
 
