@@ -9,17 +9,138 @@ import {
   X,
   Search,
   Layers,
-  ChevronDown,
   ArrowDownLeft,
   ArrowUpRight,
   ArrowLeftRight,
   CreditCard,
   FileText,
   UserPlus,
-  Settings,
   ChevronRight,
-  Sparkles,
+  ArrowLeft,
+  Banknote,
 } from 'lucide-react';
+
+// Structured Hierarchical Modules Menu Definition
+const MODULES_MENU = [
+  {
+    id: 'deposit',
+    name: 'Deposit',
+    code: 'DPT',
+    description: 'Account inquiry & product catalogue',
+    icon: ArrowDownLeft,
+    iconColor: 'text-emerald-600',
+    iconBg: 'bg-emerald-50 border-emerald-100',
+    badge: '2 items',
+    children: [
+      {
+        formCode: 'FORM_DPT_INFO',
+        title: 'Account Information',
+        description: 'Inquire CASA balance, ledger & statement',
+        badge: 'INQ',
+        badgeColor: 'bg-blue-100 text-blue-800',
+      },
+      {
+        formCode: 'FORM_DPT_CATALOGUE',
+        title: 'Catalogue Definition',
+        description: 'Configure deposit product interest & GL',
+        badge: 'BO',
+        badgeColor: 'bg-amber-100 text-amber-800',
+      },
+    ],
+  },
+  {
+    id: 'cash',
+    name: 'Cash',
+    code: 'CSH',
+    description: 'Teller counter cash transactions',
+    icon: Banknote,
+    iconColor: 'text-amber-600',
+    iconBg: 'bg-amber-50 border-amber-100',
+    badge: '3 items',
+    children: [
+      {
+        formCode: 'FORM_CASH_DEP',
+        title: 'Cash Deposit',
+        description: 'Over-the-counter physical cash deposit',
+        badge: 'FO',
+        badgeColor: 'bg-emerald-100 text-emerald-800',
+      },
+      {
+        formCode: 'FORM_CASH_WDR',
+        title: 'Cash Withdrawal',
+        description: 'Over-the-counter physical cash withdrawal',
+        badge: 'FO',
+        badgeColor: 'bg-emerald-100 text-emerald-800',
+      },
+      {
+        formCode: 'FORM_TRF_INTERNAL',
+        title: 'Internal Transfer',
+        description: 'Account-to-account transfer with fee',
+        badge: 'FO',
+        badgeColor: 'bg-emerald-100 text-emerald-800',
+      },
+    ],
+  },
+  {
+    id: 'credit',
+    name: 'Credit',
+    code: 'CRD',
+    description: 'Loan account, origination & catalogue',
+    icon: FileText,
+    iconColor: 'text-indigo-600',
+    iconBg: 'bg-indigo-50 border-indigo-100',
+    badge: '3 items',
+    children: [
+      {
+        formCode: 'FORM_CRD_INFO',
+        title: 'Account Information',
+        description: 'Inquire loan contracts, balance & repayment schedule',
+        badge: 'INQ',
+        badgeColor: 'bg-blue-100 text-blue-800',
+      },
+      {
+        formCode: 'FORM_CREDIT_ACCOUNT_OPEN',
+        title: 'Open Credit Account',
+        description: 'Originate, calculate EMI & approve loan contracts',
+        badge: 'FO',
+        badgeColor: 'bg-emerald-100 text-emerald-800',
+      },
+      {
+        formCode: 'FORM_CRD_CATALOGUE',
+        title: 'Catalogue Definition',
+        description: 'Configure credit product packages & interest margins',
+        badge: 'BO',
+        badgeColor: 'bg-amber-100 text-amber-800',
+      },
+    ],
+  },
+  {
+    id: 'customer',
+    name: 'Customer',
+    code: 'CUST',
+    description: 'Customer profile, CIF 360 & onboarding',
+    icon: User,
+    iconColor: 'text-blue-600',
+    iconBg: 'bg-blue-50 border-blue-100',
+    badge: '2 items',
+    children: [
+      {
+        formCode: 'FORM_CUST_PROFILE',
+        title: 'Customer Profile',
+        description: 'CIF 360 inquiry & profile actions',
+        badge: 'INQ',
+        badgeColor: 'bg-blue-100 text-blue-800',
+      },
+      {
+        formCode: 'FORM_CUST_CREATE',
+        title: 'Register Customer',
+        description: 'Onboard new individual or corporate CIF profile',
+        badge: 'FO',
+        badgeColor: 'bg-emerald-100 text-emerald-800',
+      },
+    ],
+  },
+];
 
 export default function Header({
   workingDate = '2026-11-05',
@@ -30,6 +151,7 @@ export default function Header({
   onOpenForm,
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeModuleId, setActiveModuleId] = useState(null); // null = parent menu, string = selected module
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef(null);
@@ -46,6 +168,7 @@ export default function Header({
       } else if (e.key === 'Escape') {
         setIsSearchOpen(false);
         setIsMenuOpen(false);
+        setActiveModuleId(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -57,6 +180,7 @@ export default function Header({
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setIsMenuOpen(false);
+        setActiveModuleId(null);
       }
       if (searchRef.current && !searchRef.current.contains(e.target)) {
         setIsSearchOpen(false);
@@ -92,7 +216,11 @@ export default function Header({
       onOpenForm(formCode, formName);
     }
     setIsMenuOpen(false);
+    setActiveModuleId(null);
   };
+
+  // Find currently active selected module object
+  const selectedModuleObj = MODULES_MENU.find((m) => m.id === activeModuleId);
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-xs">
@@ -103,7 +231,15 @@ export default function Header({
           <div className="relative" ref={menuRef}>
             <button
               type="button"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={() => {
+                if (isMenuOpen) {
+                  setIsMenuOpen(false);
+                  setActiveModuleId(null);
+                } else {
+                  setIsMenuOpen(true);
+                  setActiveModuleId(null);
+                }
+              }}
               className={`flex h-10 w-10 items-center justify-center rounded-xl border transition ${
                 isMenuOpen
                   ? 'border-blue-600 bg-blue-50 text-blue-700'
@@ -114,95 +250,112 @@ export default function Header({
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
 
-            {/* Services / Modules Mega Dropdown Menu */}
+            {/* Hierarchical Drill-Down Dropdown Menu */}
             {isMenuOpen && (
-              <div className="absolute left-0 mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl animate-fadeIn z-50">
-                <div className="flex items-center justify-between border-b border-slate-100 px-3 pb-2.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center space-x-1.5">
-                    <Layers className="h-4 w-4 text-blue-600" />
-                    <span>Banking Modules</span>
-                  </span>
-                  <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-800">
-                    CBS PROD
-                  </span>
-                </div>
-
-                <div className="mt-2 space-y-3 p-1 text-xs">
-                  {/* Deposit Module */}
-                  <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-2.5 space-y-1.5">
-                    <div className="flex items-center space-x-2 text-slate-800 font-bold uppercase tracking-wide text-[11px]">
-                      <ArrowDownLeft className="h-3.5 w-3.5 text-emerald-600" />
-                      <span>Deposit (DPT)</span>
-                    </div>
-                    <div className="space-y-1 pl-5">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenNamedForm('FORM_DPT_INFO', 'Deposit Account Information')}
-                        className="w-full text-left font-medium text-slate-600 hover:text-blue-700 hover:underline flex items-center justify-between py-0.5"
-                      >
-                        <span>Account Information</span>
-                        <ChevronRight className="h-3 w-3 text-slate-400" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleOpenNamedForm('FORM_DPT_CATALOGUE', 'Deposit Catalogue Definition (BO)')}
-                        className="w-full text-left font-medium text-slate-600 hover:text-blue-700 hover:underline flex items-center justify-between py-0.5"
-                      >
-                        <span className="flex items-center space-x-1">
-                          <span>Catalogue Definition</span>
-                          <span className="rounded bg-slate-200 px-1 py-0.2 text-[9px] font-bold text-slate-600">BO</span>
-                        </span>
-                        <ChevronRight className="h-3 w-3 text-slate-400" />
-                      </button>
-                    </div>
+              <div className="absolute left-0 mt-2 w-88 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl animate-fadeIn z-50">
+                {/* Dropdown Header: Parent title OR Back button */}
+                {activeModuleId ? (
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 px-1">
+                    <button
+                      type="button"
+                      onClick={() => setActiveModuleId(null)}
+                      className="flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-blue-700 transition group"
+                    >
+                      <ArrowLeft className="h-4 w-4 text-slate-500 group-hover:text-blue-600 group-hover:-translate-x-0.5 transition" />
+                      <span>Back to Modules</span>
+                    </button>
+                    <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-800">
+                      {selectedModuleObj?.code}
+                    </span>
                   </div>
-
-                  {/* Credit Module */}
-                  <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-2.5 space-y-1.5">
-                    <div className="flex items-center space-x-2 text-slate-800 font-bold uppercase tracking-wide text-[11px]">
-                      <FileText className="h-3.5 w-3.5 text-indigo-600" />
-                      <span>Credit & Lending (CRD)</span>
-                    </div>
-                    <div className="space-y-1 pl-5">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenNamedForm('FORM_CRD_INFO', 'Credit Account Information')}
-                        className="w-full text-left font-medium text-slate-600 hover:text-blue-700 hover:underline flex items-center justify-between py-0.5"
-                      >
-                        <span>Account Information</span>
-                        <ChevronRight className="h-3 w-3 text-slate-400" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleOpenNamedForm('FORM_CRD_CATALOGUE', 'Credit Catalogue Definition (BO)')}
-                        className="w-full text-left font-medium text-slate-600 hover:text-blue-700 hover:underline flex items-center justify-between py-0.5"
-                      >
-                        <span className="flex items-center space-x-1">
-                          <span>Catalogue Definition</span>
-                          <span className="rounded bg-slate-200 px-1 py-0.2 text-[9px] font-bold text-slate-600">BO</span>
-                        </span>
-                        <ChevronRight className="h-3 w-3 text-slate-400" />
-                      </button>
-                    </div>
+                ) : (
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 px-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center space-x-1.5">
+                      <Layers className="h-4 w-4 text-blue-600" />
+                      <span>Banking Modules</span>
+                    </span>
+                    <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-800">
+                      CBS PROD
+                    </span>
                   </div>
+                )}
 
-                  {/* Customer Module */}
-                  <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-2.5 space-y-1.5">
-                    <div className="flex items-center space-x-2 text-slate-800 font-bold uppercase tracking-wide text-[11px]">
-                      <User className="h-3.5 w-3.5 text-blue-600" />
-                      <span>Customer CIF (CUST)</span>
+                {/* Dropdown Content Area */}
+                <div className="mt-2 text-xs">
+                  {activeModuleId && selectedModuleObj ? (
+                    /* CHILDREN VIEW: Replaces the entire menu with children of selected module */
+                    <div className="space-y-1.5 animate-fadeIn">
+                      <div className="px-2 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center space-x-1.5">
+                        <selectedModuleObj.icon className={`h-3.5 w-3.5 ${selectedModuleObj.iconColor}`} />
+                        <span>{selectedModuleObj.name} Services</span>
+                      </div>
+
+                      <div className="space-y-1">
+                        {selectedModuleObj.children.map((child) => (
+                          <button
+                            key={child.formCode}
+                            type="button"
+                            onClick={() => handleOpenNamedForm(child.formCode, child.title)}
+                            className="w-full text-left rounded-xl p-2.5 hover:bg-blue-50/70 transition flex items-center justify-between group border border-transparent hover:border-blue-100"
+                          >
+                            <div className="space-y-0.5">
+                              <div className="font-semibold text-slate-800 text-xs group-hover:text-blue-900 flex items-center space-x-2">
+                                <span>{child.title}</span>
+                                <span className={`rounded px-1.5 py-0.2 text-[9px] font-bold ${child.badgeColor}`}>
+                                  {child.badge}
+                                </span>
+                              </div>
+                              <div className="text-[11px] text-slate-400 group-hover:text-slate-600">
+                                {child.description}
+                              </div>
+                              <div className="text-[9px] font-mono text-slate-400">
+                                {child.formCode}
+                              </div>
+                            </div>
+
+                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-blue-600 shrink-0 ml-2 transition group-hover:translate-x-0.5" />
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <div className="space-y-1 pl-5">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenNamedForm('FORM_CUST_PROFILE', 'Customer Profile & CIF 360')}
-                        className="w-full text-left font-medium text-slate-600 hover:text-blue-700 hover:underline flex items-center justify-between py-0.5"
-                      >
-                        <span>Customer Profile</span>
-                        <ChevronRight className="h-3 w-3 text-slate-400" />
-                      </button>
+                  ) : (
+                    /* PARENT VIEW: Inline parent module list */
+                    <div className="space-y-1 animate-fadeIn">
+                      {MODULES_MENU.map((mod) => {
+                        const IconComponent = mod.icon;
+                        return (
+                          <button
+                            key={mod.id}
+                            type="button"
+                            onClick={() => setActiveModuleId(mod.id)}
+                            className="w-full text-left rounded-xl p-2.5 hover:bg-slate-50 transition flex items-center justify-between group border border-slate-100 hover:border-slate-200"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className={`flex h-9 w-9 items-center justify-center rounded-xl border ${mod.iconBg}`}>
+                                <IconComponent className={`h-4.5 w-4.5 ${mod.iconColor}`} />
+                              </div>
+                              <div>
+                                <div className="font-bold text-slate-800 text-xs group-hover:text-blue-900 flex items-center space-x-1.5">
+                                  <span>{mod.name}</span>
+                                  <span className="text-[10px] text-slate-400 font-mono">({mod.code})</span>
+                                </div>
+                                <div className="text-[10px] text-slate-400 group-hover:text-slate-600">
+                                  {mod.description}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center space-x-2 shrink-0">
+                              <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-800 transition">
+                                {mod.badge}
+                              </span>
+                              <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-blue-600 transition group-hover:translate-x-0.5" />
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
