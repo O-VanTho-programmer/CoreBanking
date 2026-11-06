@@ -27,24 +27,16 @@ const MODULES_MENU = [
     name: 'Deposit',
     code: 'DPT',
     description: 'Account inquiry & product catalogue',
-    icon: ArrowDownLeft,
-    iconColor: 'text-emerald-600',
-    iconBg: 'bg-emerald-50 border-emerald-100',
-    badge: '2 items',
     children: [
       {
         formCode: 'FORM_DPT_INFO',
         title: 'Account Information',
         description: 'Inquire CASA balance, ledger & statement',
-        badge: 'INQ',
-        badgeColor: 'bg-blue-100 text-blue-800',
       },
       {
         formCode: 'FORM_DPT_CATALOGUE',
         title: 'Catalogue Definition',
         description: 'Configure deposit product interest & GL',
-        badge: 'BO',
-        badgeColor: 'bg-amber-100 text-amber-800',
       },
     ],
   },
@@ -53,31 +45,21 @@ const MODULES_MENU = [
     name: 'Cash',
     code: 'CSH',
     description: 'Teller counter cash transactions',
-    icon: Banknote,
-    iconColor: 'text-amber-600',
-    iconBg: 'bg-amber-50 border-amber-100',
-    badge: '3 items',
     children: [
       {
         formCode: 'FORM_CASH_DEP',
         title: 'Cash Deposit',
         description: 'Over-the-counter physical cash deposit',
-        badge: 'FO',
-        badgeColor: 'bg-emerald-100 text-emerald-800',
       },
       {
         formCode: 'FORM_CASH_WDR',
         title: 'Cash Withdrawal',
         description: 'Over-the-counter physical cash withdrawal',
-        badge: 'FO',
-        badgeColor: 'bg-emerald-100 text-emerald-800',
       },
       {
         formCode: 'FORM_TRF_INTERNAL',
         title: 'Internal Transfer',
         description: 'Account-to-account transfer with fee',
-        badge: 'FO',
-        badgeColor: 'bg-emerald-100 text-emerald-800',
       },
     ],
   },
@@ -86,31 +68,21 @@ const MODULES_MENU = [
     name: 'Credit',
     code: 'CRD',
     description: 'Loan account, origination & catalogue',
-    icon: FileText,
-    iconColor: 'text-indigo-600',
-    iconBg: 'bg-indigo-50 border-indigo-100',
-    badge: '3 items',
     children: [
       {
         formCode: 'FORM_CRD_INFO',
         title: 'Account Information',
         description: 'Inquire loan contracts, balance & repayment schedule',
-        badge: 'INQ',
-        badgeColor: 'bg-blue-100 text-blue-800',
       },
       {
         formCode: 'FORM_CREDIT_ACCOUNT_OPEN',
         title: 'Open Credit Account',
         description: 'Originate, calculate EMI & approve loan contracts',
-        badge: 'FO',
-        badgeColor: 'bg-emerald-100 text-emerald-800',
       },
       {
         formCode: 'FORM_CRD_CATALOGUE',
         title: 'Catalogue Definition',
         description: 'Configure credit product packages & interest margins',
-        badge: 'BO',
-        badgeColor: 'bg-amber-100 text-amber-800',
       },
     ],
   },
@@ -119,24 +91,16 @@ const MODULES_MENU = [
     name: 'Customer',
     code: 'CUST',
     description: 'Customer profile, CIF 360 & onboarding',
-    icon: User,
-    iconColor: 'text-blue-600',
-    iconBg: 'bg-blue-50 border-blue-100',
-    badge: '2 items',
     children: [
       {
         formCode: 'FORM_CUST_PROFILE',
         title: 'Customer Profile',
         description: 'CIF 360 inquiry & profile actions',
-        badge: 'INQ',
-        badgeColor: 'bg-blue-100 text-blue-800',
       },
       {
         formCode: 'FORM_CUST_CREATE',
         title: 'Register Customer',
         description: 'Onboard new individual or corporate CIF profile',
-        badge: 'FO',
-        badgeColor: 'bg-emerald-100 text-emerald-800',
       },
     ],
   },
@@ -193,14 +157,14 @@ export default function Header({
   // Filter shortcuts matching search query
   const filteredShortcuts = searchQuery.trim()
     ? shortcuts.filter((sc) => {
-        const q = searchQuery.toLowerCase();
-        return (
-          sc.formName.toLowerCase().includes(q) ||
-          sc.keywords.toLowerCase().includes(q) ||
-          sc.formCode.toLowerCase().includes(q) ||
-          sc.module.toLowerCase().includes(q)
-        );
-      })
+      const q = searchQuery.toLowerCase();
+      return (
+        sc.formName.toLowerCase().includes(q) ||
+        sc.keywords.toLowerCase().includes(q) ||
+        sc.formCode.toLowerCase().includes(q) ||
+        sc.module.toLowerCase().includes(q)
+      );
+    })
     : shortcuts.slice(0, 6);
 
   const handleSelectShortcut = (shortcut) => {
@@ -224,10 +188,8 @@ export default function Header({
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-xs">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6 gap-3">
-        {/* Left Section: Menu Icon + Logo Branding */}
+      <div className="mx-auto flex min-w-4xl w-full max-w-full items-center justify-between px-4 py-2.5 sm:px-6 gap-3">
         <div className="flex items-center space-x-3">
-          {/* Main Services / Module Menu Button */}
           <div className="relative" ref={menuRef}>
             <button
               type="button"
@@ -240,11 +202,10 @@ export default function Header({
                   setActiveModuleId(null);
                 }
               }}
-              className={`flex h-10 w-10 items-center justify-center rounded-xl border transition ${
-                isMenuOpen
-                  ? 'border-blue-600 bg-blue-50 text-blue-700'
-                  : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
-              }`}
+              className={`flex h-10 w-10 items-center justify-center rounded-xl border transition ${isMenuOpen
+                ? 'border-blue-600 bg-blue-50 text-blue-700'
+                : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                }`}
               title="Modules & Services Menu"
             >
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -252,41 +213,29 @@ export default function Header({
 
             {/* Hierarchical Drill-Down Dropdown Menu */}
             {isMenuOpen && (
-              <div className="absolute left-0 mt-2 w-88 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl animate-fadeIn z-50">
+              <div className="absolute left-0 mt-2 min-w-[300px] w-full rounded-lg border border-slate-200 bg-white shadow-2xl animate-fadeIn z-50">
                 {/* Dropdown Header: Parent title OR Back button */}
                 {activeModuleId ? (
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 px-1">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2 pt-2 px-1">
                     <button
                       type="button"
                       onClick={() => setActiveModuleId(null)}
                       className="flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-blue-700 transition group"
                     >
                       <ArrowLeft className="h-4 w-4 text-slate-500 group-hover:text-blue-600 group-hover:-translate-x-0.5 transition" />
-                      <span>Back to Modules</span>
+                      <span>Back</span>
                     </button>
-                    <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-800">
-                      {selectedModuleObj?.code}
-                    </span>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 px-1">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center space-x-1.5">
-                      <Layers className="h-4 w-4 text-blue-600" />
-                      <span>Banking Modules</span>
-                    </span>
-                    <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-800">
-                      CBS PROD
-                    </span>
-                  </div>
+                  <div className=""></div>
                 )}
 
                 {/* Dropdown Content Area */}
                 <div className="mt-2 text-xs">
                   {activeModuleId && selectedModuleObj ? (
-                    /* CHILDREN VIEW: Replaces the entire menu with children of selected module */
+                    /* CHILDREN MENU */
                     <div className="space-y-1.5 animate-fadeIn">
                       <div className="px-2 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center space-x-1.5">
-                        <selectedModuleObj.icon className={`h-3.5 w-3.5 ${selectedModuleObj.iconColor}`} />
                         <span>{selectedModuleObj.name} Services</span>
                       </div>
 
@@ -296,7 +245,7 @@ export default function Header({
                             key={child.formCode}
                             type="button"
                             onClick={() => handleOpenNamedForm(child.formCode, child.title)}
-                            className="w-full text-left rounded-xl p-2.5 hover:bg-blue-50/70 transition flex items-center justify-between group border border-transparent hover:border-blue-100"
+                            className="w-full text-left p-2.5 hover:bg-blue-50/70 transition flex items-center justify-between group border border-transparent hover:border-blue-100"
                           >
                             <div className="space-y-0.5">
                               <div className="font-semibold text-slate-800 text-xs group-hover:text-blue-900 flex items-center space-x-2">
@@ -304,12 +253,6 @@ export default function Header({
                                 <span className={`rounded px-1.5 py-0.2 text-[9px] font-bold ${child.badgeColor}`}>
                                   {child.badge}
                                 </span>
-                              </div>
-                              <div className="text-[11px] text-slate-400 group-hover:text-slate-600">
-                                {child.description}
-                              </div>
-                              <div className="text-[9px] font-mono text-slate-400">
-                                {child.formCode}
                               </div>
                             </div>
 
@@ -319,38 +262,21 @@ export default function Header({
                       </div>
                     </div>
                   ) : (
-                    /* PARENT VIEW: Inline parent module list */
+                    /* PARENT MENU */
                     <div className="space-y-1 animate-fadeIn">
                       {MODULES_MENU.map((mod) => {
-                        const IconComponent = mod.icon;
                         return (
                           <button
                             key={mod.id}
                             type="button"
                             onClick={() => setActiveModuleId(mod.id)}
-                            className="w-full text-left rounded-xl p-2.5 hover:bg-slate-50 transition flex items-center justify-between group border border-slate-100 hover:border-slate-200"
+                            className="w-full text-left p-2.5 hover:bg-blue-50/70 transition flex items-center justify-between group border border-transparent hover:border-blue-100"
                           >
-                            <div className="flex items-center space-x-3">
-                              <div className={`flex h-9 w-9 items-center justify-center rounded-xl border ${mod.iconBg}`}>
-                                <IconComponent className={`h-4.5 w-4.5 ${mod.iconColor}`} />
-                              </div>
-                              <div>
-                                <div className="font-bold text-slate-800 text-xs group-hover:text-blue-900 flex items-center space-x-1.5">
-                                  <span>{mod.name}</span>
-                                  <span className="text-[10px] text-slate-400 font-mono">({mod.code})</span>
-                                </div>
-                                <div className="text-[10px] text-slate-400 group-hover:text-slate-600">
-                                  {mod.description}
-                                </div>
-                              </div>
+                            <div className="font-bold text-slate-800 text-xs group-hover:text-blue-900 flex items-center space-x-1.5">
+                              <span>{mod.name}</span>
                             </div>
 
-                            <div className="flex items-center space-x-2 shrink-0">
-                              <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-800 transition">
-                                {mod.badge}
-                              </span>
-                              <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-blue-600 transition group-hover:translate-x-0.5" />
-                            </div>
+                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-blue-600 shrink-0 ml-2 transition group-hover:translate-x-0.5" />
                           </button>
                         );
                       })}
@@ -438,13 +364,12 @@ export default function Header({
 
                       <div className="flex items-center space-x-1.5">
                         <span
-                          className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${
-                            sc.category === 'FO_TRANSACTION'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : sc.category === 'BO_CATALOGUE'
+                          className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${sc.category === 'FO_TRANSACTION'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : sc.category === 'BO_CATALOGUE'
                               ? 'bg-amber-100 text-amber-800'
                               : 'bg-blue-100 text-blue-800'
-                          }`}
+                            }`}
                         >
                           {sc.category === 'FO_TRANSACTION' ? 'FO' : sc.category === 'BO_CATALOGUE' ? 'BO' : 'INQ'}
                         </span>
@@ -475,11 +400,10 @@ export default function Header({
 
           {/* Cutoff Badge */}
           <div
-            className={`flex items-center space-x-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-              isCutoff
-                ? 'bg-amber-100 text-amber-900 border border-amber-200'
-                : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
-            }`}
+            className={`flex items-center space-x-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${isCutoff
+              ? 'bg-amber-100 text-amber-900 border border-amber-200'
+              : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+              }`}
           >
             {isCutoff ? (
               <>
