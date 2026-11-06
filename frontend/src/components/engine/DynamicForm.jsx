@@ -7,6 +7,7 @@ export default function DynamicForm({
   schema,
   initialData = {},
   onSubmit,
+  onNavigate,
   isSubmitting = false,
   submitLabel = 'Submit Transaction',
   submitIcon: SubmitIcon = Send,
@@ -33,8 +34,9 @@ export default function DynamicForm({
 
   // Rule Evaluation Engine (Convention over Configuration)
   const triggerEvaluation = useCallback(
-    async (fieldName, currentData) => {
-      if (!schema?.steps || schema.steps.length === 0) return;
+    async (fieldName, currentData, explicitSteps = null) => {
+      const stepsToRun = explicitSteps || schema?.steps;
+      if (!stepsToRun || stepsToRun.length === 0) return;
 
       try {
         setIsEvaluating(true);
@@ -42,7 +44,7 @@ export default function DynamicForm({
 
         const result = await formApi.evaluateForm(
           schema.formCode,
-          schema.steps,
+          stepsToRun,
           fieldName,
           currentData
         );
@@ -148,6 +150,53 @@ export default function DynamicForm({
     }
   };
 
+  const handleActionClick = (action) => {
+    switch (action.actionType) {
+      case 'WORKFLOW_STEP':
+        triggerEvaluation(action.code, formData, action.stepCode ? [action.stepCode] : null);
+        break;
+
+      case 'NAVIGATE_FORM':
+        if (onNavigate) {
+          const passData = {};
+          if (action.passParams && Array.isArray(action.passParams)) {
+            action.passParams.forEach((k) => {
+              if (formData[k] !== undefined && formData[k] !== null && formData[k] !== '') {
+                passData[k] = formData[k];
+              }
+            });
+          }
+          onNavigate(action.targetFormCode, passData);
+        }
+        break;
+
+      case 'SUBMIT_TRX': {
+        const validationErrors = {};
+        (schema.fields || []).forEach((f) => {
+          if (f.required && !hiddenFields.has(f.name)) {
+            const val = formData[f.name];
+            if (val === undefined || val === null || val === '') {
+              validationErrors[f.name] = `${f.label} is required`;
+            }
+          }
+        });
+
+        if (Object.keys(validationErrors).length > 0) {
+          setErrors((prev) => ({ ...prev, ...validationErrors }));
+          return;
+        }
+
+        if (onSubmit) {
+          onSubmit(formData, action);
+        }
+        break;
+      }
+
+      default:
+        console.warn('Unhandled action type:', action.actionType);
+    }
+  };
+
   if (!schema) {
     return (
       <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white">
@@ -207,41 +256,116 @@ export default function DynamicForm({
         </div>
       )}
 
-      {/* Form Submit Action Bar */}
-      <div className="flex items-center justify-end space-x-4 border-t border-slate-200 pt-5">
-        <button
-          type="button"
-          onClick={() => {
-            const defaults = {};
-            (schema.fields || []).forEach((f) => {
-              defaults[f.name] = '';
-            });
-            setFormData(defaults);
-            setErrors({});
-          }}
-          disabled={isSubmitting}
-          className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
-        >
-          Reset
-        </button>
+      {/* Form Action Bar: Multi-Button or Standard Submit */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
+        {schema.actions && schema.actions.length > 0 ? (
+          <>
+            {/* Left / Secondary Action Buttons (Inquiry, Steps, Navigation) */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const defaults = {};
+                  (schema.fields || []).forEach((f) => {
+                    defaults[f.name] = '';
+                  });
+                  setFormData(defaults);
+                  setErrors({});
+                }}
+                disabled={isSubmitting}
+                className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
+              >
+                Reset
+              </button>
 
-        <button
-          type="submit"
-          disabled={isSubmitting || isEvaluating}
-          className="inline-flex items-center space-x-2 rounded-lg bg-blue-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Posting Journal...</span>
-            </>
-          ) : (
-            <>
-              <SubmitIcon className="h-4 w-4" />
-              <span>{submitLabel}</span>
-            </>
-          )}
-        </button>
+              {schema.actions
+                .filter((a) => a.actionType !== 'SUBMIT_TRX')
+                .map((action) => (
+                  <button
+                    key={action.code}
+                    type="button"
+                    onClick={() => handleActionClick(action)}
+                    disabled={isSubmitting || isEvaluating}
+                    className={`rounded-lg px-4 py-2 text-xs font-semibold shadow-xs transition disabled:opacity-50 ${
+                      action.style === 'primary'
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : action.style === 'danger'
+                        ? 'bg-red-600 text-white hover:bg-red-700'
+                        : 'border border-slate-300 bg-white text-slate-800 hover:bg-slate-50'
+                    }`}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+            </div>
+
+            {/* Right / Primary Submit Buttons */}
+            <div className="flex flex-wrap gap-2">
+              {schema.actions
+                .filter((a) => a.actionType === 'SUBMIT_TRX')
+                .map((action) => (
+                  <button
+                    key={action.code}
+                    type="button"
+                    onClick={() => handleActionClick(action)}
+                    disabled={isSubmitting || isEvaluating}
+                    className="inline-flex items-center space-x-2 rounded-lg bg-blue-700 px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-blue-800 disabled:opacity-50 transition"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <span>Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <SubmitIcon className="h-3.5 w-3.5" />
+                        <span>{action.label}</span>
+                      </>
+                    )}
+                  </button>
+                ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <div />
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={() => {
+                  const defaults = {};
+                  (schema.fields || []).forEach((f) => {
+                    defaults[f.name] = '';
+                  });
+                  setFormData(defaults);
+                  setErrors({});
+                }}
+                disabled={isSubmitting}
+                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
+              >
+                Reset
+              </button>
+
+              <button
+                type="submit"
+                disabled={isSubmitting || isEvaluating}
+                className="inline-flex items-center space-x-2 rounded-lg bg-blue-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Posting Journal...</span>
+                  </>
+                ) : (
+                  <>
+                    <SubmitIcon className="h-4 w-4" />
+                    <span>{submitLabel}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </form>
   );

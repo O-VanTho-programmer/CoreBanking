@@ -59,6 +59,19 @@ class FormEngineIntegrationTest {
     }
 
     @Test
+    @DisplayName("Form Engine: List shortcuts and search by keyword")
+    void testListAndSearchShortcuts() {
+        var allShortcuts = formApiController.listShortcuts(null);
+        assertThat(allShortcuts.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(allShortcuts.getBody()).isNotEmpty();
+
+        var searchResults = formApiController.searchShortcuts("cash");
+        assertThat(searchResults.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(searchResults.getBody()).isNotEmpty();
+        assertThat(searchResults.getBody().stream().anyMatch(s -> s.getFormCode().equals("FORM_CASH_DEP"))).isTrue();
+    }
+
+    @Test
     @DisplayName("Form Engine: Server-driven evaluate for account lookup and transfer fee calculation")
     void testEvaluateFormSteps() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);

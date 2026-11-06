@@ -23,4 +23,20 @@ export const formApi = {
     });
     return res.data; // { updates: {...}, errors: {...}, disabledFields: [...], hiddenFields: [...] }
   },
+
+  // Get active form shortcuts for spotlight and menu navigation
+  getShortcuts: async (module) => {
+    const res = await apiClient.get('/forms/shortcuts', {
+      params: module ? { module } : {},
+    });
+    return res.data;
+  },
+
+  // Search shortcuts by query string
+  searchShortcuts: async (q) => {
+    const res = await apiClient.get('/forms/shortcuts/search', {
+      params: { q },
+    });
+    return res.data;
+  },
 };

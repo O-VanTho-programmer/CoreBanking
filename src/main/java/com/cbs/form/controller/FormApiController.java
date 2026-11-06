@@ -5,8 +5,10 @@ import com.cbs.common.form.FormStepDispatcher;
 import com.cbs.form.domain.FormEntity;
 import com.cbs.form.dto.FormEvaluateRequest;
 import com.cbs.form.dto.FormEvaluateResponse;
+import com.cbs.form.dto.FormShortcutResponse;
 import com.cbs.form.dto.FormSummaryResponse;
 import com.cbs.form.repository.FormRepository;
+import com.cbs.form.repository.FormShortcutRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -23,7 +25,23 @@ import java.util.List;
 public class FormApiController {
 
     private final FormRepository formRepository;
+    private final FormShortcutRepository formShortcutRepository;
     private final FormStepDispatcher formStepDispatcher;
+
+    @GetMapping("/shortcuts")
+    public ResponseEntity<List<FormShortcutResponse>> listShortcuts(@RequestParam(required = false) String module) {
+        var shortcuts = (module != null && !module.isBlank())
+                ? formShortcutRepository.findByModuleAndIsActiveOrderByDisplayOrderAsc(module, "Y")
+                : formShortcutRepository.findByIsActiveOrderByDisplayOrderAsc("Y");
+
+        return ResponseEntity.ok(shortcuts.stream().map(FormShortcutResponse::fromEntity).toList());
+    }
+
+    @GetMapping("/shortcuts/search")
+    public ResponseEntity<List<FormShortcutResponse>> searchShortcuts(@RequestParam(defaultValue = "") String q) {
+        var results = formShortcutRepository.searchShortcuts(q.trim());
+        return ResponseEntity.ok(results.stream().map(FormShortcutResponse::fromEntity).toList());
+    }
 
     @GetMapping
     public ResponseEntity<List<FormSummaryResponse>> listForms(@RequestParam(required = false) String module) {
