@@ -17,4 +17,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, JpaSp
     boolean existsByNationalId(String nationalId);
 
     boolean existsByCifNumber(String cifNumber);
+
+    java.util.List<Customer> findByFullNameContainingIgnoreCase(String fullName);
 }

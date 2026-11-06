@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DynamicForm from '../engine/DynamicForm';
 import ReceiptModal from '../common/ReceiptModal';
-import CustomerSearchWidget from './CustomerSearchWidget';
+import GenericSearchWidget from '../engine/GenericSearchWidget';
 import { formApi } from '../../services/formApi';
 import { transactionApi } from '../../services/transactionApi';
 import { lendingApi } from '../../services/lendingApi';
@@ -24,10 +24,6 @@ export default function TabFormContainer({
 
   useEffect(() => {
     let isMounted = true;
-    if (tab.formCode === 'FORM_CUST_PROFILE') {
-      setIsLoading(false);
-      return;
-    }
     async function loadFormSchema() {
       try {
         setIsLoading(true);
@@ -197,10 +193,10 @@ export default function TabFormContainer({
     );
   }
 
-  if (tab.formCode === 'FORM_CUST_PROFILE') {
+  if (schema?.formType === 'SEARCH_GRID') {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs animate-fadeIn">
-        <CustomerSearchWidget onNavigate={onNavigate} />
+        <GenericSearchWidget schema={schema} onNavigate={onNavigate} />
       </div>
     );
   }

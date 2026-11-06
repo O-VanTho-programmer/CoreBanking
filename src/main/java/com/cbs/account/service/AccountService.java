@@ -4,9 +4,11 @@ import com.cbs.account.domain.Account;
 import com.cbs.account.domain.AccountIfc;
 import com.cbs.account.domain.DepositProductIfcMapping;
 import com.cbs.account.domain.DptProductCatalog;
+import com.cbs.account.dto.AccountDetailResponse;
 import com.cbs.account.dto.OpenAccountCommand;
 import com.cbs.account.repository.AccountIfcRepository;
 import com.cbs.account.repository.AccountRepository;
+import com.cbs.account.repository.AccountSpecification;
 import com.cbs.account.repository.DepositProductIfcMappingRepository;
 import com.cbs.account.repository.DptProductCatalogRepository;
 import com.cbs.admin.service.WorkingDateService;
@@ -14,9 +16,11 @@ import com.cbs.common.codelist.service.CodeListService;
 import com.cbs.common.exception.AccountNotFoundException;
 import com.cbs.common.exception.CustomerNotFoundException;
 import com.cbs.common.exception.ProductNotFoundException;
+import com.cbs.customer.domain.Customer;
 import com.cbs.customer.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +28,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * CASA Account Management Service.
@@ -119,6 +127,56 @@ public class AccountService {
     @Transactional(readOnly = true)
     public List<Account> getAccountsByCustomer(Long customerId) {
         return accountRepository.findByCustomerId(customerId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AccountDetailResponse> searchAccounts(
+            String keyword,
+            String accountNumber,
+            String customerName,
+            String productCode,
+            String status,
+            String branchCode
+    ) {
+        Set<Long> matchedCustomerIds = new HashSet<>();
+        if (customerName != null && !customerName.isBlank()) {
+            List<Customer> customers = customerRepository.findByFullNameContainingIgnoreCase(customerName.trim());
+            for (Customer c : customers) {
+                matchedCustomerIds.add(c.getCustomerId());
+            }
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            List<Customer> customers = customerRepository.findByFullNameContainingIgnoreCase(keyword.trim());
+            for (Customer c : customers) {
+                matchedCustomerIds.add(c.getCustomerId());
+            }
+        }
+
+        Specification<Account> spec = AccountSpecification.withCriteria(
+                keyword, accountNumber, matchedCustomerIds, productCode, status, branchCode
+        );
+
+        List<Account> accounts = accountRepository.findAll(spec);
+        Set<Long> custIds = accounts.stream().map(Account::getCustomerId).collect(Collectors.toSet());
+        Map<Long, String> custNameMap = customerRepository.findAllById(custIds).stream()
+                .collect(Collectors.toMap(Customer::getCustomerId, Customer::getFullName, (existing, replacement) -> existing));
+
+        return accounts.stream()
+                .map(a -> new AccountDetailResponse(
+                        a.getAccountId(),
+                        a.getAccountNumber(),
+                        a.getCustomerId(),
+                        custNameMap.getOrDefault(a.getCustomerId(), "Customer " + a.getCustomerId()),
+                        a.getGlCode(),
+                        a.getCurrency(),
+                        a.getLedgerBalance(),
+                        a.getHoldBalance(),
+                        a.getAvailableBalance(),
+                        a.getStatus(),
+                        a.getBranchCode(),
+                        a.getProductCode()
+                ))
+                .toList();
     }
 
     private String generateAccountNumber(String branchCode, String productCode) {

@@ -25,6 +25,20 @@ public class AccountApiController {
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;
 
+    @GetMapping("/search")
+    public ResponseEntity<List<AccountDetailResponse>> searchAccounts(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String accountNumber,
+            @RequestParam(required = false) String customerName,
+            @RequestParam(required = false) String productCode,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String branchCode
+    ) {
+        log.info("Searching accounts: keyword='{}', accountNumber='{}', customerName='{}', productCode='{}', status='{}', branchCode='{}'",
+                keyword, accountNumber, customerName, productCode, status, branchCode);
+        return ResponseEntity.ok(accountService.searchAccounts(keyword, accountNumber, customerName, productCode, status, branchCode));
+    }
+
     @GetMapping("/{accountNumber}")
     public ResponseEntity<AccountDetailResponse> getAccountByNumber(@PathVariable String accountNumber) {
         Account account = accountRepository.findByAccountNumber(accountNumber)
