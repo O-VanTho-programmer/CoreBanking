@@ -90,7 +90,9 @@ export default function GenericSearchWidget({
         });
 
         const res = await apiClient.get(schema.searchEndpoint, { params });
-        const list = Array.isArray(res.data) ? res.data : res.data?.value || [];
+        const list = Array.isArray(res.data)
+          ? res.data
+          : res.data?.content || res.data?.data || res.data?.value || [];
         setRecords(list);
         setHasSearched(true);
       } catch (err) {

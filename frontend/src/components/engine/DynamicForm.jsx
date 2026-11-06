@@ -25,54 +25,6 @@ export default function DynamicForm({
     field: null,
   });
 
-  const handleOpenLookup = useCallback((modalFormCode, field) => {
-    setLookupModalState({
-      isOpen: true,
-      modalFormCode,
-      field,
-    });
-  }, []);
-
-  const handleSelectLookupRecord = useCallback(
-    (record) => {
-      const field = lookupModalState.field;
-      if (!field || !record) return;
-
-      const lookupConfig = field.look_up || field.lookUp || field.lookup || {};
-      const valueKey = lookupConfig.value_key || lookupConfig.valueKey || field.name;
-      const selectedValue =
-        record[valueKey] ?? record.productCode ?? record.id ?? record.code ?? '';
-
-      setFormData((prev) => {
-        const next = { ...prev, [field.name]: selectedValue };
-
-        const mapping = lookupConfig.mapping || lookupConfig.fieldMapping;
-        if (mapping && typeof mapping === 'object') {
-          Object.entries(mapping).forEach(([targetFieldName, srcRecordKey]) => {
-            if (record[srcRecordKey] !== undefined) {
-              next[targetFieldName] = record[srcRecordKey];
-            }
-          });
-        }
-        return next;
-      });
-
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[field.name];
-        return next;
-      });
-
-      if (field.steps && field.steps.length > 0) {
-        const updatedData = { ...formData, [field.name]: selectedValue };
-        triggerEvaluation(field.name, updatedData, field.steps);
-      }
-
-      setLookupModalState({ isOpen: false, modalFormCode: null, field: null });
-    },
-    [lookupModalState, formData, triggerEvaluation]
-  );
-
   // Initialize form data when schema or initialData changes
   useEffect(() => {
     if (!schema) return;
@@ -140,6 +92,54 @@ export default function DynamicForm({
       }
     },
     [schema]
+  );
+
+  const handleOpenLookup = useCallback((modalFormCode, field) => {
+    setLookupModalState({
+      isOpen: true,
+      modalFormCode,
+      field,
+    });
+  }, []);
+
+  const handleSelectLookupRecord = useCallback(
+    (record) => {
+      const field = lookupModalState.field;
+      if (!field || !record) return;
+
+      const lookupConfig = field.look_up || field.lookUp || field.lookup || {};
+      const valueKey = lookupConfig.value_key || lookupConfig.valueKey || field.name;
+      const selectedValue =
+        record[valueKey] ?? record.productCode ?? record.id ?? record.code ?? '';
+
+      setFormData((prev) => {
+        const next = { ...prev, [field.name]: selectedValue };
+
+        const mapping = lookupConfig.mapping || lookupConfig.fieldMapping;
+        if (mapping && typeof mapping === 'object') {
+          Object.entries(mapping).forEach(([targetFieldName, srcRecordKey]) => {
+            if (record[srcRecordKey] !== undefined) {
+              next[targetFieldName] = record[srcRecordKey];
+            }
+          });
+        }
+        return next;
+      });
+
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field.name];
+        return next;
+      });
+
+      if (field.steps && field.steps.length > 0) {
+        const updatedData = { ...formData, [field.name]: selectedValue };
+        triggerEvaluation(field.name, updatedData, field.steps);
+      }
+
+      setLookupModalState({ isOpen: false, modalFormCode: null, field: null });
+    },
+    [lookupModalState, formData, triggerEvaluation]
   );
 
   const handleChange = (e) => {
