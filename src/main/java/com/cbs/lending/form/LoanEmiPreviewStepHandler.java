@@ -43,7 +43,7 @@ public class LoanEmiPreviewStepHandler implements FormStepHandler {
                     if (margin.compareTo(catalogOpt.get().getMinMarginRate()) < 0 ||
                         margin.compareTo(catalogOpt.get().getMaxMarginRate()) > 0) {
                         context.putError("interestMargin", String.format(
-                                "Biên độ %s nằm ngoài khung cho phép [%s, %s]!",
+                                "Margin rate %s is outside allowed range [%s, %s]!",
                                 margin, catalogOpt.get().getMinMarginRate(), catalogOpt.get().getMaxMarginRate()));
                     }
                 }

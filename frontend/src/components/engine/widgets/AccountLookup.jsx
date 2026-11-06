@@ -7,7 +7,7 @@ export default function AccountLookup({
   value,
   onChange,
   onBlur,
-  placeholder = 'Nhập số tài khoản (16 số)...',
+  placeholder = 'Enter 16-digit account number...',
   disabled = false,
   required = false,
   error,
@@ -79,7 +79,7 @@ export default function AccountLookup({
           </div>
           {availableBal !== undefined && availableBal !== null && (
             <div className="text-right">
-              <span className="text-emerald-750 font-normal">Khả dụng: </span>
+              <span className="text-emerald-750 font-normal">Available: </span>
               <span className="font-mono font-bold text-emerald-900">
                 {formatMoney(availableBal)} {currency}
               </span>

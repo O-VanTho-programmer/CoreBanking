@@ -29,7 +29,7 @@ public class CustomerLookupStepHandler implements FormStepHandler {
 
         Optional<Customer> custOpt = customerRepository.findByCifNumber(cif);
         if (custOpt.isEmpty()) {
-            context.putError("cifNumber", "Mã CIF không tồn tại trong hệ thống!");
+            context.putError("cifNumber", "CIF number does not exist in the system!");
             context.putUpdate("customerName", "");
             context.putUpdate("customerId", null);
             return;

@@ -44,7 +44,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
         }
       } catch (err) {
         if (isMounted) {
-          setErrorMessage(`Không thể tải cấu hình form ${activeFormCode}: ${err.message}`);
+          setErrorMessage(`Unable to load form schema ${activeFormCode}: ${err.message}`);
         }
       } finally {
         if (isMounted) {
@@ -72,7 +72,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
           accountNumber: formData.accountNumber,
           amount: Number(formData.amount),
           currency: formData.currency || 'VND',
-          description: formData.description || 'Nộp tiền mặt tại quầy',
+          description: formData.description || 'Counter cash deposit',
           tellerId: 'TELLER01',
           branchCode: '001',
           channelId: 'TELLER',
@@ -83,7 +83,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
           accountNumber: formData.accountNumber,
           amount: Number(formData.amount),
           currency: formData.currency || 'VND',
-          description: formData.description || 'Rút tiền mặt tại quầy',
+          description: formData.description || 'Counter cash withdrawal',
           tellerId: 'TELLER01',
           branchCode: '001',
           channelId: 'TELLER',
@@ -97,7 +97,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
           feeAmount: Number(formData.feeAmount || 0),
           feePayer: formData.feePayer || 'SOURCE',
           currency: formData.currency || 'VND',
-          description: formData.description || 'Chuyển khoản nội bộ',
+          description: formData.description || 'Internal transfer',
           tellerId: 'TELLER01',
           branchCode: '001',
           channelId: 'TELLER',
@@ -109,7 +109,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
       setIsReceiptOpen(true);
       if (onTransactionSuccess) onTransactionSuccess();
     } catch (err) {
-      setErrorMessage(err.message || 'Giao dịch thất bại');
+      setErrorMessage(err.message || 'Transaction failed');
     } finally {
       setIsSubmitting(false);
     }
@@ -126,7 +126,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
       const data = await accountApi.getAccountDetail(inspectorAccount.trim());
       setInspectorData(data);
     } catch (err) {
-      setInspectorError(err.message || 'Không tìm thấy thông tin tài khoản');
+      setInspectorError(err.message || 'Account details not found');
     } finally {
       setIsInspecting(false);
     }
@@ -152,7 +152,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
             }`}
           >
             <ArrowDownLeft className="h-4 w-4 text-emerald-600" />
-            <span>NỘP TIỀN MẶT (CASH_DEP)</span>
+            <span>CASH DEPOSIT (CASH_DEP)</span>
           </button>
 
           <button
@@ -164,7 +164,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
             }`}
           >
             <ArrowUpRight className="h-4 w-4 text-amber-600" />
-            <span>RÚT TIỀN MẶT (CASH_WDR)</span>
+            <span>CASH WITHDRAWAL (CASH_WDR)</span>
           </button>
 
           <button
@@ -176,7 +176,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
             }`}
           >
             <ArrowLeftRight className="h-4 w-4 text-blue-700" />
-            <span>CHUYỂN KHOẢN (TRF_INTERNAL)</span>
+            <span>INTERNAL TRANSFER (TRF_INTERNAL)</span>
           </button>
         </div>
 
@@ -186,7 +186,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
             <div className="mb-5 flex items-start space-x-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 animate-fadeIn">
               <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
               <div>
-                <span className="font-bold">Lỗi xử lý giao dịch:</span>
+                <span className="font-bold">Transaction Processing Error:</span>
                 <p className="mt-0.5 text-red-700">{errorMessage}</p>
               </div>
             </div>
@@ -196,7 +196,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
             <div className="flex h-72 flex-col items-center justify-center space-y-3">
               <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
               <p className="text-xs font-medium text-slate-500">
-                Đang nạp Schema từ Catalog Oracle 19c...
+                Loading Schema from Oracle 19c Catalog...
               </p>
             </div>
           ) : (
@@ -205,7 +205,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
               schema={formSchema}
               onSubmit={handleFormSubmit}
               isSubmitting={isSubmitting}
-              submitLabel="Hạch Toán Giao Dịch"
+              submitLabel="Post Transaction"
             />
           )}
         </div>
@@ -217,7 +217,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
           <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
             <Search className="h-4 w-4 text-blue-600" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-              Tra Cứu Tài Khoản Trực Tiếp
+              Live Account Lookup
             </h3>
           </div>
 
@@ -225,7 +225,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Nhập 16 số tài khoản..."
+                placeholder="Enter 16-digit account..."
                 value={inspectorAccount}
                 onChange={(e) => setInspectorAccount(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 py-2.5 pl-3 pr-20 font-mono text-xs focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
@@ -235,7 +235,7 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
                 disabled={isInspecting || !inspectorAccount.trim()}
                 className="absolute inset-y-1 right-1 rounded-md bg-slate-900 px-3 text-[11px] font-bold text-white hover:bg-slate-800 disabled:opacity-50 transition"
               >
-                {isInspecting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Tra Cứu'}
+                {isInspecting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Lookup'}
               </button>
             </div>
           </form>
@@ -256,31 +256,31 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
               </div>
               <div className="space-y-1.5">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Chủ tài khoản:</span>
+                  <span className="text-slate-500">Account Holder:</span>
                   <span className="font-semibold text-slate-900">{inspectorData.accountHolderName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Mã CIF:</span>
+                  <span className="text-slate-500">CIF Number:</span>
                   <span className="font-mono text-slate-700">{inspectorData.customerId}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Sản phẩm:</span>
+                  <span className="text-slate-500">Product:</span>
                   <span className="font-medium text-slate-700">{inspectorData.productCode}</span>
                 </div>
                 <div className="flex justify-between border-t border-slate-200 pt-2">
-                  <span className="text-slate-500">Số dư sổ cái:</span>
+                  <span className="text-slate-500">Ledger Balance:</span>
                   <span className="font-mono font-semibold text-slate-900">
                     {formatMoney(inspectorData.currentBalance)} {inspectorData.currency}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Số dư phong tỏa:</span>
+                  <span className="text-slate-500">Hold Balance:</span>
                   <span className="font-mono font-semibold text-amber-700">
                     {formatMoney(inspectorData.holdBalance)} {inspectorData.currency}
                   </span>
                 </div>
                 <div className="flex justify-between border-t border-slate-200 pt-2">
-                  <span className="text-emerald-700 font-semibold">Số dư khả dụng:</span>
+                  <span className="text-emerald-700 font-semibold">Available Balance:</span>
                   <span className="font-mono font-bold text-emerald-800 text-sm">
                     {formatMoney(inspectorData.availableBalance)} {inspectorData.currency}
                   </span>
@@ -295,20 +295,20 @@ export default function TellerWorkspace({ onTransactionSuccess }) {
           <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
             <Building className="h-4 w-4 text-slate-600" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-              Két Tiền Giao Dịch Viên (Drawer)
+              Teller Cash Drawer
             </h3>
           </div>
           <div className="mt-4 space-y-2 text-xs">
             <div className="flex justify-between">
-              <span className="text-slate-500">GL Vault Tiền Mặt:</span>
+              <span className="text-slate-500">Cash Vault GL:</span>
               <span className="font-mono text-slate-700">10110001 (VND)</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Trạng thái quỹ:</span>
-              <span className="font-semibold text-emerald-700">Cân Khớp 100%</span>
+              <span className="text-slate-500">Vault Status:</span>
+              <span className="font-semibold text-emerald-700">100% Balanced</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Hạn mức phê duyệt tức thì:</span>
+              <span className="text-slate-500">Instant Approval Limit:</span>
               <span className="font-mono font-bold text-slate-900">500,000,000 VND</span>
             </div>
           </div>

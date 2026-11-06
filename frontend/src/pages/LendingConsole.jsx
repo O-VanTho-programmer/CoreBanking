@@ -44,7 +44,7 @@ export default function LendingConsole({ onTransactionSuccess }) {
         const data = await formApi.getFormByCode('FORM_LOAN_ORIGINATION');
         if (isMounted) setOriginationSchema(data);
       } catch (err) {
-        if (isMounted) setErrorMessage(`Lỗi nạp form tín dụng: ${err.message}`);
+        if (isMounted) setErrorMessage(`Error loading loan form: ${err.message}`);
       } finally {
         if (isMounted) setIsLoadingSchema(false);
       }
@@ -75,14 +75,14 @@ export default function LendingConsole({ onTransactionSuccess }) {
 
       const result = await lendingApi.createContract(payload);
       setSuccessNotice(
-        `Đã khởi tạo thành công Hợp đồng Vay số [${result.loanId}]. Bạn có thể chuyển sang tab Giải Ngân để cấp vốn!`
+        `Successfully created Loan Contract [${result.loanId}]. You can switch to the Disbursement tab to fund the loan!`
       );
       setDisburseLoanId(result.loanId);
       setDisburseAccount(formData.disbursementAccountNumber);
       setDisburseAmount(formData.principalAmount);
       if (onTransactionSuccess) onTransactionSuccess();
     } catch (err) {
-      setErrorMessage(err.message || 'Lỗi lập hợp đồng tín dụng');
+      setErrorMessage(err.message || 'Loan contract origination failed');
     } finally {
       setIsSubmitting(false);
     }
@@ -110,14 +110,14 @@ export default function LendingConsole({ onTransactionSuccess }) {
         amount: res.disbursedAmount || disburseAmount,
         currency: 'VND',
         destAccountNumber: disburseAccount,
-        description: `Giải ngân Hợp đồng vay ${disburseLoanId}`,
+        description: `Disbursement for Loan Contract ${disburseLoanId}`,
       });
       setIsReceiptOpen(true);
       setInspectLoanId(disburseLoanId);
       loadRepaymentSchedules(disburseLoanId);
       if (onTransactionSuccess) onTransactionSuccess();
     } catch (err) {
-      setErrorMessage(err.message || 'Lỗi giải ngân vốn');
+      setErrorMessage(err.message || 'Loan disbursement failed');
     } finally {
       setIsDisbursing(false);
     }
@@ -154,7 +154,7 @@ export default function LendingConsole({ onTransactionSuccess }) {
           }`}
         >
           <FileText className="h-4 w-4" />
-          <span>LẬP HỢP ĐỒNG TÍN DỤNG (ORIGINATION)</span>
+          <span>LOAN CONTRACT ORIGINATION</span>
         </button>
 
         <button
@@ -166,7 +166,7 @@ export default function LendingConsole({ onTransactionSuccess }) {
           }`}
         >
           <DollarSign className="h-4 w-4" />
-          <span>GIẢI NGÂN & LỊCH TRẢ NỢ (DISBURSE & SCHEDULE)</span>
+          <span>DISBURSEMENT & REPAYMENT SCHEDULES</span>
         </button>
       </div>
 
@@ -175,7 +175,7 @@ export default function LendingConsole({ onTransactionSuccess }) {
         <div className="flex items-start space-x-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
           <div>
-            <span className="font-bold">Lỗi nghiệp vụ Tín Dụng:</span>
+            <span className="font-bold">Lending Business Error:</span>
             <p className="mt-0.5 text-red-700">{errorMessage}</p>
           </div>
         </div>
@@ -185,7 +185,7 @@ export default function LendingConsole({ onTransactionSuccess }) {
         <div className="flex items-start space-x-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 animate-fadeIn">
           <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
           <div>
-            <span className="font-bold">Khởi tạo hợp đồng thành công:</span>
+            <span className="font-bold">Origination Success:</span>
             <p className="mt-0.5 text-emerald-700">{successNotice}</p>
           </div>
         </div>
@@ -197,14 +197,14 @@ export default function LendingConsole({ onTransactionSuccess }) {
           {isLoadingSchema ? (
             <div className="flex h-72 flex-col items-center justify-center space-y-3">
               <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-              <p className="text-xs font-medium text-slate-500">Đang nạp Schema Khế Ước Vay...</p>
+              <p className="text-xs font-medium text-slate-500">Loading Loan Origination Schema...</p>
             </div>
           ) : (
             <DynamicForm
               schema={originationSchema}
               onSubmit={handleCreateContract}
               isSubmitting={isSubmitting}
-              submitLabel="Phê Duyệt & Mở Hợp Đồng"
+              submitLabel="Approve & Originate Loan"
             />
           )}
         </div>
@@ -217,17 +217,17 @@ export default function LendingConsole({ onTransactionSuccess }) {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-5">
             <div className="border-b border-slate-100 pb-3">
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">
-                Thực Hiện Giải Ngân (Disburse)
+                Loan Disbursement
               </h3>
               <p className="text-xs text-slate-500">
-                Bơm vốn trực tiếp vào tài khoản CASA của khách hàng
+                Fund loan proceeds directly into customer CASA account
               </p>
             </div>
 
             <form onSubmit={handleDisburse} className="space-y-4">
               <div>
                 <label className="text-xs font-semibold uppercase text-slate-600">
-                  Mã Hợp Đồng Vay (Loan ID) *
+                  Loan Contract ID *
                 </label>
                 <input
                   type="text"
@@ -241,12 +241,12 @@ export default function LendingConsole({ onTransactionSuccess }) {
 
               <div>
                 <label className="text-xs font-semibold uppercase text-slate-600">
-                  Tài Khoản Thụ Hưởng (CASA) *
+                  Beneficiary Account (CASA) *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Số tài khoản 16 số..."
+                  placeholder="Enter 16-digit account..."
                   value={disburseAccount}
                   onChange={(e) => setDisburseAccount(e.target.value)}
                   className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 font-mono text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
@@ -255,7 +255,7 @@ export default function LendingConsole({ onTransactionSuccess }) {
 
               <div>
                 <label className="text-xs font-semibold uppercase text-slate-600">
-                  Số Tiền Giải Ngân (VND) *
+                  Disbursement Amount (VND) *
                 </label>
                 <input
                   type="number"
@@ -275,12 +275,12 @@ export default function LendingConsole({ onTransactionSuccess }) {
                 {isDisbursing ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Đang Giải Ngân...</span>
+                    <span>Disbursing Funds...</span>
                   </>
                 ) : (
                   <>
                     <DollarSign className="h-4 w-4" />
-                    <span>Xác Nhận Giải Ngân Vốn</span>
+                    <span>Confirm & Disburse Funds</span>
                   </>
                 )}
               </button>
@@ -292,17 +292,17 @@ export default function LendingConsole({ onTransactionSuccess }) {
             <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-3">
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">
-                  Lịch Thu Nợ Định Kỳ (Amortization Schedule)
+                  Repayment Schedule (Amortization)
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Chi tiết gốc lãi phân bổ từng kỳ theo mô hình Waterfall
+                  Principal & interest allocation per period via Waterfall sweep
                 </p>
               </div>
 
               <div className="flex items-center space-x-2">
                 <input
                   type="text"
-                  placeholder="Mã Loan ID..."
+                  placeholder="Loan Contract ID..."
                   value={inspectLoanId}
                   onChange={(e) => setInspectLoanId(e.target.value)}
                   className="rounded-lg border border-slate-300 px-3 py-1.5 font-mono text-xs focus:border-blue-600 focus:outline-none"
@@ -313,7 +313,7 @@ export default function LendingConsole({ onTransactionSuccess }) {
                   disabled={isLoadingSchedules || !inspectLoanId.trim()}
                   className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50 transition"
                 >
-                  {isLoadingSchedules ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Tra Cứu'}
+                  {isLoadingSchedules ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Lookup'}
                 </button>
               </div>
             </div>
@@ -323,13 +323,13 @@ export default function LendingConsole({ onTransactionSuccess }) {
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 uppercase text-[10px] font-bold text-slate-500 border-b border-slate-200">
                     <tr>
-                      <th className="px-3 py-2.5">Kỳ</th>
-                      <th className="px-3 py-2.5">Ngày Đến Hạn</th>
-                      <th className="px-3 py-2.5 text-right">Gốc Phải Trả</th>
-                      <th className="px-3 py-2.5 text-right">Lãi Dự Tính</th>
-                      <th className="px-3 py-2.5 text-right">Tổng Kỳ (EMI)</th>
-                      <th className="px-3 py-2.5 text-right">Dư Nợ Còn Lại</th>
-                      <th className="px-3 py-2.5 text-center">Trạng Thái</th>
+                      <th className="px-3 py-2.5">Period</th>
+                      <th className="px-3 py-2.5">Due Date</th>
+                      <th className="px-3 py-2.5 text-right">Principal Due</th>
+                      <th className="px-3 py-2.5 text-right">Interest Due</th>
+                      <th className="px-3 py-2.5 text-right">Total Installment</th>
+                      <th className="px-3 py-2.5 text-right">Remaining Balance</th>
+                      <th className="px-3 py-2.5 text-center">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-mono">
@@ -371,7 +371,7 @@ export default function LendingConsole({ onTransactionSuccess }) {
               <div className="flex h-48 flex-col items-center justify-center space-y-2 rounded-xl border border-dashed border-slate-200">
                 <Calendar className="h-8 w-8 text-slate-300" />
                 <p className="text-xs text-slate-400">
-                  Nhập mã Loan ID hoặc giải ngân hợp đồng để xem bảng khấu hao kỳ hạn
+                  Enter Loan Contract ID or disburse a contract to view installment breakdown
                 </p>
               </div>
             )}

@@ -9,7 +9,7 @@ export default function CodeListSelect({
   options = [],
   disabled = false,
   required = false,
-  placeholder = '-- Chọn --',
+  placeholder = '-- Select --',
   error,
 }) {
   return (

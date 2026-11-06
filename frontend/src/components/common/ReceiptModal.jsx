@@ -21,7 +21,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <ShieldCheck className="h-6 w-6 text-blue-300" />
-              <h3 className="text-base font-bold tracking-wide">CHỨNG TỪ GIAO DỊCH ĐIỆN TỬ</h3>
+              <h3 className="text-base font-bold tracking-wide">ELECTRONIC TRANSACTION RECEIPT</h3>
             </div>
             <button
               onClick={onClose}
@@ -31,7 +31,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
             </button>
           </div>
           <p className="mt-1 text-xs text-blue-200">
-            Hệ Thống Core Banking Phân Hệ Giao Dịch Trực Tuyến
+            Core Banking System • Real-Time Transaction Engine
           </p>
         </div>
 
@@ -41,41 +41,41 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
           <div className="flex items-center justify-center space-x-2 rounded-xl bg-emerald-50 py-3 text-emerald-800 border border-emerald-200">
             <CheckCircle2 className="h-5 w-5 text-emerald-600" />
             <span className="font-bold text-sm tracking-wide">
-              {receipt.status || 'GIAO DỊCH THÀNH CÔNG (POSTED)'}
+              {receipt.status || 'TRANSACTION SUCCESS (POSTED)'}
             </span>
           </div>
 
           {/* Reference Info */}
           <div className="space-y-2.5 rounded-xl bg-slate-50 p-4 border border-slate-200/80 text-xs">
             <div className="flex justify-between">
-              <span className="text-slate-500">Mã Giao Dịch (Journal Trx):</span>
+              <span className="text-slate-500">Transaction Ref (Journal Trx):</span>
               <span className="font-mono font-bold text-slate-900">{receipt.trxId || receipt.transactionId || 'TRX-CBS'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Mã Bút Toán (Entry Ref):</span>
+              <span className="text-slate-500">Journal Entry ID:</span>
               <span className="font-mono font-semibold text-slate-800">{receipt.journalId || receipt.referenceNumber || 'N/A'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Loại Giao Dịch:</span>
+              <span className="text-slate-500">Transaction Type:</span>
               <span className="font-semibold text-blue-900">{receipt.trxType || receipt.transactionType || 'TRX'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Thời Gian Hạch Toán:</span>
-              <span className="font-mono text-slate-700">{receipt.timestamp || new Date().toLocaleString('vi-VN')}</span>
+              <span className="text-slate-500">Posting Timestamp:</span>
+              <span className="font-mono text-slate-700">{receipt.timestamp || new Date().toISOString()}</span>
             </div>
           </div>
 
           {/* Amount Box */}
           <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center">
             <span className="text-xs font-semibold text-blue-700 uppercase tracking-wider">
-              Số Tiền Giao Dịch
+              Transaction Amount
             </span>
             <div className="mt-1 font-mono text-2xl font-black text-blue-950">
               {formatMoney(receipt.amount)} <span className="text-sm font-semibold text-blue-700">{receipt.currency || 'VND'}</span>
             </div>
             {receipt.feeAmount !== undefined && receipt.feeAmount > 0 && (
               <p className="mt-1 text-xs text-slate-500 font-mono">
-                Phí giao dịch: +{formatMoney(receipt.feeAmount)} {receipt.currency || 'VND'}
+                Transaction Fee: +{formatMoney(receipt.feeAmount)} {receipt.currency || 'VND'}
               </p>
             )}
           </div>
@@ -84,25 +84,25 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
           <div className="space-y-2 text-xs">
             {receipt.sourceAccountNumber && (
               <div className="flex justify-between border-b border-slate-100 pb-2">
-                <span className="text-slate-500">Tài Khoản Ghi Nợ (Debit):</span>
+                <span className="text-slate-500">Debit Account:</span>
                 <span className="font-mono font-semibold text-slate-900">{receipt.sourceAccountNumber}</span>
               </div>
             )}
             {receipt.destAccountNumber && (
               <div className="flex justify-between border-b border-slate-100 pb-2">
-                <span className="text-slate-500">Tài Khoản Ghi Có (Credit):</span>
+                <span className="text-slate-500">Credit Account:</span>
                 <span className="font-mono font-semibold text-slate-900">{receipt.destAccountNumber}</span>
               </div>
             )}
             {receipt.accountNumber && (
               <div className="flex justify-between border-b border-slate-100 pb-2">
-                <span className="text-slate-500">Tài Khoản Khách Hàng:</span>
+                <span className="text-slate-500">Customer Account:</span>
                 <span className="font-mono font-semibold text-slate-900">{receipt.accountNumber}</span>
               </div>
             )}
             {receipt.description && (
               <div className="flex justify-between pt-1">
-                <span className="text-slate-500">Nội Dung:</span>
+                <span className="text-slate-500">Description:</span>
                 <span className="text-slate-800 font-medium text-right max-w-xs">{receipt.description}</span>
               </div>
             )}
@@ -117,7 +117,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
             className="inline-flex items-center space-x-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition shadow-sm"
           >
             <Printer className="h-4 w-4" />
-            <span>In Biên Lai</span>
+            <span>Print Receipt</span>
           </button>
 
           <button
@@ -125,7 +125,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
             type="button"
             className="rounded-lg bg-blue-700 px-5 py-2 text-xs font-semibold text-white hover:bg-blue-800 transition shadow-sm"
           >
-            Đóng
+            Close
           </button>
         </div>
       </div>

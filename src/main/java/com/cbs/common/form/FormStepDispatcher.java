@@ -39,7 +39,7 @@ public class FormStepDispatcher {
                     handler.execute(context);
                 } catch (Exception e) {
                     log.error("Error executing FormStepHandler [stepCode='{}']: {}", stepCode, e.getMessage(), e);
-                    context.putError(triggerField, "Lỗi xử lý nghiệp vụ bước '" + stepCode + "': " + e.getMessage());
+                    context.putError(triggerField, "Business evaluation error at step '" + stepCode + "': " + e.getMessage());
                     break;
                 }
             } else {

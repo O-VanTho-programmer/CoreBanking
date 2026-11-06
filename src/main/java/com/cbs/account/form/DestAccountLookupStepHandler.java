@@ -31,13 +31,13 @@ public class DestAccountLookupStepHandler implements FormStepHandler {
 
         String fromNum = context.getString("fromAccountNumber");
         if (accNum.equals(fromNum)) {
-            context.putError("toAccountNumber", "Tài khoản thụ hưởng không được trùng với tài khoản nguồn!");
+            context.putError("toAccountNumber", "Beneficiary account cannot be the same as source account!");
             return;
         }
 
         Optional<Account> accOpt = accountRepository.findByAccountNumber(accNum);
         if (accOpt.isEmpty()) {
-            context.putError("toAccountNumber", "Tài khoản thụ hưởng không tồn tại!");
+            context.putError("toAccountNumber", "Beneficiary account does not exist!");
             context.putUpdate("destAccountName", "");
             return;
         }
@@ -45,12 +45,12 @@ public class DestAccountLookupStepHandler implements FormStepHandler {
         Account acc = accOpt.get();
         String customerName = customerRepository.findById(acc.getCustomerId())
                 .map(c -> c.getFullName())
-                .orElse("KH-" + acc.getCustomerId());
+                .orElse("CUST-" + acc.getCustomerId());
 
         context.putUpdate("destAccountName", customerName);
 
         if (!"ACTIVE".equals(acc.getStatus())) {
-            context.putError("toAccountNumber", "Tài khoản thụ hưởng đang bị " + acc.getStatus() + "!");
+            context.putError("toAccountNumber", "Beneficiary account is currently " + acc.getStatus() + "!");
         }
     }
 }

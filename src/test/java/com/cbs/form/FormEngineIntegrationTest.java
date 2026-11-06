@@ -55,7 +55,7 @@ class FormEngineIntegrationTest {
     void testGetFormSchema() {
         ResponseEntity<String> response = formApiController.getFormSchema("FORM_TRF_INTERNAL");
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).contains("Chuyển Khoản Nội Bộ").contains("fromAccountNumber");
+        assertThat(response.getBody()).contains("Internal Fund Transfer").contains("fromAccountNumber");
     }
 
     @Test

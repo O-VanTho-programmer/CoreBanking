@@ -29,20 +29,20 @@ public class LinkedCasaLookupStepHandler implements FormStepHandler {
 
         Optional<Account> accOpt = accountRepository.findByAccountNumber(accNum);
         if (accOpt.isEmpty()) {
-            context.putError("linkedCasaAccountNumber", "Tài khoản CASA liên kết không tồn tại!");
+            context.putError("linkedCasaAccountNumber", "Linked CASA account does not exist!");
             return;
         }
 
         Account acc = accOpt.get();
         if (!"ACTIVE".equals(acc.getStatus())) {
-            context.putError("linkedCasaAccountNumber", "Tài khoản CASA đang bị " + acc.getStatus() + ", không thể liên kết giải ngân!");
+            context.putError("linkedCasaAccountNumber", "Linked CASA account status is " + acc.getStatus() + ", cannot bind for disbursement!");
             return;
         }
 
         // Validate that CASA belongs to the selected customer if cifNumber is already resolved
         Long customerId = context.getInteger("customerId") != null ? context.getInteger("customerId").longValue() : null;
         if (customerId != null && !customerId.equals(acc.getCustomerId())) {
-            context.putError("linkedCasaAccountNumber", "Tài khoản CASA không thuộc về khách hàng CIF đã chọn!");
+            context.putError("linkedCasaAccountNumber", "Linked CASA account does not belong to the selected customer CIF!");
         }
     }
 }

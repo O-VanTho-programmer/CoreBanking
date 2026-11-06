@@ -15,8 +15,8 @@ import java.util.List;
 /**
  * Phase 4a: Loan Amortization Schedule Engine.
  * Generates financial repayment schedules according to banking standards:
- * 1. EQUAL_PRINCIPAL (Gốc đều hàng tháng, lãi tính trên dư nợ giảm dần)
- * 2. ANNUITY_EMI (Niên kim cố định / Trả góp đều hàng tháng, lãi tính trên dư nợ giảm dần)
+ * 1. EQUAL_PRINCIPAL (Equal principal monthly, interest calculated on reducing balance)
+ * 2. ANNUITY_EMI (Fixed annuity / Equal monthly installments, interest calculated on reducing balance)
  */
 @Service
 @Slf4j

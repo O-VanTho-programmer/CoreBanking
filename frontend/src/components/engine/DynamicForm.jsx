@@ -8,7 +8,7 @@ export default function DynamicForm({
   initialData = {},
   onSubmit,
   isSubmitting = false,
-  submitLabel = 'Thực Hiện Giao Dịch',
+  submitLabel = 'Submit Transaction',
   submitIcon: SubmitIcon = Send,
 }) {
   const [formData, setFormData] = useState({});
@@ -133,7 +133,7 @@ export default function DynamicForm({
       if (f.required && !hiddenFields.has(f.name)) {
         const val = formData[f.name];
         if (val === undefined || val === null || val === '') {
-          validationErrors[f.name] = `${f.label} là trường bắt buộc`;
+          validationErrors[f.name] = `${f.label} is required`;
         }
       }
     });
@@ -151,7 +151,7 @@ export default function DynamicForm({
   if (!schema) {
     return (
       <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white">
-        <p className="text-sm text-slate-400">Chưa tải được cấu hình Form</p>
+        <p className="text-sm text-slate-400">Form schema not available</p>
       </div>
     );
   }
@@ -173,7 +173,7 @@ export default function DynamicForm({
         {isEvaluating && (
           <div className="flex items-center space-x-2 text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full animate-pulse">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            <span>Đang xác thực nghiệp vụ Core...</span>
+            <span>Evaluating core banking rules...</span>
           </div>
         )}
       </div>
@@ -201,7 +201,7 @@ export default function DynamicForm({
         <div className="flex items-start space-x-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
           <div>
-            <h4 className="font-semibold">Từ chối giao dịch:</h4>
+            <h4 className="font-semibold">Transaction Rejected:</h4>
             <p className="text-red-700 mt-0.5">{errors._global}</p>
           </div>
         </div>
@@ -222,7 +222,7 @@ export default function DynamicForm({
           disabled={isSubmitting}
           className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
         >
-          Nhập Lại
+          Reset
         </button>
 
         <button
@@ -233,7 +233,7 @@ export default function DynamicForm({
           {isSubmitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Đang Hạch Toán...</span>
+              <span>Posting Journal...</span>
             </>
           ) : (
             <>

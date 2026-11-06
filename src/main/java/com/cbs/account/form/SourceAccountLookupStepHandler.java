@@ -31,7 +31,7 @@ public class SourceAccountLookupStepHandler implements FormStepHandler {
 
         Optional<Account> accOpt = accountRepository.findByAccountNumber(accNum);
         if (accOpt.isEmpty()) {
-            context.putError("fromAccountNumber", "Tài khoản nguồn không tồn tại!");
+            context.putError("fromAccountNumber", "Source account does not exist!");
             context.putUpdate("sourceAccountName", "");
             context.putUpdate("availableBalance", null);
             return;
@@ -40,14 +40,14 @@ public class SourceAccountLookupStepHandler implements FormStepHandler {
         Account acc = accOpt.get();
         String customerName = customerRepository.findById(acc.getCustomerId())
                 .map(c -> c.getFullName())
-                .orElse("KH-" + acc.getCustomerId());
+                .orElse("CUST-" + acc.getCustomerId());
 
         context.putUpdate("sourceAccountName", customerName);
         context.putUpdate("availableBalance", acc.getAvailableBalance());
         context.putUpdate("currency", acc.getCurrency());
 
         if (!"ACTIVE".equals(acc.getStatus())) {
-            context.putError("fromAccountNumber", "Tài khoản nguồn đang bị " + acc.getStatus() + "!");
+            context.putError("fromAccountNumber", "Source account status is " + acc.getStatus() + "!");
         }
     }
 }

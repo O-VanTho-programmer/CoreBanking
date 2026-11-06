@@ -25,7 +25,7 @@ export default function Header({
               </span>
             </div>
             <p className="text-[11px] text-slate-500 font-medium">
-              Phân Hệ Giao Dịch & Quản Trị Nghiệp Vụ (Teller & Back-Office)
+              Operational Management & Teller Portal (Back-Office)
             </p>
           </div>
         </div>
@@ -35,7 +35,7 @@ export default function Header({
           {/* Working Date */}
           <div className="hidden sm:flex items-center space-x-2 rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-1.5 text-xs">
             <Calendar className="h-4 w-4 text-slate-500" />
-            <span className="text-slate-500">Ngày làm việc:</span>
+            <span className="text-slate-500">Working Date:</span>
             <span className="font-mono font-bold text-slate-900">{workingDate}</span>
           </div>
 
@@ -50,12 +50,12 @@ export default function Header({
             {isCutoff ? (
               <>
                 <AlertCircle className="h-3.5 w-3.5 text-amber-600 animate-pulse" />
-                <span>CUTOFF (Khóa GD)</span>
+                <span>CUTOFF (Closed)</span>
               </>
             ) : (
               <>
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                <span>ONLINE (Mở sổ)</span>
+                <span>ONLINE (Open)</span>
               </>
             )}
           </div>

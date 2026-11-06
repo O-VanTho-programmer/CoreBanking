@@ -39,7 +39,7 @@ export default function FormFieldRenderer({
             value={value}
             onChange={onChange}
             onBlur={onBlur}
-            placeholder={placeholder || 'Nhập số tài khoản...'}
+            placeholder={placeholder || 'Enter account number...'}
             disabled={disabled}
             required={required}
             error={error}

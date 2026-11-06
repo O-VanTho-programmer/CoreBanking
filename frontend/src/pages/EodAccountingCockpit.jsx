@@ -16,14 +16,14 @@ import {
 } from 'lucide-react';
 
 const EOD_STEPS = [
-  { step: 1, name: 'VERIFY_CUTOFF', label: '1. Khóa Sổ Giao Dịch Quầy & Kênh Online' },
-  { step: 2, name: 'ACCRUE_INTEREST_CASA', label: '2. Dự Chi Lãi Suất Tiền Gửi Tiết Kiệm & CASA' },
-  { step: 3, name: 'ACCRUE_INTEREST_LOANS', label: '3. Dự Thu Lãi Suất Danh Mục Cho Vay (IFC)' },
-  { step: 4, name: 'EXECUTE_SCHEDULED_REPAYMENTS', label: '4. Thu Nợ Tự Động Định Kỳ (Waterfall Sweep)' },
-  { step: 5, name: 'CLASSIFY_LOAN_STATUS', label: '5. Phân Loại Nhóm Nợ (Nhóm 1 - 5 TT31/2024)' },
-  { step: 6, name: 'AGGREGATE_BALANCE_BUCKETS', label: '6. Chốt Snapshot Số Dư & Lịch Sử Biến Động' },
-  { step: 7, name: 'VERIFY_TRIAL_BALANCE', label: '7. Đối Soát Bảng Cân Đối Thử Nghiệm Sổ Cái (GL)' },
-  { step: 8, name: 'ROLLOVER_WORKING_DATE', label: '8. Tịnh Tiến Chuyển Sang Ngày Làm Việc Mới' },
+  { step: 1, name: 'VERIFY_CUTOFF', label: '1. Verify Cutoff & Freeze External Channels' },
+  { step: 2, name: 'ACCRUE_INTEREST_CASA', label: '2. Accrue Daily CASA Deposit Interest (Expense)' },
+  { step: 3, name: 'ACCRUE_INTEREST_LOANS', label: '3. Accrue Daily Loan Interest Receivable (IFC)' },
+  { step: 4, name: 'EXECUTE_SCHEDULED_REPAYMENTS', label: '4. Execute Repayments (Waterfall Auto-Sweep)' },
+  { step: 5, name: 'CLASSIFY_LOAN_STATUS', label: '5. Classify Loan Asset Quality (Circular 31)' },
+  { step: 6, name: 'AGGREGATE_BALANCE_BUCKETS', label: '6. Snapshot GL Balance Buckets & History' },
+  { step: 7, name: 'VERIFY_TRIAL_BALANCE', label: '7. Reconcile GL Trial Balance (Invariant 1)' },
+  { step: 8, name: 'ROLLOVER_WORKING_DATE', label: '8. Rollover System To Next Working Date' },
 ];
 
 export default function EodAccountingCockpit({ onSystemDateChange }) {
@@ -54,7 +54,7 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
         setTrialBalance(tbData);
       }
     } catch (err) {
-      setErrorMessage(`Không thể tải trạng thái vận hành: ${err.message}`);
+      setErrorMessage(`Unable to load operational status: ${err.message}`);
     } finally {
       setIsLoadingStatus(false);
     }
@@ -70,11 +70,11 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
       setEodStatus((prev) => ({ ...prev, cutoffClosed: res.cutoffClosed ?? newClosedState }));
       setSuccessMessage(
         newClosedState
-          ? 'Đã thực hiện CUTOFF khóa sổ giao dịch ngoại vi. Hệ thống sẵn sàng chạy EOD Batch!'
-          : 'Đã mở lại trạng thái ONLINE cho phép thực hiện giao dịch ban ngày.'
+          ? 'Cutoff executed. External channels frozen. Ready for EOD Batch pipeline.'
+          : 'Online mode re-opened. External transactions enabled.'
       );
     } catch (err) {
-      setErrorMessage(`Lỗi đổi trạng thái Cutoff: ${err.message}`);
+      setErrorMessage(`Error toggling Cutoff: ${err.message}`);
     } finally {
       setIsTogglingCutoff(false);
     }
@@ -99,14 +99,14 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
       const res = await eodApi.runEod(eodStatus.workingDate);
 
       setSuccessMessage(
-        `Hoàn tất chu kỳ EOD thành công! Ngày làm việc đã chuyển từ [${eodStatus.workingDate}] sang [${res.nextWorkingDate}].`
+        `EOD Batch cycle completed successfully! Working date transitioned from [${eodStatus.workingDate}] to [${res.nextWorkingDate}].`
       );
 
       // Refresh status and trial balance
       await loadStatus();
       if (onSystemDateChange) onSystemDateChange(res.nextWorkingDate);
     } catch (err) {
-      setErrorMessage(`EOD Batch thất bại: ${err.message}`);
+      setErrorMessage(`EOD Batch failed: ${err.message}`);
     } finally {
       setIsRunningEod(false);
       setCurrentStepIndex(-1);
@@ -125,7 +125,7 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
         <div className="flex items-start space-x-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 animate-fadeIn">
           <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
           <div>
-            <span className="font-bold">Cảnh báo hệ thống:</span>
+            <span className="font-bold">System Warning:</span>
             <p className="mt-0.5 text-red-700">{errorMessage}</p>
           </div>
         </div>
@@ -135,7 +135,7 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
         <div className="flex items-start space-x-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 animate-fadeIn">
           <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
           <div>
-            <span className="font-bold">Thao tác thành công:</span>
+            <span className="font-bold">Operation Succeeded:</span>
             <p className="mt-0.5 text-emerald-700">{successMessage}</p>
           </div>
         </div>
@@ -147,13 +147,13 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
           <div className="flex items-center space-x-2 text-slate-500 text-xs font-semibold uppercase">
             <Calendar className="h-4 w-4 text-blue-600" />
-            <span>Ngày Làm Việc Hiện Tại</span>
+            <span>Current Working Date</span>
           </div>
           <div className="mt-2 font-mono text-2xl font-black text-slate-900">
             {eodStatus?.workingDate || '—'}
           </div>
           <p className="mt-1 text-[11px] text-slate-400">
-            Chu kỳ kế toán tiếp theo: <span className="font-mono font-medium text-slate-600">{eodStatus?.nextWorkingDate || '—'}</span>
+            Next Accounting Cycle: <span className="font-mono font-medium text-slate-600">{eodStatus?.nextWorkingDate || '—'}</span>
           </p>
         </div>
 
@@ -162,7 +162,7 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 text-slate-500 text-xs font-semibold uppercase">
               {eodStatus?.cutoffClosed ? <Lock className="h-4 w-4 text-amber-600" /> : <Unlock className="h-4 w-4 text-emerald-600" />}
-              <span>Khóa Sổ Giao Dịch</span>
+              <span>Channel Cutoff Control</span>
             </div>
             <span
               className={`rounded px-2 py-0.5 text-[10px] font-bold ${
@@ -187,12 +187,12 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
               ) : eodStatus?.cutoffClosed ? (
                 <>
                   <Unlock className="h-3.5 w-3.5" />
-                  <span>Mở Lại Online (Re-open)</span>
+                  <span>Re-open Online</span>
                 </>
               ) : (
                 <>
                   <Lock className="h-3.5 w-3.5" />
-                  <span>Kích Hoạt Cutoff</span>
+                  <span>Activate Cutoff</span>
                 </>
               )}
             </button>
@@ -203,7 +203,7 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center space-x-2 text-slate-500 text-xs font-semibold uppercase">
             <Clock className="h-4 w-4 text-indigo-600" />
-            <span>Kích Hoạt Chu Kỳ EOD</span>
+            <span>Execute EOD Pipeline</span>
           </div>
           <div className="mt-4">
             <button
@@ -214,18 +214,18 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
               {isRunningEod ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin text-blue-300" />
-                  <span>Đang Thực Thi EOD...</span>
+                  <span>Executing EOD Batch...</span>
                 </>
               ) : (
                 <>
                   <Play className="h-3.5 w-3.5" />
-                  <span>Chạy 8 Bước EOD Batch</span>
+                  <span>Run 8-Step EOD Batch</span>
                 </>
               )}
             </button>
             {!eodStatus?.cutoffClosed && (
               <p className="mt-1.5 text-center text-[10px] text-amber-600 font-medium">
-                * Cần bật Cutoff trước khi chạy EOD
+                * Cutoff required before executing EOD
               </p>
             )}
           </div>
@@ -238,7 +238,7 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
           <div className="flex items-center space-x-2">
             <ShieldCheck className="h-5 w-5 text-blue-700" />
             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">
-              Quy Trình Xử Lý Cuối Ngày (8-Step EOD Batch Pipeline)
+              End-of-Day Processing Pipeline (8-Step Atomic Batch)
             </h3>
           </div>
           <span className="text-xs font-mono text-slate-400">Atomic Orchestration</span>
@@ -261,7 +261,7 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[11px] font-bold">BƯỚC {s.step}</span>
+                  <span className="font-mono text-[11px] font-bold">STEP {s.step}</span>
                   {isDone ? (
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                   ) : isCurrent ? (
@@ -277,17 +277,17 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
         </div>
       </div>
 
-      {/* Trial Balance (Bảng Cân Đối Thử Nghiệm) Viewer */}
+      {/* General Ledger Trial Balance Viewer */}
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
         <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-3">
           <div className="flex items-center space-x-2">
             <Scale className="h-5 w-5 text-indigo-700" />
             <div>
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">
-                Bảng Cân Đối Thử Nghiệm Sổ Cái (General Ledger Trial Balance)
+                General Ledger Trial Balance
               </h3>
               <p className="text-xs text-slate-500">
-                Chứng minh bảo toàn Tuyệt Đối Cân Khớp Kế Toán (Invariant 1: Debits = Credits)
+                Proof of Accounting Equilibrium Invariant 1: Total Debits = Total Credits
               </p>
             </div>
           </div>
@@ -303,12 +303,12 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
               {trialBalance.balanced ? (
                 <>
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                  <span>INVARIANT 1: CÂN KHỚP TUYỆT ĐỐI (Diff = 0 VND)</span>
+                  <span>INVARIANT 1: EQUILIBRIUM BALANCED (Diff = 0 VND)</span>
                 </>
               ) : (
                 <>
                   <AlertTriangle className="h-4 w-4 text-red-600" />
-                  <span>CẢNH BÁO: CHÊNH LỆCH BÚT TOÁN GL</span>
+                  <span>WARNING: UNBALANCED GL ENTRIES</span>
                 </>
               )}
             </div>
@@ -320,11 +320,11 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 uppercase text-[10px] font-bold text-slate-500 border-b border-slate-200">
                 <tr>
-                  <th className="px-3 py-2.5">Số Hiệu GL</th>
-                  <th className="px-3 py-2.5">Tên Tài Khoản Kế Toán</th>
-                  <th className="px-3 py-2.5 text-right">Tổng Dư Nợ (Debit)</th>
-                  <th className="px-3 py-2.5 text-right">Tổng Dư Có (Credit)</th>
-                  <th className="px-3 py-2.5 text-right">Dư Ròng (Net Balance)</th>
+                  <th className="px-3 py-2.5">GL Code</th>
+                  <th className="px-3 py-2.5">GL Account Name</th>
+                  <th className="px-3 py-2.5 text-right">Total Debits</th>
+                  <th className="px-3 py-2.5 text-right">Total Credits</th>
+                  <th className="px-3 py-2.5 text-right">Net Balance</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-mono">
@@ -349,7 +349,7 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
               <tfoot className="border-t-2 border-slate-300 bg-slate-50/80 font-mono text-xs font-black">
                 <tr>
                   <td colSpan={2} className="px-3 py-3 uppercase text-slate-700 font-sans">
-                    TỔNG CỘNG TOÀN NGÂN HÀNG:
+                    TOTAL BANK EQUILIBRIUM:
                   </td>
                   <td className="px-3 py-3 text-right text-emerald-800">
                     {formatMoney(trialBalance.totalDebit)} VND
@@ -364,7 +364,7 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
           </div>
         ) : (
           <div className="flex h-36 items-center justify-center text-xs text-slate-400">
-            Chưa có số liệu phát sinh trong ngày làm việc này.
+            No transaction entries recorded for this working date.
           </div>
         )}
       </div>

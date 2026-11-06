@@ -42,8 +42,8 @@ import java.util.Map;
  * Daily Interest = round(ledger_balance * annual_rate / day_count_basis, 4)
  *
  * Accounting Equilibrium (Invariant 1):
- *   DR: 8011 (SYS_INT_EXPENSE - Chi phí trả lãi tiền gửi CASA)
- *   CR: 4911 (SYS_INT_PAYABLE - Lãi cộng dồn phải trả tiền gửi CASA)
+ *   DR: 8011 (SYS_INT_EXPENSE - Interest expense on CASA deposits)
+ *   CR: 4911 (SYS_INT_PAYABLE - Accrued interest payable on CASA deposits)
  */
 @Service
 @Slf4j

@@ -49,7 +49,7 @@ export default function App() {
               }`}
             >
               <ArrowLeftRight className="h-4 w-4" />
-              <span>GIAO DỊCH QUẦY (TELLER)</span>
+              <span>TELLER OPERATIONS</span>
             </button>
 
             <button
@@ -61,7 +61,7 @@ export default function App() {
               }`}
             >
               <FileText className="h-4 w-4" />
-              <span>TÍN DỤNG & CHO VAY (LENDING)</span>
+              <span>CREDIT & LENDING DESK</span>
             </button>
 
             <button
@@ -73,7 +73,7 @@ export default function App() {
               }`}
             >
               <BarChart3 className="h-4 w-4" />
-              <span>VẬN HÀNH & KẾ TOÁN (EOD COCKPIT)</span>
+              <span>EOD & ACCOUNTING COCKPIT</span>
             </button>
           </nav>
 

@@ -35,7 +35,7 @@ public class TransferFeeStepHandler implements FormStepHandler {
             BigDecimal totalDebit = amount.add(fee);
             if (available.compareTo(totalDebit) < 0) {
                 context.putError("amount", String.format(
-                        "Số dư khả dụng (%s) không đủ để chuyển %s (kèm phí %s)!",
+                        "Available balance (%s) is insufficient to transfer %s (plus fee %s)!",
                         available, amount, fee));
             }
         }
