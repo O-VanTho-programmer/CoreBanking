@@ -23,6 +23,13 @@
 
 ---
 
+## 📐 Project Conventions
+
+- **Codebase Comments & Documentation**: Strictly in **English** across all Java classes, configuration files, test suites, and scripts.
+- **User Interface (UI) & Form Catalogs**: Strictly in **English** for all web components, labels, dynamic form schemas, modal dialogs, and user-facing messages.
+
+---
+
 ## 🛠️ Tech Stack
 
 - **Java**: 21 LTS (Temurin, Virtual Threads enabled)
