@@ -169,8 +169,8 @@ export default function App() {
             <button
               onClick={() => setActiveView('workspace')}
               className={`flex items-center space-x-2 border-b-2 px-3 py-3 text-xs sm:text-sm font-bold transition ${activeView === 'workspace'
-                  ? 'border-blue-700 text-blue-700'
-                  : 'border-transparent text-slate-500 hover:text-slate-900'
+                ? 'border-blue-700 text-blue-700'
+                : 'border-transparent text-slate-500 hover:text-slate-900'
                 }`}
             >
               <ArrowLeftRight className="h-4 w-4" />
@@ -183,8 +183,8 @@ export default function App() {
             <button
               onClick={() => setActiveView('cockpit')}
               className={`flex items-center space-x-2 border-b-2 px-3 py-3 text-xs sm:text-sm font-bold transition ${activeView === 'cockpit'
-                  ? 'border-blue-700 text-blue-700'
-                  : 'border-transparent text-slate-500 hover:text-slate-900'
+                ? 'border-blue-700 text-blue-700'
+                : 'border-transparent text-slate-500 hover:text-slate-900'
                 }`}
             >
               <BarChart3 className="h-4 w-4" />
@@ -211,7 +211,6 @@ export default function App() {
                 onCloseTab={handleCloseTab}
                 onCloseOtherTabs={handleCloseOtherTabs}
                 onCloseAllTabs={handleCloseAllTabs}
-                onNewTab={() => handleOpenForm('FORM_CASH_DEP', 'Cash Deposit')}
               />
 
               {/* Tab Containers: Keep rendered to isolate and preserve state */}

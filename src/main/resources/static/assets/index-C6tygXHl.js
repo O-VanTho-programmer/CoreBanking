@@ -7386,16 +7386,6 @@ const Play = createLucideIcon("Play", [
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Plus = createLucideIcon("Plus", [
-  ["path", { d: "M5 12h14", key: "1ays0h" }],
-  ["path", { d: "M12 5v14", key: "s699le" }]
-]);
-/**
- * @license lucide-react v0.453.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
 const Printer = createLucideIcon("Printer", [
   [
     "path",
@@ -7826,51 +7816,38 @@ function WorkspaceTabs({
   onSelectTab,
   onCloseTab,
   onCloseOtherTabs,
-  onCloseAllTabs,
-  onNewTab
+  onCloseAllTabs
 }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between border-b border-slate-200 bg-slate-100/80 px-2 pt-2 select-none overflow-x-auto", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-1 overflow-x-auto scrollbar-none py-0.5", children: [
-      tabs.map((tab) => {
-        const isActive = tab.id === activeTabId;
-        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "div",
-          {
-            onClick: () => onSelectTab(tab.id),
-            className: `group relative flex items-center space-x-2 rounded-t-xl px-3.5 py-2 text-xs font-bold transition cursor-pointer border-t border-x ${isActive ? "bg-white text-blue-900 border-slate-200 shadow-xs" : "bg-slate-200/70 text-slate-600 border-transparent hover:bg-slate-200 hover:text-slate-900"}`,
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(FileText, { className: `h-3.5 w-3.5 shrink-0 ${isActive ? "text-blue-700" : "text-slate-400"}` }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "truncate max-w-[140px] tracking-tight", children: tab.title }),
-              tab.isDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0", title: "Unsaved changes" }),
-              tabs.length > 1 && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "button",
-                {
-                  type: "button",
-                  onClick: (e) => {
-                    e.stopPropagation();
-                    onCloseTab(tab.id);
-                  },
-                  className: "rounded-md p-0.5 text-slate-400 hover:bg-slate-200 hover:text-slate-800 transition",
-                  title: "Close tab",
-                  children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "h-3 w-3" })
-                }
-              )
-            ]
-          },
-          tab.id
-        );
-      }),
-      tabs.length < 8 && onNewTab && /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "button",
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center space-x-1 overflow-x-auto scrollbar-none py-0.5", children: tabs.map((tab) => {
+      const isActive = tab.id === activeTabId;
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
         {
-          type: "button",
-          onClick: onNewTab,
-          className: "rounded-lg p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition",
-          title: "Open new transaction tab",
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { className: "h-4 w-4" })
-        }
-      )
-    ] }),
+          onClick: () => onSelectTab(tab.id),
+          className: `group relative flex items-center space-x-2 rounded-t-xl px-3.5 py-2 text-xs font-bold transition cursor-pointer border-t border-x ${isActive ? "bg-white text-blue-900 border-slate-200 shadow-xs" : "bg-slate-200/70 text-slate-600 border-transparent hover:bg-slate-200 hover:text-slate-900"}`,
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(FileText, { className: `h-3.5 w-3.5 shrink-0 ${isActive ? "text-blue-700" : "text-slate-400"}` }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "truncate max-w-[140px] tracking-tight", children: tab.title }),
+            tab.isDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0", title: "Unsaved changes" }),
+            tabs.length > 1 && /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                type: "button",
+                onClick: (e) => {
+                  e.stopPropagation();
+                  onCloseTab(tab.id);
+                },
+                className: "rounded-md p-0.5 text-slate-400 hover:bg-slate-200 hover:text-slate-800 transition",
+                title: "Close tab",
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "h-3 w-3" })
+              }
+            )
+          ]
+        },
+        tab.id
+      );
+    }) }),
     tabs.length > 1 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2 pb-1 text-[11px] text-slate-500 font-medium", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "button",
@@ -14009,8 +13986,7 @@ function App() {
               onSelectTab: setActiveTabId,
               onCloseTab: handleCloseTab,
               onCloseOtherTabs: handleCloseOtherTabs,
-              onCloseAllTabs: handleCloseAllTabs,
-              onNewTab: () => handleOpenForm("FORM_CASH_DEP", "Cash Deposit")
+              onCloseAllTabs: handleCloseAllTabs
             }
           ),
           openTabs.map((tab) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: tab.id === activeTabId ? "block" : "hidden", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -14151,4 +14127,4 @@ function App() {
 client.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-Da9H1kE5.js.map
+//# sourceMappingURL=index-C6tygXHl.js.map
