@@ -10,8 +10,7 @@ export default function DynamicForm({
   onSubmit,
   onNavigate,
   isSubmitting = false,
-  submitLabel = 'Submit Transaction',
-  submitIcon: SubmitIcon = Send,
+  submitLabel = 'Submit',
 }) {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
@@ -372,10 +371,7 @@ export default function DynamicForm({
                         <span>Processing...</span>
                       </>
                     ) : (
-                      <>
-                        <SubmitIcon className="h-3.5 w-3.5" />
-                        <span>{action.label}</span>
-                      </>
+                      <span>{action.label}</span>
                     )}
                   </button>
                 ))}
@@ -412,10 +408,7 @@ export default function DynamicForm({
                     <span>Posting Journal...</span>
                   </>
                 ) : (
-                  <>
-                    <SubmitIcon className="h-4 w-4" />
-                    <span>{submitLabel}</span>
-                  </>
+                  <span>{submitLabel}</span>
                 )}
               </button>
             </div>

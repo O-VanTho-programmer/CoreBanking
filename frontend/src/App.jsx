@@ -25,15 +25,7 @@ export default function App() {
   const [shortcuts, setShortcuts] = useState([]);
 
   // Workplace Multi-Tab State
-  const [openTabs, setOpenTabs] = useState([
-    {
-      id: 'tab-default',
-      formCode: 'FORM_CASH_DEP',
-      title: 'Cash Deposit',
-      initialParams: {},
-      isDirty: false,
-    },
-  ]);
+  const [openTabs, setOpenTabs] = useState([]);
   const [activeTabId, setActiveTabId] = useState('tab-default');
 
   // Quick Account Inspector Side Panel State
@@ -176,11 +168,10 @@ export default function App() {
           <nav className="flex space-x-1 sm:space-x-4">
             <button
               onClick={() => setActiveView('workspace')}
-              className={`flex items-center space-x-2 border-b-2 px-3 py-3 text-xs sm:text-sm font-bold transition ${
-                activeView === 'workspace'
+              className={`flex items-center space-x-2 border-b-2 px-3 py-3 text-xs sm:text-sm font-bold transition ${activeView === 'workspace'
                   ? 'border-blue-700 text-blue-700'
                   : 'border-transparent text-slate-500 hover:text-slate-900'
-              }`}
+                }`}
             >
               <ArrowLeftRight className="h-4 w-4" />
               <span>TELLER & OPERATIONS WORKSPACE</span>
@@ -191,11 +182,10 @@ export default function App() {
 
             <button
               onClick={() => setActiveView('cockpit')}
-              className={`flex items-center space-x-2 border-b-2 px-3 py-3 text-xs sm:text-sm font-bold transition ${
-                activeView === 'cockpit'
+              className={`flex items-center space-x-2 border-b-2 px-3 py-3 text-xs sm:text-sm font-bold transition ${activeView === 'cockpit'
                   ? 'border-blue-700 text-blue-700'
                   : 'border-transparent text-slate-500 hover:text-slate-900'
-              }`}
+                }`}
             >
               <BarChart3 className="h-4 w-4" />
               <span>EOD & ACCOUNTING COCKPIT</span>

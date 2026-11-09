@@ -7446,22 +7446,6 @@ const Search = createLucideIcon("Search", [
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Send = createLucideIcon("Send", [
-  [
-    "path",
-    {
-      d: "M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z",
-      key: "1ffxy3"
-    }
-  ],
-  ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
-]);
-/**
- * @license lucide-react v0.453.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
 const ShieldCheck = createLucideIcon("ShieldCheck", [
   [
     "path",
@@ -12898,8 +12882,7 @@ function DynamicForm({
   onSubmit,
   onNavigate,
   isSubmitting = false,
-  submitLabel = "Submit Transaction",
-  submitIcon: SubmitIcon = Send
+  submitLabel = "Submit"
 }) {
   var _a;
   const [formData, setFormData] = reactExports.useState({});
@@ -13173,10 +13156,7 @@ function DynamicForm({
           children: isSubmitting ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { className: "h-3.5 w-3.5 animate-spin" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Processing..." })
-          ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(SubmitIcon, { className: "h-3.5 w-3.5" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: action.label })
-          ] })
+          ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: action.label })
         },
         action.code
       )) })
@@ -13209,10 +13189,7 @@ function DynamicForm({
             children: isSubmitting ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { className: "h-4 w-4 animate-spin" }),
               /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Posting Journal..." })
-            ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(SubmitIcon, { className: "h-4 w-4" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: submitLabel })
-            ] })
+            ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: submitLabel })
           }
         )
       ] })
@@ -13587,7 +13564,7 @@ function TabFormContainer({
         onSubmit: handleSubmit,
         onNavigate,
         isSubmitting,
-        submitLabel: (schema == null ? void 0 : schema.title) || "Submit Transaction"
+        submitLabel: "Submit"
       },
       `${tab.id}-${tab.formCode}`
     ),
@@ -13879,15 +13856,7 @@ function App() {
   const [workingDate, setWorkingDate] = reactExports.useState("2026-11-05");
   const [isCutoff, setIsCutoff] = reactExports.useState(false);
   const [shortcuts, setShortcuts] = reactExports.useState([]);
-  const [openTabs, setOpenTabs] = reactExports.useState([
-    {
-      id: "tab-default",
-      formCode: "FORM_CASH_DEP",
-      title: "Cash Deposit",
-      initialParams: {},
-      isDirty: false
-    }
-  ]);
+  const [openTabs, setOpenTabs] = reactExports.useState([]);
   const [activeTabId, setActiveTabId] = reactExports.useState("tab-default");
   const [inspectorAccount, setInspectorAccount] = reactExports.useState("");
   const [inspectorData, setInspectorData] = reactExports.useState(null);
@@ -14182,4 +14151,4 @@ function App() {
 client.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-G7oIcd7N.js.map
+//# sourceMappingURL=index-Da9H1kE5.js.map

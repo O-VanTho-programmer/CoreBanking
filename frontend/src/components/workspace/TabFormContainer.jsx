@@ -232,7 +232,7 @@ export default function TabFormContainer({
         onSubmit={handleSubmit}
         onNavigate={onNavigate}
         isSubmitting={isSubmitting}
-        submitLabel={schema?.title || 'Submit Transaction'}
+        submitLabel="Submit"
       />
 
       {/* Electronic Transaction Receipt Modal */}
