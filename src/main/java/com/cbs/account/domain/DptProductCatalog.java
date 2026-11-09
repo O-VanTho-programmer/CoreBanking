@@ -34,6 +34,10 @@ public class DptProductCatalog {
     @Column(name = "product_name", length = 100, nullable = false)
     private String productName;
 
+    @Column(name = "product_type", length = 10, nullable = false)
+    @Builder.Default
+    private String productType = "CASA";
+
     @Column(name = "currency", columnDefinition = "CHAR(3)", length = 3, nullable = false)
     @JdbcTypeCode(SqlTypes.CHAR)
     private String currency;
@@ -58,6 +62,18 @@ public class DptProductCatalog {
     @Column(name = "min_balance", nullable = false)
     @Builder.Default
     private BigDecimal minBalance = BigDecimal.ZERO;
+
+    @Column(name = "min_open_amount", nullable = false)
+    @Builder.Default
+    private BigDecimal minOpenAmount = BigDecimal.ZERO;
+
+    @Column(name = "min_accrual_balance", nullable = false)
+    @Builder.Default
+    private BigDecimal minAccrualBalance = BigDecimal.ZERO;
+
+    @Column(name = "max_interest_margin", nullable = false)
+    @Builder.Default
+    private BigDecimal maxInterestMargin = new BigDecimal("0.0200");
 
     @Column(name = "is_active", columnDefinition = "CHAR(1)", length = 1, nullable = false)
     @JdbcTypeCode(SqlTypes.CHAR)

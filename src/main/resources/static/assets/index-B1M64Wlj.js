@@ -12246,6 +12246,24 @@ function FormFieldRenderer({
             error
           }
         );
+      case "CHECKBOX":
+      case "BOOLEAN":
+        return /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "flex items-center space-x-3 cursor-pointer py-2 select-none", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "checkbox",
+              id: name,
+              name,
+              checked: Boolean(value),
+              onChange: (e) => onChange({ target: { name, value: e.target.checked } }),
+              onBlur,
+              disabled,
+              className: "h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50 cursor-pointer"
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-xs font-semibold ${disabled ? "text-slate-400" : "text-slate-700"}`, children: field.checkboxLabel || label })
+        ] });
       case "NUMBER":
         return /* @__PURE__ */ jsxRuntimeExports.jsx(
           "input",
@@ -12928,6 +12946,19 @@ function DynamicForm({
     },
     [schema]
   );
+  reactExports.useEffect(() => {
+    if (!(schema == null ? void 0 : schema.fields)) return;
+    const initTriggerField = schema.fields.find(
+      (f2) => f2.steps && f2.steps.length > 0 && f2.defaultValue
+    );
+    if (initTriggerField) {
+      const defaults2 = {};
+      schema.fields.forEach((f2) => {
+        defaults2[f2.name] = initialData[f2.name] ?? f2.defaultValue ?? "";
+      });
+      triggerEvaluation(initTriggerField.name, defaults2, initTriggerField.steps);
+    }
+  }, [schema, triggerEvaluation]);
   const handleOpenLookup = reactExports.useCallback((modalFormCode, field) => {
     setLookupModalState({
       isOpen: true,
@@ -12979,15 +13010,15 @@ function DynamicForm({
       });
     }
     const fieldDef = (schema.fields || []).find((f2) => f2.name === name);
-    if (fieldDef == null ? void 0 : fieldDef.evaluateOnChange) {
-      triggerEvaluation(name, updatedData);
+    if ((fieldDef == null ? void 0 : fieldDef.evaluateOnChange) || (fieldDef == null ? void 0 : fieldDef.type) === "CHECKBOX" || (fieldDef == null ? void 0 : fieldDef.type) === "BOOLEAN" || (fieldDef == null ? void 0 : fieldDef.type) === "SELECT" || (fieldDef == null ? void 0 : fieldDef.type) === "CODELIST" || name === "requestInterestMargin" || name === "marginReason" || name === "rolloverOption" || name === "productCode") {
+      triggerEvaluation(name, updatedData, fieldDef == null ? void 0 : fieldDef.steps);
     }
   };
   const handleBlur = (e) => {
     const { name } = e.target;
     const fieldDef = (schema.fields || []).find((f2) => f2.name === name);
-    if ((fieldDef == null ? void 0 : fieldDef.evaluateOnBlur) || (fieldDef == null ? void 0 : fieldDef.triggersEvaluation) || (fieldDef == null ? void 0 : fieldDef.type) === "ACCOUNT_LOOKUP" || (fieldDef == null ? void 0 : fieldDef.type) === "CURRENCY" || name.toLowerCase().includes("account") || name.toLowerCase().includes("customer") || name.toLowerCase().includes("amount")) {
-      triggerEvaluation(name, formData);
+    if ((fieldDef == null ? void 0 : fieldDef.evaluateOnBlur) || (fieldDef == null ? void 0 : fieldDef.triggersEvaluation) || (fieldDef == null ? void 0 : fieldDef.type) === "ACCOUNT_LOOKUP" || (fieldDef == null ? void 0 : fieldDef.type) === "CURRENCY" || (fieldDef == null ? void 0 : fieldDef.type) === "NUMBER" || (fieldDef == null ? void 0 : fieldDef.steps) && fieldDef.steps.length > 0 || name.toLowerCase().includes("account") || name.toLowerCase().includes("customer") || name.toLowerCase().includes("amount") || name.toLowerCase().includes("deposit") || name.toLowerCase().includes("margin")) {
+      triggerEvaluation(name, formData, fieldDef == null ? void 0 : fieldDef.steps);
     }
   };
   const handleSubmit = (e) => {
@@ -13374,6 +13405,7 @@ function TabFormContainer({
     };
   }, [tab.formCode]);
   const handleSubmit = async (formData, action = null) => {
+    var _a;
     try {
       setIsSubmitting(true);
       setErrorMessage(null);
@@ -13448,18 +13480,25 @@ function TabFormContainer({
         setSuccessMessage(`Credit contract [${loanRes.loanId}] originated successfully!`);
       } else if (tab.formCode === "FORM_ACCOUNT_OPEN") {
         const accRes = await accountApi.openAccount({
-          customerId: Number(formData.customerId || 1001),
+          customerId: Number(formData.customerId || ((_a = formData.cifNumber) == null ? void 0 : _a.replace("CIF-", "")) || 1001),
           productCode: formData.productCode || "CASA_VND",
           branchCode: formData.branchCode || "001",
-          currency: formData.currency || "VND"
+          currency: formData.currency || "VND",
+          initialDeposit: Number(formData.initialDeposit || 0),
+          termMonths: formData.termMonths ? Number(formData.termMonths) : null,
+          rolloverOption: formData.rolloverOption || null,
+          requestInterestMargin: Boolean(formData.requestInterestMargin),
+          marginReason: formData.marginReason || null,
+          interestMargin: formData.interestMargin ? Number(formData.interestMargin) : 0,
+          linkedCasaAccountNumber: formData.linkedCasaAccountNumber || null
         });
         resReceipt = {
           trxId: `ACC-${accRes.accountNumber}`,
           trxType: "ACCOUNT_OPEN",
-          amount: 0,
+          amount: Number(formData.initialDeposit || 0),
           currency: formData.currency || "VND",
           accountNumber: accRes.accountNumber,
-          description: `Deposit CASA account opened successfully: ${accRes.accountNumber}`
+          description: `Deposit account (${formData.productType || accRes.productType || "CASA"}) opened successfully: ${accRes.accountNumber}`
         };
         setSuccessMessage(`Deposit account [${accRes.accountNumber}] opened successfully!`);
       } else if (tab.formCode === "FORM_CUST_CREATE") {
@@ -14127,4 +14166,4 @@ function App() {
 client.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-C6tygXHl.js.map
+//# sourceMappingURL=index-B1M64Wlj.js.map

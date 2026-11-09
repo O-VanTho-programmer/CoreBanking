@@ -126,11 +126,16 @@ public class BalanceSnapshotService {
             );
 
             if (product != null && "Y".equals(product.getIsActive())) {
-                BigDecimal minBalance = (product.getMinBalance() != null) ? product.getMinBalance() : BigDecimal.ZERO;
-                if (closingBalance.compareTo(minBalance) >= 0 && closingBalance.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal minAccrual = (product.getMinAccrualBalance() != null && product.getMinAccrualBalance().compareTo(BigDecimal.ZERO) > 0)
+                        ? product.getMinAccrualBalance()
+                        : (product.getMinBalance() != null ? product.getMinBalance() : BigDecimal.ZERO);
+                if (closingBalance.compareTo(minAccrual) >= 0 && closingBalance.compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal appliedRate = (account.getEffectiveRate() != null && account.getEffectiveRate().compareTo(BigDecimal.ZERO) > 0)
+                            ? account.getEffectiveRate()
+                            : product.getAnnualRate();
                     dailyAccruedInterest = interestAccrualService.calculateDailyInterest(
                             closingBalance,
-                            product.getAnnualRate(),
+                            appliedRate,
                             product.getDayCountBasis()
                     );
                 }

@@ -93,6 +93,21 @@ export default function DynamicForm({
     [schema]
   );
 
+  // Auto-evaluate default field steps on schema load (e.g. initial disabled state)
+  useEffect(() => {
+    if (!schema?.fields) return;
+    const initTriggerField = schema.fields.find(
+      (f) => f.steps && f.steps.length > 0 && f.defaultValue
+    );
+    if (initTriggerField) {
+      const defaults = {};
+      schema.fields.forEach((f) => {
+        defaults[f.name] = initialData[f.name] ?? f.defaultValue ?? '';
+      });
+      triggerEvaluation(initTriggerField.name, defaults, initTriggerField.steps);
+    }
+  }, [schema, triggerEvaluation]);
+
   const handleOpenLookup = useCallback((modalFormCode, field) => {
     setLookupModalState({
       isOpen: true,
@@ -155,27 +170,41 @@ export default function DynamicForm({
       });
     }
 
-    // Trigger instant evaluation if configured
+    // Trigger instant evaluation if configured or for interactive controls (checkbox, select, step-bound)
     const fieldDef = (schema.fields || []).find((f) => f.name === name);
-    if (fieldDef?.evaluateOnChange) {
-      triggerEvaluation(name, updatedData);
+    if (
+      fieldDef?.evaluateOnChange ||
+      fieldDef?.type === 'CHECKBOX' ||
+      fieldDef?.type === 'BOOLEAN' ||
+      fieldDef?.type === 'SELECT' ||
+      fieldDef?.type === 'CODELIST' ||
+      name === 'requestInterestMargin' ||
+      name === 'marginReason' ||
+      name === 'rolloverOption' ||
+      name === 'productCode'
+    ) {
+      triggerEvaluation(name, updatedData, fieldDef?.steps);
     }
   };
 
   const handleBlur = (e) => {
     const { name } = e.target;
     const fieldDef = (schema.fields || []).find((f) => f.name === name);
-    // Auto evaluate on blur for account lookup, customer lookup, or amount fields
+    // Auto evaluate on blur for account lookup, customer lookup, amounts, or margins
     if (
       fieldDef?.evaluateOnBlur ||
       fieldDef?.triggersEvaluation ||
       fieldDef?.type === 'ACCOUNT_LOOKUP' ||
       fieldDef?.type === 'CURRENCY' ||
+      fieldDef?.type === 'NUMBER' ||
+      (fieldDef?.steps && fieldDef.steps.length > 0) ||
       name.toLowerCase().includes('account') ||
       name.toLowerCase().includes('customer') ||
-      name.toLowerCase().includes('amount')
+      name.toLowerCase().includes('amount') ||
+      name.toLowerCase().includes('deposit') ||
+      name.toLowerCase().includes('margin')
     ) {
-      triggerEvaluation(name, formData);
+      triggerEvaluation(name, formData, fieldDef?.steps);
     }
   };
 

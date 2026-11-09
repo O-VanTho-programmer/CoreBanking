@@ -106,22 +106,26 @@ public class InterestAccrualService {
                 continue;
             }
 
-            BigDecimal minBalance = (product.getMinBalance() != null)
-                    ? product.getMinBalance()
-                    : BigDecimal.ZERO;
+            BigDecimal minAccrual = (product.getMinAccrualBalance() != null && product.getMinAccrualBalance().compareTo(BigDecimal.ZERO) > 0)
+                    ? product.getMinAccrualBalance()
+                    : (product.getMinBalance() != null ? product.getMinBalance() : BigDecimal.ZERO);
 
             BigDecimal ledgerBalance = (account.getLedgerBalance() != null)
                     ? account.getLedgerBalance()
                     : BigDecimal.ZERO;
 
-            // Ineligible if below minimum balance or non-positive
-            if (ledgerBalance.compareTo(minBalance) < 0 || ledgerBalance.compareTo(BigDecimal.ZERO) <= 0) {
+            // Ineligible if below minimum accrual balance or non-positive
+            if (ledgerBalance.compareTo(minAccrual) < 0 || ledgerBalance.compareTo(BigDecimal.ZERO) <= 0) {
                 continue;
             }
 
+            BigDecimal appliedRate = (account.getEffectiveRate() != null && account.getEffectiveRate().compareTo(BigDecimal.ZERO) > 0)
+                    ? account.getEffectiveRate()
+                    : product.getAnnualRate();
+
             BigDecimal dailyInterest = calculateDailyInterest(
                     ledgerBalance,
-                    product.getAnnualRate(),
+                    appliedRate,
                     product.getDayCountBasis()
             );
 
@@ -141,7 +145,7 @@ public class InterestAccrualService {
                         .accountNumber(account.getAccountNumber())
                         .productCode(account.getProductCode())
                         .ledgerBalance(ledgerBalance)
-                        .annualRate(product.getAnnualRate())
+                        .annualRate(appliedRate)
                         .dayCountBasis(product.getDayCountBasis())
                         .dailyInterest(dailyInterest)
                         .updatedAccruedInterest(updatedAccrued)

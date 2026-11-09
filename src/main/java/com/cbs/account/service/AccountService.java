@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
@@ -76,16 +77,74 @@ public class AccountService {
         LocalDate workingDate = workingDateService.getCurrentWorkingDate();
         String accountNumber = generateAccountNumber(command.branchCode(), command.productCode());
 
+        String productType = (product.getProductType() != null) ? product.getProductType() : "CASA";
+        BigDecimal initialDeposit = (command.initialDeposit() != null) ? command.initialDeposit() : BigDecimal.ZERO;
+
+        // 4. Validate Minimum Opening Balance for FD
+        if ("FD".equalsIgnoreCase(productType)) {
+            BigDecimal minOpen = (product.getMinOpenAmount() != null) ? product.getMinOpenAmount() : BigDecimal.ZERO;
+            if (initialDeposit.compareTo(minOpen) < 0) {
+                throw new IllegalArgumentException(String.format(
+                        "Initial placement amount %s is below minimum opening balance %s for product '%s'",
+                        initialDeposit, minOpen, product.getProductCode()));
+            }
+        }
+
+        // 5. Rate & VIP Margin Calculation
+        BigDecimal baseRate = (product.getAnnualRate() != null) ? product.getAnnualRate() : BigDecimal.ZERO;
+        BigDecimal interestMargin = BigDecimal.ZERO;
+
+        if (Boolean.TRUE.equals(command.requestInterestMargin()) && command.interestMargin() != null) {
+            BigDecimal maxMargin = (product.getMaxInterestMargin() != null) ? product.getMaxInterestMargin() : new BigDecimal("0.0200");
+            if (command.interestMargin().compareTo(BigDecimal.ZERO) < 0 || command.interestMargin().compareTo(maxMargin) > 0) {
+                throw new IllegalArgumentException(String.format(
+                        "Interest margin %s exceeds maximum allowed margin %s for product '%s'",
+                        command.interestMargin(), maxMargin, product.getProductCode()));
+            }
+            if (command.marginReason() == null || command.marginReason().isBlank()) {
+                throw new IllegalArgumentException("Margin justification reason is mandatory when requesting VIP interest margin");
+            }
+            interestMargin = command.interestMargin();
+        }
+
+        BigDecimal effectiveRate = baseRate.add(interestMargin);
+
+        // 6. Term & Maturity Date for FD
+        Integer termMonths = null;
+        LocalDate maturityDate = null;
+        if ("FD".equalsIgnoreCase(productType)) {
+            termMonths = (command.termMonths() != null && command.termMonths() > 0) ? command.termMonths() : 12;
+            maturityDate = workingDate.plusMonths(termMonths);
+        }
+
+        // 7. Linked Settlement CASA Account lookup
+        Long linkedCasaAccountId = null;
+        if (command.linkedCasaAccountNumber() != null && !command.linkedCasaAccountNumber().isBlank()) {
+            var linkedAccOpt = accountRepository.findByAccountNumber(command.linkedCasaAccountNumber().trim());
+            if (linkedAccOpt.isPresent()) {
+                linkedCasaAccountId = linkedAccOpt.get().getAccountId();
+            }
+        }
+
         Account account = Account.builder()
                 .accountNumber(accountNumber)
                 .customerId(command.customerId())
                 .productCode(product.getProductCode())
+                .productType(productType)
                 .glCode(product.getDefaultGlCode())
                 .branchCode(command.branchCode().trim())
                 .currency(product.getCurrency())
-                .ledgerBalance(BigDecimal.ZERO.setScale(4))
+                .ledgerBalance(initialDeposit.setScale(4, RoundingMode.HALF_UP))
                 .holdBalance(BigDecimal.ZERO.setScale(4))
                 .accruedInterest(BigDecimal.ZERO.setScale(4))
+                .baseInterestRate(baseRate)
+                .interestMargin(interestMargin)
+                .effectiveRate(effectiveRate)
+                .termMonths(termMonths)
+                .maturityDate(maturityDate)
+                .rolloverOption(command.rolloverOption())
+                .marginReason(command.marginReason())
+                .linkedCasaAccountId(linkedCasaAccountId)
                 .status(command.status())
                 .createdWorkingDate(workingDate)
                 .createdAt(OffsetDateTime.now())

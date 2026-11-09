@@ -79,6 +79,26 @@ export default function FormFieldRenderer({
           />
         );
 
+      case 'CHECKBOX':
+      case 'BOOLEAN':
+        return (
+          <label className="flex items-center space-x-3 cursor-pointer py-2 select-none">
+            <input
+              type="checkbox"
+              id={name}
+              name={name}
+              checked={Boolean(value)}
+              onChange={(e) => onChange({ target: { name, value: e.target.checked } })}
+              onBlur={onBlur}
+              disabled={disabled}
+              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50 cursor-pointer"
+            />
+            <span className={`text-xs font-semibold ${disabled ? 'text-slate-400' : 'text-slate-700'}`}>
+              {field.checkboxLabel || label}
+            </span>
+          </label>
+        );
+
       case 'NUMBER':
         return (
           <input

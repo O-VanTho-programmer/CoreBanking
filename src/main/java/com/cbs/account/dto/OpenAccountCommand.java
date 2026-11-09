@@ -5,8 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
+import java.math.BigDecimal;
+
 /**
- * Command for opening a new customer CASA account.
+ * Command for opening a new customer deposit account (CASA or Fixed Deposit).
  */
 @Builder
 public record OpenAccountCommand(
@@ -20,11 +22,25 @@ public record OpenAccountCommand(
         String branchCode,
 
         @ValidCodeList(group = "ACCT_STATUS")
-        String status
+        String status,
+
+        BigDecimal initialDeposit,
+        Integer termMonths,
+        String rolloverOption,
+        Boolean requestInterestMargin,
+        String marginReason,
+        BigDecimal interestMargin,
+        String linkedCasaAccountNumber
 ) {
     public OpenAccountCommand {
         if (status == null || status.isBlank()) {
             status = "ACTIVE";
+        }
+        if (initialDeposit == null) {
+            initialDeposit = BigDecimal.ZERO;
+        }
+        if (interestMargin == null) {
+            interestMargin = BigDecimal.ZERO;
         }
     }
 }

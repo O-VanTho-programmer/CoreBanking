@@ -81,6 +81,7 @@ class InterestAccrualServiceTest {
                 .annualRate(new BigDecimal("0.0050")) // 0.5% p.a.
                 .dayCountBasis("ACT_365")
                 .minBalance(new BigDecimal("50000.0000"))
+                .minAccrualBalance(new BigDecimal("50000.0000"))
                 .isActive("Y")
                 .build();
     }

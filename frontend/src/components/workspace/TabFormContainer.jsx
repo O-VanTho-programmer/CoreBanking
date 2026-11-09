@@ -121,18 +121,25 @@ export default function TabFormContainer({
         setSuccessMessage(`Credit contract [${loanRes.loanId}] originated successfully!`);
       } else if (tab.formCode === 'FORM_ACCOUNT_OPEN') {
         const accRes = await accountApi.openAccount({
-          customerId: Number(formData.customerId || 1001),
+          customerId: Number(formData.customerId || formData.cifNumber?.replace('CIF-', '') || 1001),
           productCode: formData.productCode || 'CASA_VND',
           branchCode: formData.branchCode || '001',
           currency: formData.currency || 'VND',
+          initialDeposit: Number(formData.initialDeposit || 0),
+          termMonths: formData.termMonths ? Number(formData.termMonths) : null,
+          rolloverOption: formData.rolloverOption || null,
+          requestInterestMargin: Boolean(formData.requestInterestMargin),
+          marginReason: formData.marginReason || null,
+          interestMargin: formData.interestMargin ? Number(formData.interestMargin) : 0,
+          linkedCasaAccountNumber: formData.linkedCasaAccountNumber || null,
         });
         resReceipt = {
           trxId: `ACC-${accRes.accountNumber}`,
           trxType: 'ACCOUNT_OPEN',
-          amount: 0,
+          amount: Number(formData.initialDeposit || 0),
           currency: formData.currency || 'VND',
           accountNumber: accRes.accountNumber,
-          description: `Deposit CASA account opened successfully: ${accRes.accountNumber}`,
+          description: `Deposit account (${formData.productType || accRes.productType || 'CASA'}) opened successfully: ${accRes.accountNumber}`,
         };
         setSuccessMessage(`Deposit account [${accRes.accountNumber}] opened successfully!`);
       } else if (tab.formCode === 'FORM_CUST_CREATE') {

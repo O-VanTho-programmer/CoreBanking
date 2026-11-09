@@ -48,6 +48,10 @@ public class Account {
     @Column(name = "product_code", length = 10, nullable = false)
     private String productCode;
 
+    @Column(name = "product_type", length = 10, nullable = false)
+    @Builder.Default
+    private String productType = "CASA";
+
     @Column(name = "gl_code", length = 20, nullable = false)
     private String glCode;
 
@@ -69,6 +73,33 @@ public class Account {
     @Column(name = "accrued_interest", nullable = false)
     @Builder.Default
     private BigDecimal accruedInterest = BigDecimal.ZERO.setScale(4);
+
+    @Column(name = "base_interest_rate", nullable = false)
+    @Builder.Default
+    private BigDecimal baseInterestRate = new BigDecimal("0.0050");
+
+    @Column(name = "interest_margin", nullable = false)
+    @Builder.Default
+    private BigDecimal interestMargin = BigDecimal.ZERO;
+
+    @Column(name = "effective_rate", nullable = false)
+    @Builder.Default
+    private BigDecimal effectiveRate = new BigDecimal("0.0050");
+
+    @Column(name = "term_months")
+    private Integer termMonths;
+
+    @Column(name = "maturity_date")
+    private LocalDate maturityDate;
+
+    @Column(name = "rollover_option", length = 30)
+    private String rolloverOption;
+
+    @Column(name = "margin_reason", length = 50)
+    private String marginReason;
+
+    @Column(name = "linked_casa_account_id")
+    private Long linkedCasaAccountId;
 
     @Column(name = "status", length = 30, nullable = false)
     @Builder.Default
