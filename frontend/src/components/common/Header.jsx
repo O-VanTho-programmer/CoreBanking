@@ -114,10 +114,25 @@ const MODULES_MENU = [
     description: 'System administration & cache management',
     children: [
       {
-        id: 'clear-cache',
-        title: 'Clear cache',
-        description: 'Flush Redis cache & reload system CodeLists',
+        id: 'clear-all-cache',
+        title: 'Clear All Cache',
+        description: 'Flush Redis cache, purge UI storage & hard reload',
         isAction: true,
+        actionType: 'ALL',
+      },
+      {
+        id: 'clear-ui-cache',
+        title: 'Clear UI Cache',
+        description: 'Purge browser cache, local storage & force reload',
+        isAction: true,
+        actionType: 'UI',
+      },
+      {
+        id: 'clear-backend-cache',
+        title: 'Clear Backend Cache',
+        description: 'Flush Redis database & reload system CodeLists',
+        isAction: true,
+        actionType: 'BACKEND',
       },
     ],
   },
@@ -141,24 +156,63 @@ export default function Header({
   const menuRef = useRef(null);
   const searchRef = useRef(null);
 
-  const handleClearCache = async () => {
+  const clearClientCache = async () => {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {
+      console.warn('Storage clear error:', e);
+    }
+    if ('caches' in window) {
+      try {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map((name) => caches.delete(name)));
+      } catch (e) {
+        console.warn('CacheStorage clear error:', e);
+      }
+    }
+  };
+
+  const handleClearCacheAction = async (actionType = 'ALL') => {
     setIsClearingCache(true);
     setIsMenuOpen(false);
     setActiveModuleId(null);
     try {
-      const res = await apiClient.post('/admin/cache/clear');
-      setCacheNotification({
-        type: 'success',
-        message: res.data?.message || 'Cache cleared and CodeLists refreshed successfully!',
-      });
+      if (actionType === 'BACKEND' || actionType === 'ALL') {
+        const res = await apiClient.post('/admin/cache/clear');
+        setCacheNotification({
+          type: 'success',
+          message: actionType === 'ALL'
+            ? 'Backend & UI cache cleared! Reloading portal...'
+            : (res.data?.message || 'Redis cache flushed and CodeLists refreshed successfully!'),
+        });
+      }
+
+      if (actionType === 'UI' || actionType === 'ALL') {
+        await clearClientCache();
+        if (actionType === 'UI') {
+          setCacheNotification({
+            type: 'success',
+            message: 'UI browser storage & cache cleared! Reloading portal...',
+          });
+        }
+      }
+
+      if (actionType === 'ALL' || actionType === 'UI') {
+        setTimeout(() => {
+          window.location.href = window.location.origin + window.location.pathname + '?_t=' + Date.now();
+        }, 1200);
+      }
     } catch (err) {
       setCacheNotification({
         type: 'error',
         message: err.response?.data?.message || err.message || 'Failed to clear cache',
       });
     } finally {
-      setIsClearingCache(false);
-      setTimeout(() => setCacheNotification(null), 4000);
+      if (actionType === 'BACKEND') {
+        setIsClearingCache(false);
+        setTimeout(() => setCacheNotification(null), 4000);
+      }
     }
   };
 
@@ -285,8 +339,8 @@ export default function Header({
                             key={child.formCode || child.id}
                             type="button"
                             onClick={() => {
-                              if (child.isAction || child.id === 'clear-cache') {
-                                handleClearCache();
+                              if (child.isAction) {
+                                handleClearCacheAction(child.actionType || 'ALL');
                               } else {
                                 handleOpenNamedForm(child.formCode, child.title);
                               }

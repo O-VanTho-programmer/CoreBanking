@@ -59,7 +59,9 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
       : 'N/A');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fadeIn">
+    <div
+      style={{ margin: "0px !important" }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fadeIn">
       <div className="relative w-full max-w-lg rounded-none bg-white text-black shadow-2xl border-2 border-black overflow-hidden font-mono">
         {/* Top Close Bar */}
         <div className="flex justify-between items-center border-b-2 border-black bg-white px-5 py-2.5">
@@ -86,14 +88,13 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
             <p className="text-[11px] text-black">Branch: VN001 • Counter Transaction Advice</p>
           </div>
 
-          {/* Status Badge */}
-          <div className="flex justify-center">
-            <div className={`px-4 py-1 border-2 border-black text-xs font-black tracking-widest ${isSuccess ? 'bg-black text-white' : 'bg-white text-black'}`}>
-              [ STATUS: {isSuccess ? 'SUCCESS' : 'FAILED'} ]
-            </div>
+          <div className="flex justify-left">
+            <span className="text-xs font-black tracking-widest">
+              STATUS: {isSuccess ? 'SUCCESS' : 'FAILED'}
+            </span>
           </div>
 
-          {/* Transaction Metadata */}
+          {/* Transaction */}
           <div className="space-y-1.5 border-b border-dashed border-black pb-3 text-xs leading-relaxed">
             <div className="flex justify-between">
               <span className="font-bold text-black">Transaction ID:</span>
@@ -180,12 +181,6 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
               </div>
             </div>
           )}
-
-          {/* Receipt Footer */}
-          <div className="text-center text-[10px] text-black pt-3 border-t-2 border-dashed border-black space-y-0.5">
-            <p className="font-bold">*** PLEASE RETAIN THIS RECEIPT FOR YOUR RECORDS ***</p>
-            <p>Thank you for banking with us!</p>
-          </div>
         </div>
 
         {/* Modal Action Buttons (Black and White) */}

@@ -46,7 +46,7 @@ export default function LookupModal({
 
   return (
     <div
-      style={{ margin: 0 }}
+      style={{ margin: "0px !important" }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn m-0"
     >
       <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
