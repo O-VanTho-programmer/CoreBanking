@@ -181,7 +181,7 @@ public class TransactionService {
         accountRepository.save(toAccount);
 
         // 9. Insert Immutable Journal Entry Rows
-        saveJournalEntries(journal.getTrxId(), postingResult.legs());
+        List<Long> entryIds = saveJournalEntries(journal.getTrxId(), postingResult.legs());
 
         // 10. Update Header to COMPLETED
         journal.setStatus("COMPLETED");
@@ -203,6 +203,8 @@ public class TransactionService {
                 .toAccountAvailableBalance(toAccount.getAvailableBalance())
                 .legs(postingResult.legs())
                 .timestamp(journal.getCreatedAt())
+                .journalId(entryIds.isEmpty() ? null : entryIds.get(0))
+                .journalEntryIds(entryIds)
                 .build();
 
         idempotencyService.recordCompletion(command.channelId(), command.idempotencyKey(), receipt);
@@ -280,7 +282,7 @@ public class TransactionService {
         }
         accountRepository.save(account);
 
-        saveJournalEntries(journal.getTrxId(), postingResult.legs());
+        List<Long> entryIds = saveJournalEntries(journal.getTrxId(), postingResult.legs());
 
         journal.setStatus("COMPLETED");
         trxJournalActiveRepository.save(journal);
@@ -299,6 +301,8 @@ public class TransactionService {
                 .toAccountAvailableBalance(account.getAvailableBalance())
                 .legs(postingResult.legs())
                 .timestamp(journal.getCreatedAt())
+                .journalId(entryIds.isEmpty() ? null : entryIds.get(0))
+                .journalEntryIds(entryIds)
                 .build();
 
         idempotencyService.recordCompletion(command.channelId(), command.idempotencyKey(), receipt);
@@ -374,7 +378,7 @@ public class TransactionService {
         }
         accountRepository.save(account);
 
-        saveJournalEntries(journal.getTrxId(), postingResult.legs());
+        List<Long> entryIds = saveJournalEntries(journal.getTrxId(), postingResult.legs());
 
         journal.setStatus("COMPLETED");
         trxJournalActiveRepository.save(journal);
@@ -393,6 +397,8 @@ public class TransactionService {
                 .fromAccountAvailableBalance(account.getAvailableBalance())
                 .legs(postingResult.legs())
                 .timestamp(journal.getCreatedAt())
+                .journalId(entryIds.isEmpty() ? null : entryIds.get(0))
+                .journalEntryIds(entryIds)
                 .build();
 
         idempotencyService.recordCompletion(command.channelId(), command.idempotencyKey(), receipt);
@@ -558,7 +564,7 @@ public class TransactionService {
         }
 
         // 10. Save Inverted Journal Entry Rows
-        saveJournalEntries(reversalHeader.getTrxId(), invertedLegs);
+        List<Long> entryIds = saveJournalEntries(reversalHeader.getTrxId(), invertedLegs);
 
         // 11. Mark Original Transaction as Reversed
         orig.setIsReversed("Y");
@@ -597,6 +603,8 @@ public class TransactionService {
                 .originalTrxId(orig.getTrxId())
                 .originalTrxNumber(orig.getTrxNumber())
                 .reversalReason(command.reason())
+                .journalId(entryIds.isEmpty() ? null : entryIds.get(0))
+                .journalEntryIds(entryIds)
                 .build();
 
         idempotencyService.recordCompletion(command.channelId(), command.idempotencyKey(), receipt);
@@ -618,7 +626,8 @@ public class TransactionService {
         }
     }
 
-    private void saveJournalEntries(Long trxId, List<JournalLeg> legs) {
+    private List<Long> saveJournalEntries(Long trxId, List<JournalLeg> legs) {
+        List<Long> entryIds = new ArrayList<>();
         for (JournalLeg leg : legs) {
             JournalEntryActive entry = JournalEntryActive.builder()
                     .trxId(trxId)
@@ -633,8 +642,12 @@ public class TransactionService {
                     .valueDate(leg.valueDate())
                     .createdAt(OffsetDateTime.now())
                     .build();
-            journalEntryActiveRepository.save(entry);
+            JournalEntryActive saved = journalEntryActiveRepository.save(entry);
+            if (saved != null && saved.getEntryId() != null) {
+                entryIds.add(saved.getEntryId());
+            }
         }
+        return entryIds;
     }
 
     private String generateTrxNumber(LocalDate workingDate) {

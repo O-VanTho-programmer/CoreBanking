@@ -1,6 +1,7 @@
 package com.cbs.transaction.dto;
 
 import com.cbs.accounting.dto.JournalLeg;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
 
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import java.util.List;
  * Receipt returned to clients for completed or replayed transactions.
  */
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record TransactionReceipt(
         Long trxId,
         String trxNumber,
@@ -29,5 +31,15 @@ public record TransactionReceipt(
         OffsetDateTime timestamp,
         Long originalTrxId,
         String originalTrxNumber,
-        String reversalReason
-) {}
+        String reversalReason,
+        Long journalId,
+        List<Long> journalEntryIds
+) {
+    public BigDecimal amount() {
+        return totalAmount;
+    }
+
+    public String trxType() {
+        return trxCode;
+    }
+}

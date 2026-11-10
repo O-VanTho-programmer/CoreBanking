@@ -49,15 +49,17 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
           <div className="space-y-2.5 rounded-xl bg-slate-50 p-4 border border-slate-200/80 text-xs">
             <div className="flex justify-between">
               <span className="text-slate-500">Transaction Ref (Journal Trx):</span>
-              <span className="font-mono font-bold text-slate-900">{receipt.trxId || receipt.transactionId || 'TRX-CBS'}</span>
+              <span className="font-mono font-bold text-slate-900">{receipt.trxNumber || receipt.trxId || receipt.transactionId || 'TRX-CBS'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Journal Entry ID:</span>
-              <span className="font-mono font-semibold text-slate-800">{receipt.journalId || receipt.referenceNumber || 'N/A'}</span>
+              <span className="font-mono font-semibold text-slate-800">
+                {receipt.journalId || (receipt.journalEntryIds?.length ? receipt.journalEntryIds.join(', ') : null) || receipt.referenceNumber || (receipt.trxId ? `JRN-${receipt.trxId}` : 'N/A')}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Transaction Type:</span>
-              <span className="font-semibold text-blue-900">{receipt.trxType || receipt.transactionType || 'TRX'}</span>
+              <span className="font-semibold text-blue-900">{receipt.trxType || receipt.trxCode || receipt.transactionType || 'TRX'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Posting Timestamp:</span>
@@ -71,7 +73,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
               Transaction Amount
             </span>
             <div className="mt-1 font-mono text-2xl font-black text-blue-950">
-              {formatMoney(receipt.amount)} <span className="text-sm font-semibold text-blue-700">{receipt.currency || 'VND'}</span>
+              {formatMoney(receipt.amount ?? receipt.totalAmount)} <span className="text-sm font-semibold text-blue-700">{receipt.currency || 'VND'}</span>
             </div>
             {receipt.feeAmount !== undefined && receipt.feeAmount > 0 && (
               <p className="mt-1 text-xs text-slate-500 font-mono">
@@ -79,6 +81,30 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
               </p>
             )}
           </div>
+
+          {/* Journal Entries / Accounting Legs Breakdown */}
+          {receipt.legs && receipt.legs.length > 0 && (
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 space-y-2 text-xs">
+              <span className="font-semibold text-slate-700 uppercase tracking-wider block text-[11px]">
+                Accounting Journal Entries ({receipt.legs.length} legs)
+              </span>
+              <div className="space-y-1.5 font-mono">
+                {receipt.legs.map((leg, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-slate-700 border-b border-slate-200/50 pb-1 last:border-0 last:pb-0">
+                    <span className="flex items-center space-x-1.5">
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${leg.drCr === 'D' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                        {leg.drCr === 'D' ? 'DEBIT' : 'CREDIT'}
+                      </span>
+                      <span>GL {leg.glCode} {leg.accountId ? `(Acc: ${leg.accountId})` : ''}</span>
+                    </span>
+                    <span className="font-semibold text-slate-900">
+                      {formatMoney(leg.amount)} {leg.currency || receipt.currency || 'VND'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Account Breakdown */}
           <div className="space-y-2 text-xs">

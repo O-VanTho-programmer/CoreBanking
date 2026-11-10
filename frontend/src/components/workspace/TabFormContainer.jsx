@@ -54,7 +54,7 @@ export default function TabFormContainer({
 
       // Submission routing based on formCode or action endpoint
       if (tab.formCode === 'FORM_CASH_DEP') {
-        resReceipt = await transactionApi.deposit({
+        const depReceipt = await transactionApi.deposit({
           accountNumber: formData.accountNumber,
           amount: Number(formData.amount),
           currency: formData.currency || 'VND',
@@ -66,8 +66,18 @@ export default function TabFormContainer({
           channelId: formData.channelId || 'BRANCH',
           idempotencyKey,
         });
+        resReceipt = {
+          ...depReceipt,
+          amount: depReceipt.amount ?? depReceipt.totalAmount ?? Number(formData.amount),
+          trxType: depReceipt.trxType || depReceipt.trxCode || 'CASH_DEP',
+          trxNumber: depReceipt.trxNumber || `TRX-${depReceipt.trxId}`,
+          journalId: depReceipt.journalId || (depReceipt.journalEntryIds?.length ? depReceipt.journalEntryIds.join(', ') : (depReceipt.trxId ? `JRN-${depReceipt.trxId}` : 'N/A')),
+          accountNumber: formData.accountNumber,
+          description: formData.narration || formData.description || 'Counter cash deposit',
+        };
+        setSuccessMessage(`Cash deposit of ${new Intl.NumberFormat('vi-VN').format(Number(formData.amount))} VND completed successfully!`);
       } else if (tab.formCode === 'FORM_CASH_WDR') {
-        resReceipt = await transactionApi.withdraw({
+        const wdrReceipt = await transactionApi.withdraw({
           accountNumber: formData.accountNumber,
           amount: Number(formData.amount),
           currency: formData.currency || 'VND',
@@ -79,8 +89,18 @@ export default function TabFormContainer({
           channelId: formData.channelId || 'BRANCH',
           idempotencyKey,
         });
+        resReceipt = {
+          ...wdrReceipt,
+          amount: wdrReceipt.amount ?? wdrReceipt.totalAmount ?? Number(formData.amount),
+          trxType: wdrReceipt.trxType || wdrReceipt.trxCode || 'CASH_WDR',
+          trxNumber: wdrReceipt.trxNumber || `TRX-${wdrReceipt.trxId}`,
+          journalId: wdrReceipt.journalId || (wdrReceipt.journalEntryIds?.length ? wdrReceipt.journalEntryIds.join(', ') : (wdrReceipt.trxId ? `JRN-${wdrReceipt.trxId}` : 'N/A')),
+          accountNumber: formData.accountNumber,
+          description: formData.narration || formData.description || 'Counter cash withdrawal',
+        };
+        setSuccessMessage(`Cash withdrawal of ${new Intl.NumberFormat('vi-VN').format(Number(formData.amount))} VND completed successfully!`);
       } else if (tab.formCode === 'FORM_TRF_INTERNAL') {
-        resReceipt = await transactionApi.transfer({
+        const trfReceipt = await transactionApi.transfer({
           fromAccountNumber: formData.fromAccountNumber || formData.sourceAccountNumber,
           toAccountNumber: formData.toAccountNumber || formData.destAccountNumber,
           sourceAccountNumber: formData.fromAccountNumber || formData.sourceAccountNumber,
@@ -97,6 +117,17 @@ export default function TabFormContainer({
           channelId: formData.channelId || 'BRANCH',
           idempotencyKey,
         });
+        resReceipt = {
+          ...trfReceipt,
+          amount: trfReceipt.amount ?? trfReceipt.totalAmount ?? Number(formData.amount),
+          trxType: trfReceipt.trxType || trfReceipt.trxCode || 'TRF_INTERNAL',
+          trxNumber: trfReceipt.trxNumber || `TRX-${trfReceipt.trxId}`,
+          journalId: trfReceipt.journalId || (trfReceipt.journalEntryIds?.length ? trfReceipt.journalEntryIds.join(', ') : (trfReceipt.trxId ? `JRN-${trfReceipt.trxId}` : 'N/A')),
+          sourceAccountNumber: formData.fromAccountNumber || formData.sourceAccountNumber,
+          destAccountNumber: formData.toAccountNumber || formData.destAccountNumber,
+          description: formData.narration || formData.description || 'Internal transfer',
+        };
+        setSuccessMessage(`Internal transfer completed successfully!`);
       } else if (tab.formCode === 'FORM_CREDIT_ACCOUNT_OPEN') {
         const payload = {
           customerId: Number(formData.customerId || 1001),
