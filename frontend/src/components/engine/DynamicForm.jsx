@@ -34,7 +34,12 @@ export default function DynamicForm({
     });
     setFormData(defaults);
     setErrors({});
-    setDisabledFields(new Set((schema.fields || []).filter((f) => f.disabled).map((f) => f.name)));
+    const initialDisabled = new Set(
+      (schema.fields || [])
+        .filter((f) => f.disabled || f.readOnly || f.readonly || f.read_only)
+        .map((f) => f.name)
+    );
+    setDisabledFields(initialDisabled);
     setHiddenFields(new Set((schema.fields || []).filter((f) => f.hidden).map((f) => f.name)));
     setFieldOptions({});
   }, [schema, initialData]);
@@ -76,9 +81,12 @@ export default function DynamicForm({
             }));
           }
 
-          // Updates disabled fields
+          // Updates disabled fields, preserving schema-level readOnly/disabled fields
           if (result.disabledFields) {
-            setDisabledFields(new Set(result.disabledFields));
+            const permanentDisabled = (schema.fields || [])
+              .filter((f) => f.disabled || f.readOnly || f.readonly || f.read_only)
+              .map((f) => f.name);
+            setDisabledFields(new Set([...result.disabledFields, ...permanentDisabled]));
           }
 
           // Updates hidden fields
@@ -168,6 +176,10 @@ export default function DynamicForm({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    const fieldDef = (schema.fields || []).find((f) => f.name === name);
+    if (fieldDef?.readOnly || fieldDef?.readonly || fieldDef?.read_only || fieldDef?.disabled || disabledFields.has(name)) {
+      return;
+    }
     const updatedData = { ...formData, [name]: value };
     setFormData(updatedData);
 
@@ -181,7 +193,6 @@ export default function DynamicForm({
     }
 
     // Trigger instant evaluation if configured or for interactive controls (checkbox, select, step-bound)
-    const fieldDef = (schema.fields || []).find((f) => f.name === name);
     if (
       fieldDef?.evaluateOnChange ||
       fieldDef?.type === 'CHECKBOX' ||
@@ -336,7 +347,7 @@ export default function DynamicForm({
               onChange={handleChange}
               onBlur={handleBlur}
               error={errors[field.name]}
-              disabled={disabledFields.has(field.name) || isSubmitting}
+              disabled={disabledFields.has(field.name) || Boolean(field.readOnly || field.readonly || field.read_only) || isSubmitting}
               formData={formData}
               onOpenLookup={handleOpenLookup}
             />
