@@ -66,14 +66,28 @@ export default function TabFormContainer({
           channelId: formData.channelId || 'BRANCH',
           idempotencyKey,
         });
+        const balanceBefore = depReceipt.balanceBefore !== undefined && depReceipt.balanceBefore !== null
+          ? Number(depReceipt.balanceBefore)
+          : (formData.availableBalance !== undefined && formData.availableBalance !== null
+            ? Number(formData.availableBalance)
+            : (depReceipt.toAccountAvailableBalance ? Number(depReceipt.toAccountAvailableBalance) - Number(formData.amount) : 0));
+        const balanceAfter = depReceipt.balanceAfter !== undefined && depReceipt.balanceAfter !== null
+          ? Number(depReceipt.balanceAfter)
+          : (depReceipt.toAccountAvailableBalance ? Number(depReceipt.toAccountAvailableBalance) : (balanceBefore + Number(formData.amount)));
+
         resReceipt = {
           ...depReceipt,
           amount: depReceipt.amount ?? depReceipt.totalAmount ?? Number(formData.amount),
-          trxType: depReceipt.trxType || depReceipt.trxCode || 'CASH_DEP',
+          trxType: 'Cash',
           trxNumber: depReceipt.trxNumber || `TRX-${depReceipt.trxId}`,
           journalId: depReceipt.journalId || (depReceipt.journalEntryIds?.length ? depReceipt.journalEntryIds.join(', ') : (depReceipt.trxId ? `JRN-${depReceipt.trxId}` : 'N/A')),
           accountNumber: formData.accountNumber,
+          accountHolderName: formData.accountHolderName || depReceipt.accountHolderName || 'N/A',
+          balanceBefore,
+          balanceAfter,
+          narration: formData.narration || formData.description || 'Counter cash deposit',
           description: formData.narration || formData.description || 'Counter cash deposit',
+          status: 'SUCCESS',
         };
         setSuccessMessage(`Cash deposit of ${new Intl.NumberFormat('vi-VN').format(Number(formData.amount))} VND completed successfully!`);
       } else if (tab.formCode === 'FORM_CASH_WDR') {
@@ -89,14 +103,28 @@ export default function TabFormContainer({
           channelId: formData.channelId || 'BRANCH',
           idempotencyKey,
         });
+        const balanceBefore = wdrReceipt.balanceBefore !== undefined && wdrReceipt.balanceBefore !== null
+          ? Number(wdrReceipt.balanceBefore)
+          : (formData.availableBalance !== undefined && formData.availableBalance !== null
+            ? Number(formData.availableBalance)
+            : (wdrReceipt.fromAccountAvailableBalance ? Number(wdrReceipt.fromAccountAvailableBalance) + Number(formData.amount) : 0));
+        const balanceAfter = wdrReceipt.balanceAfter !== undefined && wdrReceipt.balanceAfter !== null
+          ? Number(wdrReceipt.balanceAfter)
+          : (wdrReceipt.fromAccountAvailableBalance ? Number(wdrReceipt.fromAccountAvailableBalance) : (balanceBefore - Number(formData.amount)));
+
         resReceipt = {
           ...wdrReceipt,
           amount: wdrReceipt.amount ?? wdrReceipt.totalAmount ?? Number(formData.amount),
-          trxType: wdrReceipt.trxType || wdrReceipt.trxCode || 'CASH_WDR',
+          trxType: 'Cash',
           trxNumber: wdrReceipt.trxNumber || `TRX-${wdrReceipt.trxId}`,
           journalId: wdrReceipt.journalId || (wdrReceipt.journalEntryIds?.length ? wdrReceipt.journalEntryIds.join(', ') : (wdrReceipt.trxId ? `JRN-${wdrReceipt.trxId}` : 'N/A')),
           accountNumber: formData.accountNumber,
+          accountHolderName: formData.accountHolderName || wdrReceipt.accountHolderName || 'N/A',
+          balanceBefore,
+          balanceAfter,
+          narration: formData.narration || formData.description || 'Counter cash withdrawal',
           description: formData.narration || formData.description || 'Counter cash withdrawal',
+          status: 'SUCCESS',
         };
         setSuccessMessage(`Cash withdrawal of ${new Intl.NumberFormat('vi-VN').format(Number(formData.amount))} VND completed successfully!`);
       } else if (tab.formCode === 'FORM_TRF_INTERNAL') {
@@ -120,12 +148,17 @@ export default function TabFormContainer({
         resReceipt = {
           ...trfReceipt,
           amount: trfReceipt.amount ?? trfReceipt.totalAmount ?? Number(formData.amount),
-          trxType: trfReceipt.trxType || trfReceipt.trxCode || 'TRF_INTERNAL',
+          trxType: 'Transfer',
           trxNumber: trfReceipt.trxNumber || `TRX-${trfReceipt.trxId}`,
           journalId: trfReceipt.journalId || (trfReceipt.journalEntryIds?.length ? trfReceipt.journalEntryIds.join(', ') : (trfReceipt.trxId ? `JRN-${trfReceipt.trxId}` : 'N/A')),
           sourceAccountNumber: formData.fromAccountNumber || formData.sourceAccountNumber,
           destAccountNumber: formData.toAccountNumber || formData.destAccountNumber,
+          accountHolderName: formData.destAccountHolderName || formData.accountHolderName || 'N/A',
+          balanceBefore: trfReceipt.balanceBefore,
+          balanceAfter: trfReceipt.balanceAfter ?? trfReceipt.toAccountAvailableBalance,
+          narration: formData.narration || formData.description || 'Internal transfer',
           description: formData.narration || formData.description || 'Internal transfer',
+          status: 'SUCCESS',
         };
         setSuccessMessage(`Internal transfer completed successfully!`);
       } else if (tab.formCode === 'FORM_CREDIT_ACCOUNT_OPEN') {

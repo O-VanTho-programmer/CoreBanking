@@ -13243,119 +13243,174 @@ function ReceiptModal({ isOpen, onClose, receipt }) {
   var _a;
   if (!isOpen || !receipt) return null;
   const formatMoney = (amount) => {
-    if (amount === void 0 || amount === null) return "0";
+    if (amount === void 0 || amount === null || isNaN(Number(amount))) return "0";
     return new Intl.NumberFormat("vi-VN").format(Number(amount));
+  };
+  const maskAccountNumber = (accNo) => {
+    if (!accNo) return "N/A";
+    const str = String(accNo).trim();
+    if (str.length === 16) {
+      return `${str.slice(0, 4)} **** **** ${str.slice(12)}`;
+    }
+    if (str.length > 8) {
+      return `${str.slice(0, 4)} **** ${str.slice(-4)}`;
+    }
+    return str;
+  };
+  const formatTimestamp = (ts) => {
+    if (!ts) return (/* @__PURE__ */ new Date()).toLocaleString("sv-SE").replace("T", " ");
+    try {
+      const d = new Date(ts);
+      return d.toLocaleString("vi-VN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      });
+    } catch {
+      return String(ts);
+    }
   };
   const handlePrint = () => {
     window.print();
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-fadeIn", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden border border-slate-200", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-gradient-to-r from-blue-900 to-indigo-900 px-6 py-5 text-white", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ShieldCheck, { className: "h-6 w-6 text-blue-300" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-base font-bold tracking-wide", children: "ELECTRONIC TRANSACTION RECEIPT" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "button",
-          {
-            onClick: onClose,
-            className: "rounded-lg p-1 text-blue-200 hover:bg-white/10 hover:text-white transition",
-            children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "h-5 w-5" })
-          }
-        )
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-1 text-xs text-blue-200", children: "Core Banking System • Real-Time Transaction Engine" })
+  const amountVal = receipt.amount ?? receipt.totalAmount ?? 0;
+  const currencyVal = receipt.currency || "VND";
+  const statusVal = (receipt.status || "SUCCESS").toUpperCase();
+  const isSuccess = statusVal === "SUCCESS" || statusVal === "COMPLETED";
+  const balanceBefore = receipt.balanceBefore !== void 0 && receipt.balanceBefore !== null ? formatMoney(receipt.balanceBefore) + " " + currencyVal : "N/A";
+  const balanceAfter = receipt.balanceAfter !== void 0 && receipt.balanceAfter !== null ? formatMoney(receipt.balanceAfter) + " " + currencyVal : receipt.toAccountAvailableBalance !== void 0 && receipt.toAccountAvailableBalance !== null ? formatMoney(receipt.toAccountAvailableBalance) + " " + currencyVal : "N/A";
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fadeIn", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative w-full max-w-lg rounded-none bg-white text-black shadow-2xl border-2 border-black overflow-hidden font-mono", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between items-center border-b-2 border-black bg-white px-5 py-2.5", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs font-bold uppercase tracking-widest text-black", children: "OFFICIAL BANK VOUCHER" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
+          onClick: onClose,
+          className: "p-1 text-black hover:bg-black hover:text-white transition rounded-none",
+          "aria-label": "Close",
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "h-4 w-4" })
+        }
+      )
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-6 space-y-5 print:p-0", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-center space-x-2 rounded-xl bg-emerald-50 py-3 text-emerald-800 border border-emerald-200", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheck, { className: "h-5 w-5 text-emerald-600" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-sm tracking-wide", children: receipt.status || "TRANSACTION SUCCESS (POSTED)" })
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-6 space-y-4 bg-white text-black print:p-0", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center space-y-1 border-b-2 border-dashed border-black pb-4", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-lg font-black tracking-wider text-black", children: "CORE BANKING SYSTEM" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs font-bold uppercase tracking-widest text-black", children: "DEPOSIT RECEIPT / GIẤY NỘP TIỀN" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[11px] text-black", children: "Branch: VN001 • Counter Transaction Advice" })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2.5 rounded-xl bg-slate-50 p-4 border border-slate-200/80 text-xs", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `px-4 py-1 border-2 border-black text-xs font-black tracking-widest ${isSuccess ? "bg-black text-white" : "bg-white text-black"}`, children: [
+        "[ STATUS: ",
+        isSuccess ? "SUCCESS" : "FAILED",
+        " ]"
+      ] }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1.5 border-b border-dashed border-black pb-3 text-xs leading-relaxed", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-slate-500", children: "Transaction Ref (Journal Trx):" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono font-bold text-slate-900", children: receipt.trxNumber || receipt.trxId || receipt.transactionId || "TRX-CBS" })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Transaction ID:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right", children: receipt.trxNumber || receipt.trxId || "N/A" })
+        ] }),
+        receipt.journalId && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Journal Entry ID:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-black text-right", children: [
+            receipt.journalId,
+            ((_a = receipt.journalEntryIds) == null ? void 0 : _a.length) > 1 ? ` (${receipt.journalEntryIds.join(", ")})` : ""
+          ] })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-slate-500", children: "Journal Entry ID:" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono font-semibold text-slate-800", children: receipt.journalId || (((_a = receipt.journalEntryIds) == null ? void 0 : _a.length) ? receipt.journalEntryIds.join(", ") : null) || receipt.referenceNumber || (receipt.trxId ? `JRN-${receipt.trxId}` : "N/A") })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Timestamp:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-black text-right", children: formatTimestamp(receipt.timestamp) })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-slate-500", children: "Transaction Type:" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-semibold text-blue-900", children: receipt.trxType || receipt.trxCode || receipt.transactionType || "TRX" })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Transaction Type:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right", children: receipt.trxType || "Cash" })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-slate-500", children: "Posting Timestamp:" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-slate-700", children: receipt.timestamp || (/* @__PURE__ */ new Date()).toISOString() })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Account Number:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right tracking-wider", children: maskAccountNumber(receipt.accountNumber || receipt.toAccountNumber || receipt.destAccountNumber) })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Account Holder Name:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right uppercase", children: receipt.accountHolderName || receipt.customerName || "N/A" })
         ] })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs font-semibold text-blue-700 uppercase tracking-wider", children: "Transaction Amount" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-1 font-mono text-2xl font-black text-blue-950", children: [
-          formatMoney(receipt.amount ?? receipt.totalAmount),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border-2 border-black p-3 text-center bg-white space-y-1", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-[11px] font-bold uppercase tracking-wider text-black", children: "TRANSACTION AMOUNT" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-2xl font-black text-black tracking-tight", children: [
+          formatMoney(amountVal),
           " ",
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm font-semibold text-blue-700", children: receipt.currency || "VND" })
+          currencyVal
         ] }),
-        receipt.feeAmount !== void 0 && receipt.feeAmount > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mt-1 text-xs text-slate-500 font-mono", children: [
-          "Transaction Fee: +",
+        receipt.feeAmount !== void 0 && Number(receipt.feeAmount) > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-[11px] text-black", children: [
+          "Fee: +",
           formatMoney(receipt.feeAmount),
           " ",
-          receipt.currency || "VND"
+          currencyVal
         ] })
       ] }),
-      receipt.legs && receipt.legs.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-xl border border-slate-200 bg-slate-50/70 p-3 space-y-2 text-xs", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-semibold text-slate-700 uppercase tracking-wider block text-[11px]", children: [
-          "Accounting Journal Entries (",
-          receipt.legs.length,
-          " legs)"
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1.5 border-b border-dashed border-black pb-3 text-xs", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Balance Before:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-black font-medium", children: balanceBefore })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1.5 font-mono", children: receipt.legs.map((leg, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between items-center text-slate-700 border-b border-slate-200/50 pb-1 last:border-0 last:pb-0", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "flex items-center space-x-1.5", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `px-1.5 py-0.5 rounded text-[10px] font-bold ${leg.drCr === "D" ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`, children: leg.drCr === "D" ? "DEBIT" : "CREDIT" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-              "GL ",
-              leg.glCode,
-              " ",
-              leg.accountId ? `(Acc: ${leg.accountId})` : ""
-            ] })
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Balance After:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-black font-bold", children: balanceAfter })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border-b border-dashed border-black pb-3 text-xs space-y-0.5", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black block", children: "Narration:" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-black break-words italic pl-2", children: receipt.narration || receipt.description || "Counter cash deposit" })
+      ] }),
+      receipt.legs && receipt.legs.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border-b border-dashed border-black pb-3 text-[11px] space-y-1", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-bold text-black block uppercase tracking-wider", children: [
+          "Accounting Journal Legs (",
+          receipt.legs.length,
+          ")"
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1", children: receipt.legs.map((leg, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between items-center text-black", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+            "[",
+            leg.drCr === "D" ? "DR" : "CR",
+            "] GL ",
+            leg.glCode,
+            " ",
+            leg.accountId ? `(Acc: ${leg.accountId})` : ""
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-semibold text-slate-900", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-bold", children: [
             formatMoney(leg.amount),
             " ",
-            leg.currency || receipt.currency || "VND"
+            leg.currency || currencyVal
           ] })
         ] }, idx)) })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2 text-xs", children: [
-        receipt.sourceAccountNumber && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between border-b border-slate-100 pb-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-slate-500", children: "Debit Account:" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono font-semibold text-slate-900", children: receipt.sourceAccountNumber })
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "pt-2 grid grid-cols-2 gap-4 text-center text-xs", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-12", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold block text-black", children: "CUSTOMER / DEPOSITOR" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "block text-[11px] text-black italic", children: "(Signature)" })
         ] }),
-        receipt.destAccountNumber && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between border-b border-slate-100 pb-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-slate-500", children: "Credit Account:" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono font-semibold text-slate-900", children: receipt.destAccountNumber })
-        ] }),
-        receipt.accountNumber && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between border-b border-slate-100 pb-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-slate-500", children: "Customer Account:" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono font-semibold text-slate-900", children: receipt.accountNumber })
-        ] }),
-        receipt.description && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between pt-1", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-slate-500", children: "Description:" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-slate-800 font-medium text-right max-w-xs", children: receipt.description })
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-12", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold block text-black", children: "TELLER / CASHIER" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "block text-[11px] text-black italic", children: "TELLER01 (Signed & Stamped)" })
         ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center text-[10px] text-black pt-3 border-t-2 border-dashed border-black space-y-0.5", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-bold", children: "*** PLEASE RETAIN THIS RECEIPT FOR YOUR RECORDS ***" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "Thank you for banking with us!" })
       ] })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-4", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between border-t-2 border-black bg-white px-6 py-3", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "button",
         {
           onClick: handlePrint,
           type: "button",
-          className: "inline-flex items-center space-x-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition shadow-sm",
+          className: "inline-flex items-center space-x-2 border-2 border-black bg-white px-4 py-2 text-xs font-bold text-black hover:bg-black hover:text-white transition rounded-none",
           children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(Printer, { className: "h-4 w-4" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Print Receipt" })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "PRINT RECEIPT" })
           ]
         }
       ),
@@ -13364,8 +13419,8 @@ function ReceiptModal({ isOpen, onClose, receipt }) {
         {
           onClick: onClose,
           type: "button",
-          className: "rounded-lg bg-blue-700 px-5 py-2 text-xs font-semibold text-white hover:bg-blue-800 transition shadow-sm",
-          children: "Close"
+          className: "border-2 border-black bg-black px-6 py-2 text-xs font-bold text-white hover:bg-neutral-800 transition rounded-none",
+          children: "CLOSE"
         }
       )
     ] })
@@ -13474,14 +13529,21 @@ function TabFormContainer({
           channelId: formData.channelId || "BRANCH",
           idempotencyKey
         });
+        const balanceBefore = depReceipt.balanceBefore !== void 0 && depReceipt.balanceBefore !== null ? Number(depReceipt.balanceBefore) : formData.availableBalance !== void 0 && formData.availableBalance !== null ? Number(formData.availableBalance) : depReceipt.toAccountAvailableBalance ? Number(depReceipt.toAccountAvailableBalance) - Number(formData.amount) : 0;
+        const balanceAfter = depReceipt.balanceAfter !== void 0 && depReceipt.balanceAfter !== null ? Number(depReceipt.balanceAfter) : depReceipt.toAccountAvailableBalance ? Number(depReceipt.toAccountAvailableBalance) : balanceBefore + Number(formData.amount);
         resReceipt = {
           ...depReceipt,
           amount: depReceipt.amount ?? depReceipt.totalAmount ?? Number(formData.amount),
-          trxType: depReceipt.trxType || depReceipt.trxCode || "CASH_DEP",
+          trxType: "Cash",
           trxNumber: depReceipt.trxNumber || `TRX-${depReceipt.trxId}`,
           journalId: depReceipt.journalId || (((_a = depReceipt.journalEntryIds) == null ? void 0 : _a.length) ? depReceipt.journalEntryIds.join(", ") : depReceipt.trxId ? `JRN-${depReceipt.trxId}` : "N/A"),
           accountNumber: formData.accountNumber,
-          description: formData.narration || formData.description || "Counter cash deposit"
+          accountHolderName: formData.accountHolderName || depReceipt.accountHolderName || "N/A",
+          balanceBefore,
+          balanceAfter,
+          narration: formData.narration || formData.description || "Counter cash deposit",
+          description: formData.narration || formData.description || "Counter cash deposit",
+          status: "SUCCESS"
         };
         setSuccessMessage(`Cash deposit of ${new Intl.NumberFormat("vi-VN").format(Number(formData.amount))} VND completed successfully!`);
       } else if (tab.formCode === "FORM_CASH_WDR") {
@@ -13497,14 +13559,21 @@ function TabFormContainer({
           channelId: formData.channelId || "BRANCH",
           idempotencyKey
         });
+        const balanceBefore = wdrReceipt.balanceBefore !== void 0 && wdrReceipt.balanceBefore !== null ? Number(wdrReceipt.balanceBefore) : formData.availableBalance !== void 0 && formData.availableBalance !== null ? Number(formData.availableBalance) : wdrReceipt.fromAccountAvailableBalance ? Number(wdrReceipt.fromAccountAvailableBalance) + Number(formData.amount) : 0;
+        const balanceAfter = wdrReceipt.balanceAfter !== void 0 && wdrReceipt.balanceAfter !== null ? Number(wdrReceipt.balanceAfter) : wdrReceipt.fromAccountAvailableBalance ? Number(wdrReceipt.fromAccountAvailableBalance) : balanceBefore - Number(formData.amount);
         resReceipt = {
           ...wdrReceipt,
           amount: wdrReceipt.amount ?? wdrReceipt.totalAmount ?? Number(formData.amount),
-          trxType: wdrReceipt.trxType || wdrReceipt.trxCode || "CASH_WDR",
+          trxType: "Cash",
           trxNumber: wdrReceipt.trxNumber || `TRX-${wdrReceipt.trxId}`,
           journalId: wdrReceipt.journalId || (((_b = wdrReceipt.journalEntryIds) == null ? void 0 : _b.length) ? wdrReceipt.journalEntryIds.join(", ") : wdrReceipt.trxId ? `JRN-${wdrReceipt.trxId}` : "N/A"),
           accountNumber: formData.accountNumber,
-          description: formData.narration || formData.description || "Counter cash withdrawal"
+          accountHolderName: formData.accountHolderName || wdrReceipt.accountHolderName || "N/A",
+          balanceBefore,
+          balanceAfter,
+          narration: formData.narration || formData.description || "Counter cash withdrawal",
+          description: formData.narration || formData.description || "Counter cash withdrawal",
+          status: "SUCCESS"
         };
         setSuccessMessage(`Cash withdrawal of ${new Intl.NumberFormat("vi-VN").format(Number(formData.amount))} VND completed successfully!`);
       } else if (tab.formCode === "FORM_TRF_INTERNAL") {
@@ -13528,12 +13597,17 @@ function TabFormContainer({
         resReceipt = {
           ...trfReceipt,
           amount: trfReceipt.amount ?? trfReceipt.totalAmount ?? Number(formData.amount),
-          trxType: trfReceipt.trxType || trfReceipt.trxCode || "TRF_INTERNAL",
+          trxType: "Transfer",
           trxNumber: trfReceipt.trxNumber || `TRX-${trfReceipt.trxId}`,
           journalId: trfReceipt.journalId || (((_c = trfReceipt.journalEntryIds) == null ? void 0 : _c.length) ? trfReceipt.journalEntryIds.join(", ") : trfReceipt.trxId ? `JRN-${trfReceipt.trxId}` : "N/A"),
           sourceAccountNumber: formData.fromAccountNumber || formData.sourceAccountNumber,
           destAccountNumber: formData.toAccountNumber || formData.destAccountNumber,
-          description: formData.narration || formData.description || "Internal transfer"
+          accountHolderName: formData.destAccountHolderName || formData.accountHolderName || "N/A",
+          balanceBefore: trfReceipt.balanceBefore,
+          balanceAfter: trfReceipt.balanceAfter ?? trfReceipt.toAccountAvailableBalance,
+          narration: formData.narration || formData.description || "Internal transfer",
+          description: formData.narration || formData.description || "Internal transfer",
+          status: "SUCCESS"
         };
         setSuccessMessage(`Internal transfer completed successfully!`);
       } else if (tab.formCode === "FORM_CREDIT_ACCOUNT_OPEN") {
@@ -14246,4 +14320,4 @@ function App() {
 client.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-CX6MJWfI.js.map
+//# sourceMappingURL=index-CMj_FMOE.js.map

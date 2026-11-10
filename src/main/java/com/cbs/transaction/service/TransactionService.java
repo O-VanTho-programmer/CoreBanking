@@ -168,6 +168,7 @@ public class TransactionService {
         journal = trxJournalActiveRepository.saveAndFlush(journal);
 
         // 8. Apply Balance Mutations based on verified legs
+        BigDecimal toBalanceBefore = toAccount.getAvailableBalance();
         for (JournalLeg leg : postingResult.legs()) {
             if (leg.accountId() != null) {
                 if (leg.accountId().equals(fromAccount.getAccountId())) {
@@ -201,6 +202,10 @@ public class TransactionService {
                 .feeAmount(feeAmount)
                 .fromAccountAvailableBalance(fromAccount.getAvailableBalance())
                 .toAccountAvailableBalance(toAccount.getAvailableBalance())
+                .balanceBefore(toBalanceBefore)
+                .balanceAfter(toAccount.getAvailableBalance())
+                .accountNumber(command.toAccountNumber())
+                .narration(command.narration())
                 .legs(postingResult.legs())
                 .timestamp(journal.getCreatedAt())
                 .journalId(entryIds.isEmpty() ? null : entryIds.get(0))
@@ -274,6 +279,7 @@ public class TransactionService {
 
         journal = trxJournalActiveRepository.saveAndFlush(journal);
 
+        BigDecimal balanceBefore = account.getAvailableBalance();
         // Mutate customer balance
         for (JournalLeg leg : postingResult.legs()) {
             if (account.getAccountId().equals(leg.accountId())) {
@@ -281,6 +287,7 @@ public class TransactionService {
             }
         }
         accountRepository.save(account);
+        BigDecimal balanceAfter = account.getAvailableBalance();
 
         List<Long> entryIds = saveJournalEntries(journal.getTrxId(), postingResult.legs());
 
@@ -298,7 +305,11 @@ public class TransactionService {
                 .currency(currency)
                 .totalAmount(command.amount())
                 .feeAmount(BigDecimal.ZERO)
-                .toAccountAvailableBalance(account.getAvailableBalance())
+                .balanceBefore(balanceBefore)
+                .balanceAfter(balanceAfter)
+                .toAccountAvailableBalance(balanceAfter)
+                .accountNumber(command.accountNumber())
+                .narration(command.narration())
                 .legs(postingResult.legs())
                 .timestamp(journal.getCreatedAt())
                 .journalId(entryIds.isEmpty() ? null : entryIds.get(0))
@@ -371,12 +382,14 @@ public class TransactionService {
 
         journal = trxJournalActiveRepository.saveAndFlush(journal);
 
+        BigDecimal balanceBefore = account.getAvailableBalance();
         for (JournalLeg leg : postingResult.legs()) {
             if (account.getAccountId().equals(leg.accountId())) {
                 mutateBalance(account, leg);
             }
         }
         accountRepository.save(account);
+        BigDecimal balanceAfter = account.getAvailableBalance();
 
         List<Long> entryIds = saveJournalEntries(journal.getTrxId(), postingResult.legs());
 
@@ -394,7 +407,11 @@ public class TransactionService {
                 .currency(currency)
                 .totalAmount(command.amount())
                 .feeAmount(BigDecimal.ZERO)
-                .fromAccountAvailableBalance(account.getAvailableBalance())
+                .balanceBefore(balanceBefore)
+                .balanceAfter(balanceAfter)
+                .fromAccountAvailableBalance(balanceAfter)
+                .accountNumber(command.accountNumber())
+                .narration(command.narration())
                 .legs(postingResult.legs())
                 .timestamp(journal.getCreatedAt())
                 .journalId(entryIds.isEmpty() ? null : entryIds.get(0))
