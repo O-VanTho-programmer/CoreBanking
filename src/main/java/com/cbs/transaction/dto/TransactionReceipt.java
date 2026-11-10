@@ -1,6 +1,6 @@
 package com.cbs.transaction.dto;
 
-import com.cbs.depositing.dto.JournalLeg;
+import com.cbs.accounting.dto.JournalLeg;
 import lombok.Builder;
 
 import java.math.BigDecimal;

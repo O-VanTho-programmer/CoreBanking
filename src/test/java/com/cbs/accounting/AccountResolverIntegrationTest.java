@@ -1,6 +1,6 @@
-package com.cbs.depositing;
+package com.cbs.accounting;
 
-import com.cbs.depositing.service.AccountResolverService;
+import com.cbs.accounting.service.AccountResolverService;
 import com.cbs.common.exception.AccountMappingNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

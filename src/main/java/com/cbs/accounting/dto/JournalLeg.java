@@ -1,4 +1,4 @@
-package com.cbs.depositing.dto;
+package com.cbs.accounting.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

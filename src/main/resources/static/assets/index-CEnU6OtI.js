@@ -12186,6 +12186,8 @@ function FormFieldRenderer({
   onOpenLookup
 }) {
   const { name, label, type, placeholder, required, options, suffix, colSpan = 1 } = field;
+  const isReadOnly = Boolean(field.readOnly || field.readonly || field.read_only);
+  const isEffectiveDisabled = Boolean(disabled || isReadOnly);
   const renderInput = () => {
     switch (type) {
       case "CURRENCY":
@@ -12197,7 +12199,7 @@ function FormFieldRenderer({
             onChange,
             onBlur,
             placeholder: placeholder || "0",
-            disabled,
+            disabled: isEffectiveDisabled,
             required,
             error,
             suffix: suffix || "VND"
@@ -12212,7 +12214,7 @@ function FormFieldRenderer({
             onChange,
             onBlur,
             placeholder: placeholder || "Enter account number...",
-            disabled,
+            disabled: isEffectiveDisabled,
             required,
             error,
             formData
@@ -12229,7 +12231,7 @@ function FormFieldRenderer({
             onBlur,
             options,
             optionsEndpoint: field.optionsEndpoint,
-            disabled,
+            disabled: isEffectiveDisabled,
             required,
             placeholder,
             error
@@ -12243,14 +12245,14 @@ function FormFieldRenderer({
             value,
             onChange,
             onBlur,
-            disabled,
+            disabled: isEffectiveDisabled,
             required,
             error
           }
         );
       case "CHECKBOX":
       case "BOOLEAN":
-        return /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "flex items-center space-x-3 cursor-pointer py-2 select-none", children: [
+        return /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: `flex items-center space-x-3 py-2 select-none ${isEffectiveDisabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`, children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             "input",
             {
@@ -12260,11 +12262,11 @@ function FormFieldRenderer({
               checked: Boolean(value),
               onChange: (e) => onChange({ target: { name, value: e.target.checked } }),
               onBlur,
-              disabled,
+              disabled: isEffectiveDisabled,
               className: "h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50 cursor-pointer"
             }
           ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-xs font-semibold ${disabled ? "text-slate-400" : "text-slate-700"}`, children: field.checkboxLabel || label })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-xs font-semibold ${isEffectiveDisabled ? "text-slate-400" : "text-slate-700"}`, children: field.checkboxLabel || label })
         ] });
       case "NUMBER":
         return /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -12276,13 +12278,14 @@ function FormFieldRenderer({
             value: value ?? "",
             onChange,
             onBlur,
-            disabled,
+            readOnly: isReadOnly,
+            disabled: isEffectiveDisabled,
             required,
             placeholder,
             min: field.min,
             max: field.max,
-            step: field.step || "1",
-            className: `block w-full rounded-lg border px-3 py-2.5 font-mono text-sm transition focus:outline-none focus:ring-2 ${disabled ? "bg-slate-100 text-slate-500 border-slate-300 cursor-not-allowed" : error ? "border-red-400 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-200" : "border-slate-300 bg-white text-slate-900 focus:border-blue-600 focus:ring-blue-100"}`
+            step: field.step || "any",
+            className: `block w-full rounded-lg border px-3 py-2.5 font-mono text-sm transition focus:outline-none focus:ring-2 ${isEffectiveDisabled ? "bg-slate-100 text-slate-500 border-slate-300 cursor-not-allowed select-none" : error ? "border-red-400 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-200" : "border-slate-300 bg-white text-slate-900 focus:border-blue-600 focus:ring-blue-100"}`
           }
         );
       case "TEXTAREA":
@@ -12295,10 +12298,11 @@ function FormFieldRenderer({
             value: value ?? "",
             onChange,
             onBlur,
-            disabled,
+            readOnly: isReadOnly,
+            disabled: isEffectiveDisabled,
             required,
             placeholder,
-            className: `block w-full rounded-lg border px-3 py-2.5 text-sm transition focus:outline-none focus:ring-2 ${disabled ? "bg-slate-100 text-slate-500 border-slate-300 cursor-not-allowed" : error ? "border-red-400 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-200" : "border-slate-300 bg-white text-slate-900 focus:border-blue-600 focus:ring-blue-100"}`
+            className: `block w-full rounded-lg border px-3 py-2.5 text-sm transition focus:outline-none focus:ring-2 ${isEffectiveDisabled ? "bg-slate-100 text-slate-500 border-slate-300 cursor-not-allowed select-none" : error ? "border-red-400 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-200" : "border-slate-300 bg-white text-slate-900 focus:border-blue-600 focus:ring-blue-100"}`
           }
         );
       case "STATIC":
@@ -12318,10 +12322,11 @@ function FormFieldRenderer({
               value: value ?? "",
               onChange,
               onBlur,
-              disabled,
+              readOnly: isReadOnly,
+              disabled: isEffectiveDisabled,
               required,
               placeholder,
-              className: `block w-full rounded-lg border px-3 py-2.5 text-sm transition focus:outline-none focus:ring-2 ${isLookupEnabled ? "pr-10" : ""} ${disabled ? "bg-slate-100 text-slate-500 border-slate-300 cursor-not-allowed" : error ? "border-red-400 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-200" : "border-slate-300 bg-white text-slate-900 focus:border-blue-600 focus:ring-blue-100"}`
+              className: `block w-full rounded-lg border px-3 py-2.5 text-sm transition focus:outline-none focus:ring-2 ${isLookupEnabled ? "pr-10" : ""} ${isEffectiveDisabled ? "bg-slate-100 text-slate-500 border-slate-300 cursor-not-allowed select-none" : error ? "border-red-400 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-200" : "border-slate-300 bg-white text-slate-900 focus:border-blue-600 focus:ring-blue-100"}`
             }
           ),
           isLookupEnabled && /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -12329,7 +12334,7 @@ function FormFieldRenderer({
             {
               type: "button",
               onClick: () => onOpenLookup && onOpenLookup(lookupConfig.modal_form || lookupConfig.modalForm, field),
-              disabled,
+              disabled: isEffectiveDisabled,
               className: "absolute right-2 p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition disabled:opacity-50",
               title: "Lookup from catalogue",
               children: /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { className: "h-4 w-4" })
@@ -12829,7 +12834,7 @@ function LookupModal({
     };
   }, [isOpen, modalFormCode]);
   if (!isOpen) return null;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl border border-slate-200", children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn m-0", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl border border-slate-200", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between border-b border-slate-200 pb-3 mb-4", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-[10px] font-mono font-bold uppercase tracking-wider text-blue-600", children: [
@@ -12902,7 +12907,10 @@ function DynamicForm({
     });
     setFormData(defaults2);
     setErrors({});
-    setDisabledFields(new Set((schema.fields || []).filter((f2) => f2.disabled).map((f2) => f2.name)));
+    const initialDisabled = new Set(
+      (schema.fields || []).filter((f2) => f2.disabled || f2.readOnly || f2.readonly || f2.read_only).map((f2) => f2.name)
+    );
+    setDisabledFields(initialDisabled);
     setHiddenFields(new Set((schema.fields || []).filter((f2) => f2.hidden).map((f2) => f2.name)));
     setFieldOptions({});
   }, [schema, initialData]);
@@ -12936,7 +12944,8 @@ function DynamicForm({
             }));
           }
           if (result.disabledFields) {
-            setDisabledFields(new Set(result.disabledFields));
+            const permanentDisabled = (schema.fields || []).filter((f2) => f2.disabled || f2.readOnly || f2.readonly || f2.read_only).map((f2) => f2.name);
+            setDisabledFields(/* @__PURE__ */ new Set([...result.disabledFields, ...permanentDisabled]));
           }
           if (result.hiddenFields) {
             setHiddenFields(new Set(result.hiddenFields));
@@ -13010,6 +13019,10 @@ function DynamicForm({
   );
   const handleChange = (e) => {
     const { name, value } = e.target;
+    const fieldDef = (schema.fields || []).find((f2) => f2.name === name);
+    if ((fieldDef == null ? void 0 : fieldDef.readOnly) || (fieldDef == null ? void 0 : fieldDef.readonly) || (fieldDef == null ? void 0 : fieldDef.read_only) || (fieldDef == null ? void 0 : fieldDef.disabled) || disabledFields.has(name)) {
+      return;
+    }
     const updatedData = { ...formData, [name]: value };
     setFormData(updatedData);
     if (errors[name]) {
@@ -13019,7 +13032,6 @@ function DynamicForm({
         return next;
       });
     }
-    const fieldDef = (schema.fields || []).find((f2) => f2.name === name);
     if ((fieldDef == null ? void 0 : fieldDef.evaluateOnChange) || (fieldDef == null ? void 0 : fieldDef.type) === "CHECKBOX" || (fieldDef == null ? void 0 : fieldDef.type) === "BOOLEAN" || (fieldDef == null ? void 0 : fieldDef.type) === "SELECT" || (fieldDef == null ? void 0 : fieldDef.type) === "CODELIST" || name === "requestInterestMargin" || name === "marginReason" || name === "rolloverOption" || name === "productCode") {
       triggerEvaluation(name, updatedData, fieldDef == null ? void 0 : fieldDef.steps);
     }
@@ -13123,7 +13135,7 @@ function DynamicForm({
         onChange: handleChange,
         onBlur: handleBlur,
         error: errors[field.name],
-        disabled: disabledFields.has(field.name) || isSubmitting,
+        disabled: disabledFields.has(field.name) || Boolean(field.readOnly || field.readonly || field.read_only) || isSubmitting,
         formData,
         onOpenLookup: handleOpenLookup
       },
@@ -14179,4 +14191,4 @@ function App() {
 client.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-dFAQlarQ.js.map
+//# sourceMappingURL=index-CEnU6OtI.js.map

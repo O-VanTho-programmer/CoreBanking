@@ -1,4 +1,4 @@
-package com.cbs.depositing.form;
+package com.cbs.accounting.form;
 
 import com.cbs.common.form.FormEvaluationContext;
 import com.cbs.common.form.FormStepHandler;

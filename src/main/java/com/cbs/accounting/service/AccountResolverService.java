@@ -1,6 +1,6 @@
-package com.cbs.depositing.service;
+package com.cbs.accounting.service;
 
-import com.cbs.depositing.repository.AccountMappingDetailRepository;
+import com.cbs.accounting.repository.AccountMappingDetailRepository;
 import com.cbs.common.exception.AccountMappingNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

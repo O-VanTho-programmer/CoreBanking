@@ -1,6 +1,6 @@
-package com.cbs.depositing.repository;
+package com.cbs.accounting.repository;
 
-import com.cbs.depositing.domain.AccountingRuleDefinition;
+import com.cbs.accounting.domain.AccountingRuleDefinition;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
