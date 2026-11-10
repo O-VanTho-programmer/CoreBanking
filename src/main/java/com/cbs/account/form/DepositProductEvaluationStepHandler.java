@@ -1,14 +1,21 @@
 package com.cbs.account.form;
 
 import com.cbs.account.domain.DptProductCatalog;
+import com.cbs.account.dto.TermRateOptionDto;
 import com.cbs.account.repository.DptProductCatalogRepository;
+import com.cbs.account.service.FdRateMatrixService;
 import com.cbs.common.form.FormEvaluationContext;
 import com.cbs.common.form.FormStepHandler;
+import com.cbs.admin.service.WorkingDateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -17,6 +24,8 @@ import java.util.Optional;
 public class DepositProductEvaluationStepHandler implements FormStepHandler {
 
     private final DptProductCatalogRepository dptProductCatalogRepository;
+    private final FdRateMatrixService fdRateMatrixService;
+    private final WorkingDateService workingDateService;
 
     @Override
     public String getStepCode() {
@@ -38,13 +47,15 @@ public class DepositProductEvaluationStepHandler implements FormStepHandler {
 
         DptProductCatalog product = productOpt.get();
         String productType = (product.getProductType() != null) ? product.getProductType() : "CASA";
-        BigDecimal baseRate = (product.getAnnualRate() != null) ? product.getAnnualRate() : BigDecimal.ZERO;
+        LocalDate workingDate = workingDateService.getCurrentWorkingDate();
 
         context.putUpdate("productType", productType);
         context.putUpdate("currency", product.getCurrency());
-        context.putUpdate("baseInterestRate", baseRate);
 
         if ("CASA".equalsIgnoreCase(productType)) {
+            BigDecimal baseRate = (product.getAnnualRate() != null) ? product.getAnnualRate() : BigDecimal.ZERO;
+            context.putUpdate("baseInterestRate", baseRate);
+
             // For CASA: FD-specific fields are visible but disabled
             context.putDisabled("initialDeposit");
             context.putDisabled("termMonths");
@@ -55,12 +66,47 @@ public class DepositProductEvaluationStepHandler implements FormStepHandler {
             context.putDisabled("interestMargin");
 
             context.putUpdate("initialDeposit", BigDecimal.ZERO);
+            context.putUpdate("termMonths", null);
             context.putUpdate("requestInterestMargin", false);
             context.putUpdate("marginReason", null);
             context.putUpdate("interestMargin", BigDecimal.ZERO);
             context.putUpdate("effectiveRate", baseRate);
+            context.putFieldOptions("termMonths", List.of());
         } else {
-            // For FD: FD-specific fields are enabled
+            // For FD: Retrieve active terms from rate matrix
+            List<TermRateOptionDto> availableTerms = fdRateMatrixService.getAvailableTerms(productCode, workingDate);
+            List<Map<String, Object>> termOptions = new ArrayList<>();
+            for (TermRateOptionDto term : availableTerms) {
+                termOptions.add(Map.of(
+                        "value", String.valueOf(term.termMonths()),
+                        "label", term.label()
+                ));
+            }
+            context.putFieldOptions("termMonths", termOptions);
+
+            Integer termMonths = context.getInteger("termMonths");
+            if (termMonths == null && !availableTerms.isEmpty()) {
+                // Default to 12 months if available, otherwise first available
+                boolean has12 = availableTerms.stream().anyMatch(t -> t.termMonths() == 12);
+                termMonths = has12 ? 12 : availableTerms.get(0).termMonths();
+                context.putUpdate("termMonths", String.valueOf(termMonths));
+            }
+
+            // Resolve base rate for selected term
+            BigDecimal baseRate = BigDecimal.ZERO;
+            if (termMonths != null) {
+                Optional<BigDecimal> termRateOpt = fdRateMatrixService.resolveBaseRate(productCode, termMonths, workingDate);
+                if (termRateOpt.isPresent()) {
+                    baseRate = termRateOpt.get();
+                } else {
+                    baseRate = (product.getAnnualRate() != null) ? product.getAnnualRate() : BigDecimal.ZERO;
+                }
+            } else {
+                baseRate = (product.getAnnualRate() != null) ? product.getAnnualRate() : BigDecimal.ZERO;
+            }
+            context.putUpdate("baseInterestRate", baseRate);
+
+            // VIP Margin logic
             Object reqMarginObj = context.getFormData().get("requestInterestMargin");
             boolean requestMargin = Boolean.TRUE.equals(reqMarginObj) || "true".equalsIgnoreCase(String.valueOf(reqMarginObj));
             String marginReason = context.getString("marginReason");

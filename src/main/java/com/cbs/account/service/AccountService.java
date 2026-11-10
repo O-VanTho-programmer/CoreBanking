@@ -50,6 +50,7 @@ public class AccountService {
     private final AccountIfcRepository accountIfcRepository;
     private final WorkingDateService workingDateService;
     private final CodeListService codeListService;
+    private final FdRateMatrixService fdRateMatrixService;
     private final JdbcTemplate jdbcTemplate;
 
     /**
@@ -92,6 +93,18 @@ public class AccountService {
 
         // 5. Rate & VIP Margin Calculation
         BigDecimal baseRate = (product.getAnnualRate() != null) ? product.getAnnualRate() : BigDecimal.ZERO;
+        Integer termMonths = null;
+        LocalDate maturityDate = null;
+
+        if ("FD".equalsIgnoreCase(productType)) {
+            termMonths = (command.termMonths() != null && command.termMonths() > 0) ? command.termMonths() : 12;
+            var matrixRateOpt = fdRateMatrixService.resolveBaseRate(product.getProductCode(), termMonths, workingDate);
+            if (matrixRateOpt.isPresent()) {
+                baseRate = matrixRateOpt.get();
+            }
+            maturityDate = workingDate.plusMonths(termMonths);
+        }
+
         BigDecimal interestMargin = BigDecimal.ZERO;
 
         if (Boolean.TRUE.equals(command.requestInterestMargin()) && command.interestMargin() != null) {
@@ -109,21 +122,17 @@ public class AccountService {
 
         BigDecimal effectiveRate = baseRate.add(interestMargin);
 
-        // 6. Term & Maturity Date for FD
-        Integer termMonths = null;
-        LocalDate maturityDate = null;
-        if ("FD".equalsIgnoreCase(productType)) {
-            termMonths = (command.termMonths() != null && command.termMonths() > 0) ? command.termMonths() : 12;
-            maturityDate = workingDate.plusMonths(termMonths);
-        }
-
-        // 7. Linked Settlement CASA Account lookup
+        // 6. Linked Settlement CASA Account lookup & validation
         Long linkedCasaAccountId = null;
         if (command.linkedCasaAccountNumber() != null && !command.linkedCasaAccountNumber().isBlank()) {
             var linkedAccOpt = accountRepository.findByAccountNumber(command.linkedCasaAccountNumber().trim());
             if (linkedAccOpt.isPresent()) {
                 linkedCasaAccountId = linkedAccOpt.get().getAccountId();
             }
+        }
+
+        if ("FD".equalsIgnoreCase(productType) && "PRINCIPAL_ONLY".equalsIgnoreCase(command.rolloverOption()) && linkedCasaAccountId == null) {
+            throw new IllegalArgumentException("Linked CASA account is required for PRINCIPAL_ONLY rollover option");
         }
 
         Account account = Account.builder()

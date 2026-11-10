@@ -26,9 +26,15 @@ public record OpenAccountCommand(
 
         BigDecimal initialDeposit,
         Integer termMonths,
+
+        @ValidCodeList(group = "ROLLOVER_OPTION")
         String rolloverOption,
+
         Boolean requestInterestMargin,
+
+        @ValidCodeList(group = "MARGIN_REASON")
         String marginReason,
+
         BigDecimal interestMargin,
         String linkedCasaAccountNumber
 ) {

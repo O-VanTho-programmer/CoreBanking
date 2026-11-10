@@ -18,6 +18,7 @@ export default function DynamicForm({
   const [hiddenFields, setHiddenFields] = useState(new Set());
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evaluationNotice, setEvaluationNotice] = useState(null);
+  const [fieldOptions, setFieldOptions] = useState({});
   const [lookupModalState, setLookupModalState] = useState({
     isOpen: false,
     modalFormCode: null,
@@ -35,6 +36,7 @@ export default function DynamicForm({
     setErrors({});
     setDisabledFields(new Set((schema.fields || []).filter((f) => f.disabled).map((f) => f.name)));
     setHiddenFields(new Set((schema.fields || []).filter((f) => f.hidden).map((f) => f.name)));
+    setFieldOptions({});
   }, [schema, initialData]);
 
   // Rule Evaluation Engine (Convention over Configuration)
@@ -82,6 +84,14 @@ export default function DynamicForm({
           // Updates hidden fields
           if (result.hiddenFields) {
             setHiddenFields(new Set(result.hiddenFields));
+          }
+
+          // Updates dynamic field options (e.g. deposit terms)
+          if (result.fieldOptions && Object.keys(result.fieldOptions).length > 0) {
+            setFieldOptions((prev) => ({
+              ...prev,
+              ...result.fieldOptions,
+            }));
           }
         }
       } catch (err) {
@@ -316,7 +326,12 @@ export default function DynamicForm({
           .map((field) => (
             <FormFieldRenderer
               key={field.name}
-              field={field}
+              field={{
+                ...field,
+                options: (fieldOptions[field.name] && fieldOptions[field.name].length > 0)
+                  ? fieldOptions[field.name]
+                  : field.options,
+              }}
               value={formData[field.name]}
               onChange={handleChange}
               onBlur={handleBlur}

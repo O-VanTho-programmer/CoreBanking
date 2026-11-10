@@ -119,9 +119,14 @@ public class InterestAccrualService {
                 continue;
             }
 
-            BigDecimal appliedRate = (account.getEffectiveRate() != null && account.getEffectiveRate().compareTo(BigDecimal.ZERO) > 0)
-                    ? account.getEffectiveRate()
-                    : product.getAnnualRate();
+            BigDecimal appliedRate;
+            if ("CASA".equalsIgnoreCase(account.getProductType())) {
+                appliedRate = (product.getAnnualRate() != null) ? product.getAnnualRate() : BigDecimal.ZERO;
+            } else {
+                appliedRate = (account.getEffectiveRate() != null && account.getEffectiveRate().compareTo(BigDecimal.ZERO) > 0)
+                        ? account.getEffectiveRate()
+                        : (product.getAnnualRate() != null ? product.getAnnualRate() : BigDecimal.ZERO);
+            }
 
             BigDecimal dailyInterest = calculateDailyInterest(
                     ledgerBalance,

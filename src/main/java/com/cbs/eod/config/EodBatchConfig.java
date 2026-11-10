@@ -3,6 +3,7 @@ package com.cbs.eod.config;
 import com.cbs.admin.service.WorkingDateService;
 import com.cbs.eod.service.BalanceSnapshotService;
 import com.cbs.eod.service.DataArchivalService;
+import com.cbs.eod.service.FdMaturityRolloverService;
 import com.cbs.eod.service.InterestAccrualService;
 import com.cbs.eod.service.TrialBalanceService;
 import com.cbs.lending.service.LoanAgingService;
@@ -50,6 +51,7 @@ public class EodBatchConfig {
     private final InterestAccrualService interestAccrualService;
     private final BalanceSnapshotService balanceSnapshotService;
     private final LoanBalanceSnapshotService loanBalanceSnapshotService;
+    private final FdMaturityRolloverService fdMaturityRolloverService;
     private final DataArchivalService dataArchivalService;
     private final TrialBalanceService trialBalanceService;
 
@@ -58,6 +60,7 @@ public class EodBatchConfig {
                       Step loanRepaymentStep,
                       Step loanAgingStep,
                       Step accrualStep,
+                      Step fdMaturityRolloverStep,
                       Step snapshotStep,
                       Step archivalStep,
                       Step trialBalanceStep,
@@ -67,6 +70,7 @@ public class EodBatchConfig {
                 .next(loanRepaymentStep)
                 .next(loanAgingStep)
                 .next(accrualStep)
+                .next(fdMaturityRolloverStep)
                 .next(snapshotStep)
                 .next(archivalStep)
                 .next(trialBalanceStep)
@@ -114,8 +118,20 @@ public class EodBatchConfig {
         return new StepBuilder("accrualStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     LocalDate workingDate = extractWorkingDate(chunkContext);
-                    log.info("[EOD Step 4/8] Executing Daily Savings and CASA Interest Accrual for date: {}", workingDate);
+                    log.info("[EOD Step 4/9] Executing Daily Savings and CASA Interest Accrual for date: {}", workingDate);
                     interestAccrualService.executeDailyAccrual(workingDate);
+                    return RepeatStatus.FINISHED;
+                }, transactionManager)
+                .build();
+    }
+
+    @Bean
+    public Step fdMaturityRolloverStep() {
+        return new StepBuilder("fdMaturityRolloverStep", jobRepository)
+                .tasklet((contribution, chunkContext) -> {
+                    LocalDate workingDate = extractWorkingDate(chunkContext);
+                    log.info("[EOD Step 5/9] Executing Fixed Deposit Maturity and Rollover processing for date: {}", workingDate);
+                    fdMaturityRolloverService.executeMaturityRollover(workingDate);
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
                 .build();
@@ -126,7 +142,7 @@ public class EodBatchConfig {
         return new StepBuilder("snapshotStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     LocalDate workingDate = extractWorkingDate(chunkContext);
-                    log.info("[EOD Step 5/8] Taking Daily Balance Snapshot Buckets for date: {}", workingDate);
+                    log.info("[EOD Step 6/9] Taking Daily Balance Snapshot Buckets for date: {}", workingDate);
                     balanceSnapshotService.takeDailySnapshot(workingDate);
                     loanBalanceSnapshotService.takeDailyLoanSnapshot(workingDate);
                     return RepeatStatus.FINISHED;
@@ -139,7 +155,7 @@ public class EodBatchConfig {
         return new StepBuilder("archivalStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     LocalDate workingDate = extractWorkingDate(chunkContext);
-                    log.info("[EOD Step 6/8] Archiving completed data to cold storage (MoveDataHis) for date: {}", workingDate);
+                    log.info("[EOD Step 7/9] Archiving completed data to cold storage (MoveDataHis) for date: {}", workingDate);
                     dataArchivalService.archiveCompletedTransactions(workingDate);
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
@@ -151,7 +167,7 @@ public class EodBatchConfig {
         return new StepBuilder("trialBalanceStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     LocalDate workingDate = extractWorkingDate(chunkContext);
-                    log.info("[EOD Step 7/8] Verifying General Ledger Trial Balance for date: {}", workingDate);
+                    log.info("[EOD Step 8/9] Verifying General Ledger Trial Balance for date: {}", workingDate);
                     trialBalanceService.verifyTrialBalance(workingDate);
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
@@ -162,7 +178,7 @@ public class EodBatchConfig {
     public Step rolloverStep() {
         return new StepBuilder("rolloverStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
-                    log.info("[EOD Step 8/8] Rolling over operational date and releasing cut-off");
+                    log.info("[EOD Step 9/9] Rolling over operational date and releasing cut-off");
                     LocalDate nextDate = workingDateService.rolloverWorkingDate();
                     log.info("[EOD Pipeline Complete] New operational working date is: {}", nextDate);
                     return RepeatStatus.FINISHED;

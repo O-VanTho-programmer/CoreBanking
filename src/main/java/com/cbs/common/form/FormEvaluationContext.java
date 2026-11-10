@@ -19,6 +19,7 @@ public class FormEvaluationContext {
     private final Map<String, String> errors = new LinkedHashMap<>();
     private final Set<String> disabledFields = new LinkedHashSet<>();
     private final Set<String> hiddenFields = new LinkedHashSet<>();
+    private final Map<String, List<Map<String, Object>>> fieldOptions = new LinkedHashMap<>();
 
     public FormEvaluationContext(String formCode, String triggerField, Map<String, Object> formData) {
         this.formCode = formCode;
@@ -66,6 +67,10 @@ public class FormEvaluationContext {
 
     public void putHidden(String fieldName) {
         hiddenFields.add(fieldName);
+    }
+
+    public void putFieldOptions(String fieldName, List<Map<String, Object>> options) {
+        fieldOptions.put(fieldName, options);
     }
 
     public boolean hasErrors() {

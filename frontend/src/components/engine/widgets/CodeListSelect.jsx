@@ -17,7 +17,9 @@ export default function CodeListSelect({
   const [selectOptions, setSelectOptions] = useState(options);
 
   useEffect(() => {
-    if (optionsEndpoint && (!options || options.length === 0)) {
+    if (options && options.length > 0) {
+      setSelectOptions(options);
+    } else if (optionsEndpoint) {
       apiClient
         .get(optionsEndpoint)
         .then((res) => {
@@ -30,8 +32,8 @@ export default function CodeListSelect({
           }
         })
         .catch((err) => console.warn('Failed to load options from', optionsEndpoint, err.message));
-    } else if (options && options.length > 0) {
-      setSelectOptions(options);
+    } else {
+      setSelectOptions([]);
     }
   }, [optionsEndpoint, options]);
 

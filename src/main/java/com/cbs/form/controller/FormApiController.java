@@ -78,7 +78,8 @@ public class FormApiController {
                 context.getUpdates(),
                 context.getErrors(),
                 context.getDisabledFields(),
-                context.getHiddenFields());
+                context.getHiddenFields(),
+                context.getFieldOptions());
 
         return ResponseEntity.ok(response);
     }

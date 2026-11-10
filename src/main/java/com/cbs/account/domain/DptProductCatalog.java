@@ -75,6 +75,10 @@ public class DptProductCatalog {
     @Builder.Default
     private BigDecimal maxInterestMargin = new BigDecimal("0.0200");
 
+    @Column(name = "rollover_rate_rule", length = 30, nullable = false)
+    @Builder.Default
+    private String rolloverRateRule = "CURRENT_MARKET_RATE";
+
     @Column(name = "is_active", columnDefinition = "CHAR(1)", length = 1, nullable = false)
     @JdbcTypeCode(SqlTypes.CHAR)
     @Builder.Default

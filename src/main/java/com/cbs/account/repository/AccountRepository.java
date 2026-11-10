@@ -42,4 +42,13 @@ public interface AccountRepository extends JpaRepository<Account, Long>, JpaSpec
 
     @Query("SELECT COALESCE(SUM(a.ledgerBalance), 0) FROM Account a WHERE a.glCode = :glCode")
     java.math.BigDecimal sumLedgerBalanceByGlCode(@Param("glCode") String glCode);
+
+    @Query("""
+        SELECT a FROM Account a
+        WHERE a.status = 'ACTIVE'
+          AND a.productType = 'FD'
+          AND a.maturityDate <= :workingDate
+        ORDER BY a.accountId ASC
+    """)
+    List<Account> findMaturingFdAccounts(@Param("workingDate") java.time.LocalDate workingDate);
 }
