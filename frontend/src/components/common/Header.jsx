@@ -18,7 +18,10 @@ import {
   ChevronRight,
   ArrowLeft,
   Banknote,
+  RotateCcw,
+  Loader2,
 } from 'lucide-react';
+import apiClient from '../../services/apiClient';
 
 // Structured Hierarchical Modules Menu Definition
 const MODULES_MENU = [
@@ -104,6 +107,20 @@ const MODULES_MENU = [
       },
     ],
   },
+  {
+    id: 'admin',
+    name: 'Admin',
+    code: 'ADM',
+    description: 'System administration & cache management',
+    children: [
+      {
+        id: 'clear-cache',
+        title: 'Clear cache',
+        description: 'Flush Redis cache & reload system CodeLists',
+        isAction: true,
+      },
+    ],
+  },
 ];
 
 export default function Header({
@@ -118,9 +135,32 @@ export default function Header({
   const [activeModuleId, setActiveModuleId] = useState(null); // null = parent menu, string = selected module
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [cacheNotification, setCacheNotification] = useState(null);
+  const [isClearingCache, setIsClearingCache] = useState(false);
   const searchInputRef = useRef(null);
   const menuRef = useRef(null);
   const searchRef = useRef(null);
+
+  const handleClearCache = async () => {
+    setIsClearingCache(true);
+    setIsMenuOpen(false);
+    setActiveModuleId(null);
+    try {
+      const res = await apiClient.post('/admin/cache/clear');
+      setCacheNotification({
+        type: 'success',
+        message: res.data?.message || 'Cache cleared and CodeLists refreshed successfully!',
+      });
+    } catch (err) {
+      setCacheNotification({
+        type: 'error',
+        message: err.response?.data?.message || err.message || 'Failed to clear cache',
+      });
+    } finally {
+      setIsClearingCache(false);
+      setTimeout(() => setCacheNotification(null), 4000);
+    }
+  };
 
   // Global Ctrl + K shortcut
   useEffect(() => {
@@ -242,21 +282,36 @@ export default function Header({
                       <div className="space-y-1">
                         {selectedModuleObj.children.map((child) => (
                           <button
-                            key={child.formCode}
+                            key={child.formCode || child.id}
                             type="button"
-                            onClick={() => handleOpenNamedForm(child.formCode, child.title)}
+                            onClick={() => {
+                              if (child.isAction || child.id === 'clear-cache') {
+                                handleClearCache();
+                              } else {
+                                handleOpenNamedForm(child.formCode, child.title);
+                              }
+                            }}
                             className="w-full text-left p-2.5 hover:bg-blue-50/70 transition flex items-center justify-between group border border-transparent hover:border-blue-100"
                           >
                             <div className="space-y-0.5">
                               <div className="font-semibold text-slate-800 text-xs group-hover:text-blue-900 flex items-center space-x-2">
                                 <span>{child.title}</span>
-                                <span className={`rounded px-1.5 py-0.2 text-[9px] font-bold ${child.badgeColor}`}>
-                                  {child.badge}
-                                </span>
+                                {child.badge && (
+                                  <span className={`rounded px-1.5 py-0.2 text-[9px] font-bold ${child.badgeColor}`}>
+                                    {child.badge}
+                                  </span>
+                                )}
                               </div>
+                              {child.description && (
+                                <p className="text-[10px] text-slate-400">{child.description}</p>
+                              )}
                             </div>
 
-                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-blue-600 shrink-0 ml-2 transition group-hover:translate-x-0.5" />
+                            {child.isAction ? (
+                              <RotateCcw className="h-3.5 w-3.5 text-slate-400 group-hover:text-blue-600 shrink-0 ml-2" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-blue-600 shrink-0 ml-2 transition group-hover:translate-x-0.5" />
+                            )}
                           </button>
                         ))}
                       </div>
@@ -430,6 +485,36 @@ export default function Header({
           </div>
         </div>
       </div>
+
+      {/* Cache Notification Toast */}
+      {cacheNotification && (
+        <div className="fixed top-16 right-6 z-50 animate-fadeIn">
+          <div
+            className={`flex items-center space-x-2.5 rounded-xl border px-4 py-2.5 shadow-xl text-xs font-semibold ${
+              cacheNotification.type === 'success'
+                ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                : 'bg-red-50 text-red-900 border-red-200'
+            }`}
+          >
+            {cacheNotification.type === 'success' ? (
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
+            )}
+            <span>{cacheNotification.message}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Global Cache Clearing Indicator */}
+      {isClearingCache && (
+        <div className="fixed top-16 right-6 z-50 animate-fadeIn">
+          <div className="flex items-center space-x-2.5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 shadow-xl text-xs font-semibold text-blue-900">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-600 shrink-0" />
+            <span>Clearing Redis cache and warming CodeLists...</span>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

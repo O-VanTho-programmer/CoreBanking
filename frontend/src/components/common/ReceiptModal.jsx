@@ -81,7 +81,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
           <div className="text-center space-y-1 border-b-2 border-dashed border-black pb-4">
             <h2 className="text-lg font-black tracking-wider text-black">CORE BANKING SYSTEM</h2>
             <p className="text-xs font-bold uppercase tracking-widest text-black">
-              DEPOSIT RECEIPT / GIẤY NỘP TIỀN
+              DEPOSIT RECEIPT
             </p>
             <p className="text-[11px] text-black">Branch: VN001 • Counter Transaction Advice</p>
           </div>
@@ -130,19 +130,15 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
           </div>
 
           {/* Amount Box */}
-          <div className="border-2 border-black p-3 text-center bg-white space-y-1">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-black">
-              TRANSACTION AMOUNT
-            </div>
-            <div className="text-2xl font-black text-black tracking-tight">
-              {formatMoney(amountVal)} {currencyVal}
-            </div>
-            {receipt.feeAmount !== undefined && Number(receipt.feeAmount) > 0 && (
-              <div className="text-[11px] text-black">
-                Fee: +{formatMoney(receipt.feeAmount)} {currencyVal}
-              </div>
-            )}
+          <div className="flex justify-between">
+            <span className="font-bold text-black">Transaction Amount:</span>
+            <span className="text-black font-bold">{formatMoney(amountVal)} {currencyVal}</span>
           </div>
+          {receipt.feeAmount !== undefined && Number(receipt.feeAmount) > 0 && (
+            <div className="text-[11px] text-black">
+              Fee: +{formatMoney(receipt.feeAmount)} {currencyVal}
+            </div>
+          )}
 
           {/* Balance Before & After */}
           <div className="space-y-1.5 border-b border-dashed border-black pb-3 text-xs">
@@ -184,18 +180,6 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
               </div>
             </div>
           )}
-
-          {/* Signatures */}
-          <div className="pt-2 grid grid-cols-2 gap-4 text-center text-xs">
-            <div className="space-y-12">
-              <span className="font-bold block text-black">CUSTOMER / DEPOSITOR</span>
-              <span className="block text-[11px] text-black italic">(Signature)</span>
-            </div>
-            <div className="space-y-12">
-              <span className="font-bold block text-black">TELLER / CASHIER</span>
-              <span className="block text-[11px] text-black italic">TELLER01 (Signed & Stamped)</span>
-            </div>
-          </div>
 
           {/* Receipt Footer */}
           <div className="text-center text-[10px] text-black pt-3 border-t-2 border-dashed border-black space-y-0.5">

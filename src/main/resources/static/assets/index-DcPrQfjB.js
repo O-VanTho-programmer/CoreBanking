@@ -7483,498 +7483,6 @@ const X = createLucideIcon("X", [
   ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
   ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
 ]);
-const MODULES_MENU = [
-  {
-    id: "deposit",
-    name: "Deposit",
-    code: "DPT",
-    description: "Account inquiry & product catalogue",
-    children: [
-      {
-        formCode: "FORM_DPT_INFO",
-        title: "Account Information",
-        description: "Inquire CASA balance, ledger & statement"
-      },
-      {
-        formCode: "FORM_DPT_CATALOGUE",
-        title: "Catalogue Definition",
-        description: "Configure deposit product interest & GL"
-      }
-    ]
-  },
-  {
-    id: "cash",
-    name: "Cash",
-    code: "CSH",
-    description: "Teller counter cash transactions",
-    children: [
-      {
-        formCode: "FORM_CASH_DEP",
-        title: "Cash Deposit",
-        description: "Over-the-counter physical cash deposit"
-      },
-      {
-        formCode: "FORM_CASH_WDR",
-        title: "Cash Withdrawal",
-        description: "Over-the-counter physical cash withdrawal"
-      },
-      {
-        formCode: "FORM_TRF_INTERNAL",
-        title: "Internal Transfer",
-        description: "Account-to-account transfer with fee"
-      }
-    ]
-  },
-  {
-    id: "credit",
-    name: "Credit",
-    code: "CRD",
-    description: "Loan account, origination & catalogue",
-    children: [
-      {
-        formCode: "FORM_CRD_INFO",
-        title: "Account Information",
-        description: "Inquire loan contracts, balance & repayment schedule"
-      },
-      {
-        formCode: "FORM_CREDIT_ACCOUNT_OPEN",
-        title: "Open Credit Account",
-        description: "Originate, calculate EMI & approve loan contracts"
-      },
-      {
-        formCode: "FORM_CRD_CATALOGUE",
-        title: "Catalogue Definition",
-        description: "Configure credit product packages & interest margins"
-      }
-    ]
-  },
-  {
-    id: "customer",
-    name: "Customer",
-    code: "CUST",
-    description: "Customer profile, CIF 360 & onboarding",
-    children: [
-      {
-        formCode: "FORM_CUST_PROFILE",
-        title: "Customer Profile",
-        description: "CIF 360 inquiry & profile actions"
-      },
-      {
-        formCode: "FORM_CUST_CREATE",
-        title: "Register Customer",
-        description: "Onboard new individual or corporate CIF profile"
-      }
-    ]
-  }
-];
-function Header({
-  workingDate = "2026-11-05",
-  isCutoff = false,
-  branchCode = "001 - Head Office",
-  tellerId = "TELLER01",
-  shortcuts = [],
-  onOpenForm
-}) {
-  const [isMenuOpen, setIsMenuOpen] = reactExports.useState(false);
-  const [activeModuleId, setActiveModuleId] = reactExports.useState(null);
-  const [searchQuery, setSearchQuery] = reactExports.useState("");
-  const [isSearchOpen, setIsSearchOpen] = reactExports.useState(false);
-  const searchInputRef = reactExports.useRef(null);
-  const menuRef = reactExports.useRef(null);
-  const searchRef = reactExports.useRef(null);
-  reactExports.useEffect(() => {
-    const handleKeyDown = (e) => {
-      var _a;
-      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-        e.preventDefault();
-        (_a = searchInputRef.current) == null ? void 0 : _a.focus();
-        setIsSearchOpen(true);
-      } else if (e.key === "Escape") {
-        setIsSearchOpen(false);
-        setIsMenuOpen(false);
-        setActiveModuleId(null);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-  reactExports.useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setIsMenuOpen(false);
-        setActiveModuleId(null);
-      }
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setIsSearchOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-  const filteredShortcuts = searchQuery.trim() ? shortcuts.filter((sc2) => {
-    const q2 = searchQuery.toLowerCase();
-    return sc2.formName.toLowerCase().includes(q2) || sc2.keywords.toLowerCase().includes(q2) || sc2.formCode.toLowerCase().includes(q2) || sc2.module.toLowerCase().includes(q2);
-  }) : shortcuts.slice(0, 6);
-  const handleSelectShortcut = (shortcut) => {
-    if (onOpenForm) {
-      onOpenForm(shortcut.formCode, shortcut.formName);
-    }
-    setSearchQuery("");
-    setIsSearchOpen(false);
-  };
-  const handleOpenNamedForm = (formCode, formName) => {
-    if (onOpenForm) {
-      onOpenForm(formCode, formName);
-    }
-    setIsMenuOpen(false);
-    setActiveModuleId(null);
-  };
-  const selectedModuleObj = MODULES_MENU.find((m2) => m2.id === activeModuleId);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("header", { className: "sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-xs", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mx-auto flex min-w-4xl w-full max-w-full items-center justify-between px-4 py-2.5 sm:px-6 gap-3", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-3", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", ref: menuRef, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "button",
-          {
-            type: "button",
-            onClick: () => {
-              if (isMenuOpen) {
-                setIsMenuOpen(false);
-                setActiveModuleId(null);
-              } else {
-                setIsMenuOpen(true);
-                setActiveModuleId(null);
-              }
-            },
-            className: `flex h-10 w-10 items-center justify-center rounded-xl border transition ${isMenuOpen ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900"}`,
-            title: "Modules & Services Menu",
-            children: isMenuOpen ? /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "h-5 w-5" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Menu, { className: "h-5 w-5" })
-          }
-        ),
-        isMenuOpen && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "absolute left-0 mt-2 min-w-[300px] w-full rounded-lg border border-slate-200 bg-white shadow-2xl animate-fadeIn z-50", children: [
-          activeModuleId ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center justify-between border-b border-slate-100 pb-2 pt-2 px-1", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "button",
-            {
-              type: "button",
-              onClick: () => setActiveModuleId(null),
-              className: "flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-blue-700 transition group",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowLeft, { className: "h-4 w-4 text-slate-500 group-hover:text-blue-600 group-hover:-translate-x-0.5 transition" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Back" })
-              ]
-            }
-          ) }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 text-xs", children: activeModuleId && selectedModuleObj ? (
-            /* CHILDREN MENU */
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1.5 animate-fadeIn", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "px-2 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center space-x-1.5", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-                selectedModuleObj.name,
-                " Services"
-              ] }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1", children: selectedModuleObj.children.map((child) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                "button",
-                {
-                  type: "button",
-                  onClick: () => handleOpenNamedForm(child.formCode, child.title),
-                  className: "w-full text-left p-2.5 hover:bg-blue-50/70 transition flex items-center justify-between group border border-transparent hover:border-blue-100",
-                  children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-0.5", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "font-semibold text-slate-800 text-xs group-hover:text-blue-900 flex items-center space-x-2", children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: child.title }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `rounded px-1.5 py-0.2 text-[9px] font-bold ${child.badgeColor}`, children: child.badge })
-                    ] }) }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { className: "h-4 w-4 text-slate-300 group-hover:text-blue-600 shrink-0 ml-2 transition group-hover:translate-x-0.5" })
-                  ]
-                },
-                child.formCode
-              )) })
-            ] })
-          ) : (
-            /* PARENT MENU */
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1 animate-fadeIn", children: MODULES_MENU.map((mod) => {
-              return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                "button",
-                {
-                  type: "button",
-                  onClick: () => setActiveModuleId(mod.id),
-                  className: "w-full text-left p-2.5 hover:bg-blue-50/70 transition flex items-center justify-between group border border-transparent hover:border-blue-100",
-                  children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-bold text-slate-800 text-xs group-hover:text-blue-900 flex items-center space-x-1.5", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: mod.name }) }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { className: "h-4 w-4 text-slate-300 group-hover:text-blue-600 shrink-0 ml-2 transition group-hover:translate-x-0.5" })
-                  ]
-                },
-                mod.id
-              );
-            }) })
-          ) })
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2.5", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-900 to-indigo-700 text-white shadow-md shadow-blue-950/20", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Landmark, { className: "h-4.5 w-4.5" }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "hidden sm:block", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-1.5", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-sm font-black tracking-tight text-slate-900", children: "CBS CORE" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "rounded bg-blue-100 px-1.5 py-0.2 text-[9px] font-bold text-blue-800", children: "v2.0" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[10px] text-slate-400 font-medium", children: "Terminal Portal" })
-        ] })
-      ] })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative flex-1 max-w-md mx-2", ref: searchRef, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { className: "h-4 w-4 text-slate-400" }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "input",
-          {
-            ref: searchInputRef,
-            type: "text",
-            value: searchQuery,
-            onChange: (e) => {
-              setSearchQuery(e.target.value);
-              setIsSearchOpen(true);
-            },
-            onFocus: () => setIsSearchOpen(true),
-            placeholder: "Search FO transactions, BO catalogues (e.g. cash, deposit, loan)...",
-            className: "w-full rounded-xl border border-slate-300 bg-slate-50 py-1.5 pl-9 pr-14 text-xs font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("kbd", { className: "rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[9px] font-mono text-slate-400 shadow-2xs", children: "Ctrl K" }) })
-      ] }),
-      isSearchOpen && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "absolute left-0 mt-2 w-full rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl animate-fadeIn z-50", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: searchQuery.trim() ? "Matching Shortcuts" : "Quick Actions" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-[9px] font-mono", children: [
-            filteredShortcuts.length,
-            " results"
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-1 max-h-64 overflow-y-auto divide-y divide-slate-100", children: filteredShortcuts.length > 0 ? filteredShortcuts.map((sc2) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "button",
-          {
-            type: "button",
-            onClick: () => handleSelectShortcut(sc2),
-            className: "w-full text-left rounded-lg p-2 hover:bg-blue-50/70 transition flex items-center justify-between group",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2.5", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600 group-hover:bg-blue-600 group-hover:text-white transition", children: /* @__PURE__ */ jsxRuntimeExports.jsx(FileText, { className: "h-3.5 w-3.5" }) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-semibold text-slate-800 text-xs group-hover:text-blue-900", children: sc2.formName }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-[10px] font-mono text-slate-400", children: sc2.formCode })
-                ] })
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-1.5", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "span",
-                  {
-                    className: `rounded px-1.5 py-0.5 text-[9px] font-bold ${sc2.category === "FO_TRANSACTION" ? "bg-emerald-100 text-emerald-800" : sc2.category === "BO_CATALOGUE" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"}`,
-                    children: sc2.category === "FO_TRANSACTION" ? "FO" : sc2.category === "BO_CATALOGUE" ? "BO" : "INQ"
-                  }
-                ),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[9px] font-mono text-slate-400 font-semibold", children: sc2.module })
-              ] })
-            ]
-          },
-          sc2.shortcutCode
-        )) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-4 text-center text-xs text-slate-400", children: [
-          'No matching forms found for "',
-          searchQuery,
-          '"'
-        ] }) })
-      ] })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-3 shrink-0", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "hidden md:flex items-center space-x-1.5 rounded-lg border border-slate-200 bg-slate-50/80 px-2.5 py-1 text-xs", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { className: "h-3.5 w-3.5 text-slate-500" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-slate-400", children: "Date:" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono font-bold text-slate-800", children: workingDate })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "div",
-        {
-          className: `flex items-center space-x-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${isCutoff ? "bg-amber-100 text-amber-900 border border-amber-200" : "bg-emerald-100 text-emerald-900 border border-emerald-200"}`,
-          children: isCutoff ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { className: "h-3 w-3 text-amber-600 animate-pulse" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "CUTOFF" })
-          ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheck, { className: "h-3 w-3 text-emerald-600" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "ONLINE" })
-          ] })
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2 border-l border-slate-200 pl-3", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-600 border border-slate-200", children: /* @__PURE__ */ jsxRuntimeExports.jsx(User, { className: "h-3.5 w-3.5" }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "hidden lg:block text-left text-xs leading-tight", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-bold text-slate-800", children: tellerId }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-[9px] text-slate-400", children: branchCode })
-        ] })
-      ] })
-    ] })
-  ] }) });
-}
-function WorkspaceTabs({
-  tabs = [],
-  activeTabId,
-  onSelectTab,
-  onCloseTab,
-  onCloseOtherTabs,
-  onCloseAllTabs
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between border-b border-slate-200 bg-slate-100/80 px-2 pt-2 select-none overflow-x-auto", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center space-x-1 overflow-x-auto scrollbar-none py-0.5", children: tabs.map((tab) => {
-      const isActive = tab.id === activeTabId;
-      return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          onClick: () => onSelectTab(tab.id),
-          className: `group relative flex items-center space-x-2 rounded-t-xl px-3.5 py-2 text-xs font-bold transition cursor-pointer border-t border-x ${isActive ? "bg-white text-blue-900 border-slate-200 shadow-xs" : "bg-slate-200/70 text-slate-600 border-transparent hover:bg-slate-200 hover:text-slate-900"}`,
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(FileText, { className: `h-3.5 w-3.5 shrink-0 ${isActive ? "text-blue-700" : "text-slate-400"}` }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "truncate max-w-[140px] tracking-tight", children: tab.title }),
-            tab.isDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0", title: "Unsaved changes" }),
-            tabs.length > 1 && /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "button",
-              {
-                type: "button",
-                onClick: (e) => {
-                  e.stopPropagation();
-                  onCloseTab(tab.id);
-                },
-                className: "rounded-md p-0.5 text-slate-400 hover:bg-slate-200 hover:text-slate-800 transition",
-                title: "Close tab",
-                children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "h-3 w-3" })
-              }
-            )
-          ]
-        },
-        tab.id
-      );
-    }) }),
-    tabs.length > 1 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2 pb-1 text-[11px] text-slate-500 font-medium", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "button",
-        {
-          type: "button",
-          onClick: onCloseOtherTabs,
-          className: "hover:text-slate-900 transition underline underline-offset-2",
-          children: "Close Others"
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "•" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "button",
-        {
-          type: "button",
-          onClick: onCloseAllTabs,
-          className: "hover:text-red-600 transition underline underline-offset-2",
-          children: "Close All"
-        }
-      )
-    ] })
-  ] });
-}
-function CurrencyInput({
-  id: id2,
-  name,
-  value,
-  onChange,
-  onBlur,
-  placeholder = "0",
-  disabled = false,
-  required = false,
-  error,
-  suffix = "VND"
-}) {
-  const formatDisplay = (val) => {
-    if (val === void 0 || val === null || val === "") return "";
-    const num = Number(val);
-    if (isNaN(num)) return val;
-    return new Intl.NumberFormat("vi-VN").format(num);
-  };
-  const handleChange = (e) => {
-    const raw = e.target.value.replace(/[^0-9]/g, "");
-    const num = raw === "" ? "" : Number(raw);
-    onChange({
-      target: {
-        name,
-        value: num
-      }
-    });
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative rounded-md shadow-sm", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "input",
-      {
-        type: "text",
-        id: id2 || name,
-        name,
-        disabled,
-        required,
-        value: formatDisplay(value),
-        onChange: handleChange,
-        onBlur,
-        placeholder,
-        className: `block w-full rounded-lg border px-3 py-2.5 pr-14 text-right font-mono text-base font-semibold transition focus:outline-none focus:ring-2 ${disabled ? "bg-slate-100 text-slate-500 border-slate-300 cursor-not-allowed" : error ? "border-red-400 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-200" : "border-slate-300 bg-white text-slate-900 focus:border-blue-600 focus:ring-blue-100"}`
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs font-semibold text-slate-400 uppercase tracking-wider", children: suffix }) })
-  ] });
-}
-function AccountLookup({
-  id: id2,
-  name,
-  value,
-  onChange,
-  onBlur,
-  placeholder = "Enter 16-digit account number...",
-  disabled = false,
-  required = false,
-  error,
-  formData = {},
-  prefix = ""
-}) {
-  const holderName = formData[`${name}HolderName`] || formData[`${name}Name`] || (name.includes("source") ? formData.sourceAccountName : null) || (name.includes("dest") ? formData.destAccountName : null) || formData.accountHolderName || formData.customerName;
-  const availableBal = formData[`${name}AvailableBalance`] || (name.includes("source") ? formData.sourceAvailableBalance : null) || formData.availableBalance;
-  const currency = formData.currency || "VND";
-  const formatMoney = (amount) => {
-    if (amount === void 0 || amount === null) return "0";
-    return new Intl.NumberFormat("vi-VN").format(Number(amount));
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative rounded-md shadow-sm", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(CreditCard, { className: "h-5 w-5 text-slate-400" }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "input",
-        {
-          type: "text",
-          id: id2 || name,
-          name,
-          maxLength: 20,
-          disabled,
-          required,
-          value: value || "",
-          onChange,
-          onBlur,
-          placeholder,
-          className: `block w-full rounded-lg border py-2.5 pl-10 pr-3 font-mono text-sm tracking-wide transition focus:outline-none focus:ring-2 ${disabled ? "bg-slate-100 text-slate-500 border-slate-300 cursor-not-allowed" : error ? "border-red-400 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-200" : "border-slate-300 bg-white text-slate-900 focus:border-blue-600 focus:ring-blue-100"}`
-        }
-      )
-    ] }),
-    holderName && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50/70 px-3.5 py-2 text-xs text-emerald-900 animate-fadeIn", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheck, { className: "h-4 w-4 text-emerald-600 shrink-0" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-semibold uppercase tracking-wider text-emerald-800", children: holderName }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "rounded bg-emerald-200/80 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800", children: "ACTIVE" })
-      ] }),
-      availableBal !== void 0 && availableBal !== null && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-right", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-emerald-750 font-normal", children: "Available: " }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-mono font-bold text-emerald-900", children: [
-          formatMoney(availableBal),
-          " ",
-          currency
-        ] })
-      ] })
-    ] })
-  ] });
-}
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
@@ -12094,6 +11602,560 @@ apiClient.interceptors.response.use(
     return Promise.reject(new Error(errorMsg));
   }
 );
+const MODULES_MENU = [
+  {
+    id: "deposit",
+    name: "Deposit",
+    code: "DPT",
+    description: "Account inquiry & product catalogue",
+    children: [
+      {
+        formCode: "FORM_DPT_INFO",
+        title: "Account Information",
+        description: "Inquire CASA balance, ledger & statement"
+      },
+      {
+        formCode: "FORM_DPT_CATALOGUE",
+        title: "Catalogue Definition",
+        description: "Configure deposit product interest & GL"
+      }
+    ]
+  },
+  {
+    id: "cash",
+    name: "Cash",
+    code: "CSH",
+    description: "Teller counter cash transactions",
+    children: [
+      {
+        formCode: "FORM_CASH_DEP",
+        title: "Cash Deposit",
+        description: "Over-the-counter physical cash deposit"
+      },
+      {
+        formCode: "FORM_CASH_WDR",
+        title: "Cash Withdrawal",
+        description: "Over-the-counter physical cash withdrawal"
+      },
+      {
+        formCode: "FORM_TRF_INTERNAL",
+        title: "Internal Transfer",
+        description: "Account-to-account transfer with fee"
+      }
+    ]
+  },
+  {
+    id: "credit",
+    name: "Credit",
+    code: "CRD",
+    description: "Loan account, origination & catalogue",
+    children: [
+      {
+        formCode: "FORM_CRD_INFO",
+        title: "Account Information",
+        description: "Inquire loan contracts, balance & repayment schedule"
+      },
+      {
+        formCode: "FORM_CREDIT_ACCOUNT_OPEN",
+        title: "Open Credit Account",
+        description: "Originate, calculate EMI & approve loan contracts"
+      },
+      {
+        formCode: "FORM_CRD_CATALOGUE",
+        title: "Catalogue Definition",
+        description: "Configure credit product packages & interest margins"
+      }
+    ]
+  },
+  {
+    id: "customer",
+    name: "Customer",
+    code: "CUST",
+    description: "Customer profile, CIF 360 & onboarding",
+    children: [
+      {
+        formCode: "FORM_CUST_PROFILE",
+        title: "Customer Profile",
+        description: "CIF 360 inquiry & profile actions"
+      },
+      {
+        formCode: "FORM_CUST_CREATE",
+        title: "Register Customer",
+        description: "Onboard new individual or corporate CIF profile"
+      }
+    ]
+  },
+  {
+    id: "admin",
+    name: "Admin",
+    code: "ADM",
+    description: "System administration & cache management",
+    children: [
+      {
+        id: "clear-cache",
+        title: "Clear cache",
+        description: "Flush Redis cache & reload system CodeLists",
+        isAction: true
+      }
+    ]
+  }
+];
+function Header({
+  workingDate = "2026-11-05",
+  isCutoff = false,
+  branchCode = "001 - Head Office",
+  tellerId = "TELLER01",
+  shortcuts = [],
+  onOpenForm
+}) {
+  const [isMenuOpen, setIsMenuOpen] = reactExports.useState(false);
+  const [activeModuleId, setActiveModuleId] = reactExports.useState(null);
+  const [searchQuery, setSearchQuery] = reactExports.useState("");
+  const [isSearchOpen, setIsSearchOpen] = reactExports.useState(false);
+  const [cacheNotification, setCacheNotification] = reactExports.useState(null);
+  const [isClearingCache, setIsClearingCache] = reactExports.useState(false);
+  const searchInputRef = reactExports.useRef(null);
+  const menuRef = reactExports.useRef(null);
+  const searchRef = reactExports.useRef(null);
+  const handleClearCache = async () => {
+    var _a, _b, _c;
+    setIsClearingCache(true);
+    setIsMenuOpen(false);
+    setActiveModuleId(null);
+    try {
+      const res = await apiClient.post("/admin/cache/clear");
+      setCacheNotification({
+        type: "success",
+        message: ((_a = res.data) == null ? void 0 : _a.message) || "Cache cleared and CodeLists refreshed successfully!"
+      });
+    } catch (err) {
+      setCacheNotification({
+        type: "error",
+        message: ((_c = (_b = err.response) == null ? void 0 : _b.data) == null ? void 0 : _c.message) || err.message || "Failed to clear cache"
+      });
+    } finally {
+      setIsClearingCache(false);
+      setTimeout(() => setCacheNotification(null), 4e3);
+    }
+  };
+  reactExports.useEffect(() => {
+    const handleKeyDown = (e) => {
+      var _a;
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        (_a = searchInputRef.current) == null ? void 0 : _a.focus();
+        setIsSearchOpen(true);
+      } else if (e.key === "Escape") {
+        setIsSearchOpen(false);
+        setIsMenuOpen(false);
+        setActiveModuleId(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+  reactExports.useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setIsMenuOpen(false);
+        setActiveModuleId(null);
+      }
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  const filteredShortcuts = searchQuery.trim() ? shortcuts.filter((sc2) => {
+    const q2 = searchQuery.toLowerCase();
+    return sc2.formName.toLowerCase().includes(q2) || sc2.keywords.toLowerCase().includes(q2) || sc2.formCode.toLowerCase().includes(q2) || sc2.module.toLowerCase().includes(q2);
+  }) : shortcuts.slice(0, 6);
+  const handleSelectShortcut = (shortcut) => {
+    if (onOpenForm) {
+      onOpenForm(shortcut.formCode, shortcut.formName);
+    }
+    setSearchQuery("");
+    setIsSearchOpen(false);
+  };
+  const handleOpenNamedForm = (formCode, formName) => {
+    if (onOpenForm) {
+      onOpenForm(formCode, formName);
+    }
+    setIsMenuOpen(false);
+    setActiveModuleId(null);
+  };
+  const selectedModuleObj = MODULES_MENU.find((m2) => m2.id === activeModuleId);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("header", { className: "sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-xs", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mx-auto flex min-w-4xl w-full max-w-full items-center justify-between px-4 py-2.5 sm:px-6 gap-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", ref: menuRef, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              type: "button",
+              onClick: () => {
+                if (isMenuOpen) {
+                  setIsMenuOpen(false);
+                  setActiveModuleId(null);
+                } else {
+                  setIsMenuOpen(true);
+                  setActiveModuleId(null);
+                }
+              },
+              className: `flex h-10 w-10 items-center justify-center rounded-xl border transition ${isMenuOpen ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900"}`,
+              title: "Modules & Services Menu",
+              children: isMenuOpen ? /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "h-5 w-5" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Menu, { className: "h-5 w-5" })
+            }
+          ),
+          isMenuOpen && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "absolute left-0 mt-2 min-w-[300px] w-full rounded-lg border border-slate-200 bg-white shadow-2xl animate-fadeIn z-50", children: [
+            activeModuleId ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center justify-between border-b border-slate-100 pb-2 pt-2 px-1", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "button",
+              {
+                type: "button",
+                onClick: () => setActiveModuleId(null),
+                className: "flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-blue-700 transition group",
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowLeft, { className: "h-4 w-4 text-slate-500 group-hover:text-blue-600 group-hover:-translate-x-0.5 transition" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Back" })
+                ]
+              }
+            ) }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 text-xs", children: activeModuleId && selectedModuleObj ? (
+              /* CHILDREN MENU */
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1.5 animate-fadeIn", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "px-2 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center space-x-1.5", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+                  selectedModuleObj.name,
+                  " Services"
+                ] }) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1", children: selectedModuleObj.children.map((child) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => {
+                      if (child.isAction || child.id === "clear-cache") {
+                        handleClearCache();
+                      } else {
+                        handleOpenNamedForm(child.formCode, child.title);
+                      }
+                    },
+                    className: "w-full text-left p-2.5 hover:bg-blue-50/70 transition flex items-center justify-between group border border-transparent hover:border-blue-100",
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-0.5", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "font-semibold text-slate-800 text-xs group-hover:text-blue-900 flex items-center space-x-2", children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: child.title }),
+                          child.badge && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `rounded px-1.5 py-0.2 text-[9px] font-bold ${child.badgeColor}`, children: child.badge })
+                        ] }),
+                        child.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[10px] text-slate-400", children: child.description })
+                      ] }),
+                      child.isAction ? /* @__PURE__ */ jsxRuntimeExports.jsx(RotateCcw, { className: "h-3.5 w-3.5 text-slate-400 group-hover:text-blue-600 shrink-0 ml-2" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { className: "h-4 w-4 text-slate-300 group-hover:text-blue-600 shrink-0 ml-2 transition group-hover:translate-x-0.5" })
+                    ]
+                  },
+                  child.formCode || child.id
+                )) })
+              ] })
+            ) : (
+              /* PARENT MENU */
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1 animate-fadeIn", children: MODULES_MENU.map((mod) => {
+                return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => setActiveModuleId(mod.id),
+                    className: "w-full text-left p-2.5 hover:bg-blue-50/70 transition flex items-center justify-between group border border-transparent hover:border-blue-100",
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-bold text-slate-800 text-xs group-hover:text-blue-900 flex items-center space-x-1.5", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: mod.name }) }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { className: "h-4 w-4 text-slate-300 group-hover:text-blue-600 shrink-0 ml-2 transition group-hover:translate-x-0.5" })
+                    ]
+                  },
+                  mod.id
+                );
+              }) })
+            ) })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2.5", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-900 to-indigo-700 text-white shadow-md shadow-blue-950/20", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Landmark, { className: "h-4.5 w-4.5" }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "hidden sm:block", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-1.5", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-sm font-black tracking-tight text-slate-900", children: "CBS CORE" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "rounded bg-blue-100 px-1.5 py-0.2 text-[9px] font-bold text-blue-800", children: "v2.0" })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[10px] text-slate-400 font-medium", children: "Terminal Portal" })
+          ] })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative flex-1 max-w-md mx-2", ref: searchRef, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { className: "h-4 w-4 text-slate-400" }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              ref: searchInputRef,
+              type: "text",
+              value: searchQuery,
+              onChange: (e) => {
+                setSearchQuery(e.target.value);
+                setIsSearchOpen(true);
+              },
+              onFocus: () => setIsSearchOpen(true),
+              placeholder: "Search FO transactions, BO catalogues (e.g. cash, deposit, loan)...",
+              className: "w-full rounded-xl border border-slate-300 bg-slate-50 py-1.5 pl-9 pr-14 text-xs font-medium text-slate-800 placeholder-slate-400 transition focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("kbd", { className: "rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[9px] font-mono text-slate-400 shadow-2xs", children: "Ctrl K" }) })
+        ] }),
+        isSearchOpen && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "absolute left-0 mt-2 w-full rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl animate-fadeIn z-50", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: searchQuery.trim() ? "Matching Shortcuts" : "Quick Actions" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-[9px] font-mono", children: [
+              filteredShortcuts.length,
+              " results"
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-1 max-h-64 overflow-y-auto divide-y divide-slate-100", children: filteredShortcuts.length > 0 ? filteredShortcuts.map((sc2) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "button",
+            {
+              type: "button",
+              onClick: () => handleSelectShortcut(sc2),
+              className: "w-full text-left rounded-lg p-2 hover:bg-blue-50/70 transition flex items-center justify-between group",
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2.5", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600 group-hover:bg-blue-600 group-hover:text-white transition", children: /* @__PURE__ */ jsxRuntimeExports.jsx(FileText, { className: "h-3.5 w-3.5" }) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-semibold text-slate-800 text-xs group-hover:text-blue-900", children: sc2.formName }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-[10px] font-mono text-slate-400", children: sc2.formCode })
+                  ] })
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-1.5", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "span",
+                    {
+                      className: `rounded px-1.5 py-0.5 text-[9px] font-bold ${sc2.category === "FO_TRANSACTION" ? "bg-emerald-100 text-emerald-800" : sc2.category === "BO_CATALOGUE" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"}`,
+                      children: sc2.category === "FO_TRANSACTION" ? "FO" : sc2.category === "BO_CATALOGUE" ? "BO" : "INQ"
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[9px] font-mono text-slate-400 font-semibold", children: sc2.module })
+                ] })
+              ]
+            },
+            sc2.shortcutCode
+          )) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-4 text-center text-xs text-slate-400", children: [
+            'No matching forms found for "',
+            searchQuery,
+            '"'
+          ] }) })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-3 shrink-0", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "hidden md:flex items-center space-x-1.5 rounded-lg border border-slate-200 bg-slate-50/80 px-2.5 py-1 text-xs", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { className: "h-3.5 w-3.5 text-slate-500" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-slate-400", children: "Date:" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono font-bold text-slate-800", children: workingDate })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            className: `flex items-center space-x-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${isCutoff ? "bg-amber-100 text-amber-900 border border-amber-200" : "bg-emerald-100 text-emerald-900 border border-emerald-200"}`,
+            children: isCutoff ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { className: "h-3 w-3 text-amber-600 animate-pulse" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "CUTOFF" })
+            ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheck, { className: "h-3 w-3 text-emerald-600" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "ONLINE" })
+            ] })
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2 border-l border-slate-200 pl-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-600 border border-slate-200", children: /* @__PURE__ */ jsxRuntimeExports.jsx(User, { className: "h-3.5 w-3.5" }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "hidden lg:block text-left text-xs leading-tight", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-bold text-slate-800", children: tellerId }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-[9px] text-slate-400", children: branchCode })
+          ] })
+        ] })
+      ] })
+    ] }),
+    cacheNotification && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "fixed top-16 right-6 z-50 animate-fadeIn", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        className: `flex items-center space-x-2.5 rounded-xl border px-4 py-2.5 shadow-xl text-xs font-semibold ${cacheNotification.type === "success" ? "bg-emerald-50 text-emerald-900 border-emerald-200" : "bg-red-50 text-red-900 border-red-200"}`,
+        children: [
+          cacheNotification.type === "success" ? /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheck, { className: "h-4 w-4 text-emerald-600 shrink-0" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { className: "h-4 w-4 text-red-600 shrink-0" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: cacheNotification.message })
+        ]
+      }
+    ) }),
+    isClearingCache && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "fixed top-16 right-6 z-50 animate-fadeIn", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2.5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 shadow-xl text-xs font-semibold text-blue-900", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { className: "h-4 w-4 animate-spin text-blue-600 shrink-0" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Clearing Redis cache and warming CodeLists..." })
+    ] }) })
+  ] });
+}
+function WorkspaceTabs({
+  tabs = [],
+  activeTabId,
+  onSelectTab,
+  onCloseTab,
+  onCloseOtherTabs,
+  onCloseAllTabs
+}) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between border-b border-slate-200 bg-slate-100/80 px-2 pt-2 select-none overflow-x-auto", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center space-x-1 overflow-x-auto scrollbar-none py-0.5", children: tabs.map((tab) => {
+      const isActive = tab.id === activeTabId;
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
+        {
+          onClick: () => onSelectTab(tab.id),
+          className: `group relative flex items-center space-x-2 rounded-t-xl px-3.5 py-2 text-xs font-bold transition cursor-pointer border-t border-x ${isActive ? "bg-white text-blue-900 border-slate-200 shadow-xs" : "bg-slate-200/70 text-slate-600 border-transparent hover:bg-slate-200 hover:text-slate-900"}`,
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(FileText, { className: `h-3.5 w-3.5 shrink-0 ${isActive ? "text-blue-700" : "text-slate-400"}` }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "truncate max-w-[140px] tracking-tight", children: tab.title }),
+            tab.isDirty && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0", title: "Unsaved changes" }),
+            tabs.length > 1 && /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                type: "button",
+                onClick: (e) => {
+                  e.stopPropagation();
+                  onCloseTab(tab.id);
+                },
+                className: "rounded-md p-0.5 text-slate-400 hover:bg-slate-200 hover:text-slate-800 transition",
+                title: "Close tab",
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "h-3 w-3" })
+              }
+            )
+          ]
+        },
+        tab.id
+      );
+    }) }),
+    tabs.length > 1 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2 pb-1 text-[11px] text-slate-500 font-medium", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
+          type: "button",
+          onClick: onCloseOtherTabs,
+          className: "hover:text-slate-900 transition underline underline-offset-2",
+          children: "Close Others"
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "•" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
+          type: "button",
+          onClick: onCloseAllTabs,
+          className: "hover:text-red-600 transition underline underline-offset-2",
+          children: "Close All"
+        }
+      )
+    ] })
+  ] });
+}
+function CurrencyInput({
+  id: id2,
+  name,
+  value,
+  onChange,
+  onBlur,
+  placeholder = "0",
+  disabled = false,
+  required = false,
+  error,
+  suffix = "VND"
+}) {
+  const formatDisplay = (val) => {
+    if (val === void 0 || val === null || val === "") return "";
+    const num = Number(val);
+    if (isNaN(num)) return val;
+    return new Intl.NumberFormat("vi-VN").format(num);
+  };
+  const handleChange = (e) => {
+    const raw = e.target.value.replace(/[^0-9]/g, "");
+    const num = raw === "" ? "" : Number(raw);
+    onChange({
+      target: {
+        name,
+        value: num
+      }
+    });
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative rounded-md shadow-sm", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "input",
+      {
+        type: "text",
+        id: id2 || name,
+        name,
+        disabled,
+        required,
+        value: formatDisplay(value),
+        onChange: handleChange,
+        onBlur,
+        placeholder,
+        className: `block w-full rounded-lg border px-3 py-2.5 pr-14 text-right font-mono text-base font-semibold transition focus:outline-none focus:ring-2 ${disabled ? "bg-slate-100 text-slate-500 border-slate-300 cursor-not-allowed" : error ? "border-red-400 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-200" : "border-slate-300 bg-white text-slate-900 focus:border-blue-600 focus:ring-blue-100"}`
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs font-semibold text-slate-400 uppercase tracking-wider", children: suffix }) })
+  ] });
+}
+function AccountLookup({
+  id: id2,
+  name,
+  value,
+  onChange,
+  onBlur,
+  placeholder = "Enter 16-digit account number...",
+  disabled = false,
+  required = false,
+  error,
+  formData = {},
+  prefix = ""
+}) {
+  const holderName = formData[`${name}HolderName`] || formData[`${name}Name`] || (name.includes("source") ? formData.sourceAccountName : null) || (name.includes("dest") ? formData.destAccountName : null) || formData.accountHolderName || formData.customerName;
+  const availableBal = formData[`${name}AvailableBalance`] || (name.includes("source") ? formData.sourceAvailableBalance : null) || formData.availableBalance;
+  const currency = formData.currency || "VND";
+  const formatMoney = (amount) => {
+    if (amount === void 0 || amount === null) return "0";
+    return new Intl.NumberFormat("vi-VN").format(Number(amount));
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative rounded-md shadow-sm", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(CreditCard, { className: "h-5 w-5 text-slate-400" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          type: "text",
+          id: id2 || name,
+          name,
+          maxLength: 20,
+          disabled,
+          required,
+          value: value || "",
+          onChange,
+          onBlur,
+          placeholder,
+          className: `block w-full rounded-lg border py-2.5 pl-10 pr-3 font-mono text-sm tracking-wide transition focus:outline-none focus:ring-2 ${disabled ? "bg-slate-100 text-slate-500 border-slate-300 cursor-not-allowed" : error ? "border-red-400 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-200" : "border-slate-300 bg-white text-slate-900 focus:border-blue-600 focus:ring-blue-100"}`
+        }
+      )
+    ] }),
+    holderName && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50/70 px-3.5 py-2 text-xs text-emerald-900 animate-fadeIn", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheck, { className: "h-4 w-4 text-emerald-600 shrink-0" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-semibold uppercase tracking-wider text-emerald-800", children: holderName }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "rounded bg-emerald-200/80 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800", children: "ACTIVE" })
+      ] }),
+      availableBal !== void 0 && availableBal !== null && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-right", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-emerald-750 font-normal", children: "Available: " }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-mono font-bold text-emerald-900", children: [
+          formatMoney(availableBal),
+          " ",
+          currency
+        ] })
+      ] })
+    ] })
+  ] });
+}
 function CodeListSelect({
   id: id2,
   name,
@@ -12834,49 +12896,56 @@ function LookupModal({
     };
   }, [isOpen, modalFormCode]);
   if (!isOpen) return null;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn mt-0!", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl border border-slate-200", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between border-b border-slate-200 pb-3 mb-4", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-[10px] font-mono font-bold uppercase tracking-wider text-blue-600", children: [
-          "Lookup Directory • ",
-          modalFormCode
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      style: { margin: 0 },
+      className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn m-0",
+      children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl border border-slate-200", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between border-b border-slate-200 pb-3 mb-4", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-[10px] font-mono font-bold uppercase tracking-wider text-blue-600", children: [
+              "Lookup Directory • ",
+              modalFormCode
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-base font-bold text-slate-900", children: title || (schema == null ? void 0 : schema.title) || "Catalogue Lookup" })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              type: "button",
+              onClick: onClose,
+              className: "rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition",
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "h-5 w-5" })
+            }
+          )
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-base font-bold text-slate-900", children: title || (schema == null ? void 0 : schema.title) || "Catalogue Lookup" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "button",
-        {
-          type: "button",
-          onClick: onClose,
-          className: "rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition",
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "h-5 w-5" })
-        }
-      )
-    ] }),
-    isLoading && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex h-64 flex-col items-center justify-center space-y-3", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { className: "h-8 w-8 animate-spin text-blue-600" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs font-medium text-slate-500", children: [
-        "Loading ",
-        modalFormCode,
-        " from Core Banking Catalog..."
+        isLoading && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex h-64 flex-col items-center justify-center space-y-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { className: "h-8 w-8 animate-spin text-blue-600" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs font-medium text-slate-500", children: [
+            "Loading ",
+            modalFormCode,
+            " from Core Banking Catalog..."
+          ] })
+        ] }),
+        errorMessage && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-start space-x-3 rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-800", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { className: "h-4 w-4 text-red-500 shrink-0 mt-0.5" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: errorMessage })
+        ] }),
+        !isLoading && !errorMessage && schema && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          GenericSearchWidget,
+          {
+            schema,
+            modalMode: true,
+            onSelectRecord: (record) => {
+              if (onSelectRecord) onSelectRecord(record);
+              onClose();
+            }
+          }
+        )
       ] })
-    ] }),
-    errorMessage && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-start space-x-3 rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-800", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { className: "h-4 w-4 text-red-500 shrink-0 mt-0.5" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: errorMessage })
-    ] }),
-    !isLoading && !errorMessage && schema && /* @__PURE__ */ jsxRuntimeExports.jsx(
-      GenericSearchWidget,
-      {
-        schema,
-        modalMode: true,
-        onSelectRecord: (record) => {
-          if (onSelectRecord) onSelectRecord(record);
-          onClose();
-        }
-      }
-    )
-  ] }) });
+    }
+  );
 }
 function DynamicForm({
   schema,
@@ -13299,7 +13368,7 @@ function ReceiptModal({ isOpen, onClose, receipt }) {
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-6 space-y-4 bg-white text-black print:p-0", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center space-y-1 border-b-2 border-dashed border-black pb-4", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-lg font-black tracking-wider text-black", children: "CORE BANKING SYSTEM" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs font-bold uppercase tracking-widest text-black", children: "DEPOSIT RECEIPT / GIẤY NỘP TIỀN" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs font-bold uppercase tracking-widest text-black", children: "DEPOSIT RECEIPT" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[11px] text-black", children: "Branch: VN001 • Counter Transaction Advice" })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `px-4 py-1 border-2 border-black text-xs font-black tracking-widest ${isSuccess ? "bg-black text-white" : "bg-white text-black"}`, children: [
@@ -13336,19 +13405,19 @@ function ReceiptModal({ isOpen, onClose, receipt }) {
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right uppercase", children: receipt.accountHolderName || receipt.customerName || "N/A" })
         ] })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border-2 border-black p-3 text-center bg-white space-y-1", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-[11px] font-bold uppercase tracking-wider text-black", children: "TRANSACTION AMOUNT" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-2xl font-black text-black tracking-tight", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Transaction Amount:" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-black font-bold", children: [
           formatMoney(amountVal),
           " ",
           currencyVal
-        ] }),
-        receipt.feeAmount !== void 0 && Number(receipt.feeAmount) > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-[11px] text-black", children: [
-          "Fee: +",
-          formatMoney(receipt.feeAmount),
-          " ",
-          currencyVal
         ] })
+      ] }),
+      receipt.feeAmount !== void 0 && Number(receipt.feeAmount) > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-[11px] text-black", children: [
+        "Fee: +",
+        formatMoney(receipt.feeAmount),
+        " ",
+        currencyVal
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1.5 border-b border-dashed border-black pb-3 text-xs", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
@@ -13385,16 +13454,6 @@ function ReceiptModal({ isOpen, onClose, receipt }) {
             leg.currency || currencyVal
           ] })
         ] }, idx)) })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "pt-2 grid grid-cols-2 gap-4 text-center text-xs", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-12", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold block text-black", children: "CUSTOMER / DEPOSITOR" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "block text-[11px] text-black italic", children: "(Signature)" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-12", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold block text-black", children: "TELLER / CASHIER" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "block text-[11px] text-black italic", children: "TELLER01 (Signed & Stamped)" })
-        ] })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center text-[10px] text-black pt-3 border-t-2 border-dashed border-black space-y-0.5", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-bold", children: "*** PLEASE RETAIN THIS RECEIPT FOR YOUR RECORDS ***" }),
@@ -14320,4 +14379,4 @@ function App() {
 client.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-CMj_FMOE.js.map
+//# sourceMappingURL=index-DcPrQfjB.js.map
