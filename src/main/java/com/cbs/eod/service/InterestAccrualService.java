@@ -1,13 +1,13 @@
 package com.cbs.eod.service;
 
-import com.cbs.account.domain.Account;
-import com.cbs.account.domain.DptProductCatalog;
-import com.cbs.account.repository.AccountRepository;
-import com.cbs.account.repository.DptProductCatalogRepository;
-import com.cbs.accounting.dto.JournalLeg;
-import com.cbs.accounting.dto.PostingRequest;
-import com.cbs.accounting.dto.PostingResult;
-import com.cbs.accounting.service.PostingEngineService;
+import com.cbs.deposit.domain.Account;
+import com.cbs.deposit.domain.DptProductCatalog;
+import com.cbs.deposit.repository.AccountRepository;
+import com.cbs.deposit.repository.DptProductCatalogRepository;
+import com.cbs.depositing.dto.JournalLeg;
+import com.cbs.depositing.dto.PostingRequest;
+import com.cbs.depositing.dto.PostingResult;
+import com.cbs.depositing.service.PostingEngineService;
 import com.cbs.admin.service.WorkingDateService;
 import com.cbs.common.exception.DuplicateAccrualException;
 import com.cbs.eod.dto.AccountAccrualDetail;

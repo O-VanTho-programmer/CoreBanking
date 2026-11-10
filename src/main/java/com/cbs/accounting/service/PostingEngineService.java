@@ -1,10 +1,10 @@
-package com.cbs.accounting.service;
+package com.cbs.depositing.service;
 
-import com.cbs.accounting.domain.AccountingRuleDefinition;
-import com.cbs.accounting.dto.JournalLeg;
-import com.cbs.accounting.dto.PostingRequest;
-import com.cbs.accounting.dto.PostingResult;
-import com.cbs.accounting.repository.AccountingRuleRepository;
+import com.cbs.depositing.domain.AccountingRuleDefinition;
+import com.cbs.depositing.dto.JournalLeg;
+import com.cbs.depositing.dto.PostingRequest;
+import com.cbs.depositing.dto.PostingResult;
+import com.cbs.depositing.repository.AccountingRuleRepository;
 import com.cbs.common.exception.AccountingRuleNotFoundException;
 import com.cbs.common.exception.UnbalancedTransactionException;
 import lombok.RequiredArgsConstructor;

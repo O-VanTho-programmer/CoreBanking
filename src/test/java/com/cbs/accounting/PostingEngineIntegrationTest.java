@@ -1,8 +1,8 @@
-package com.cbs.accounting;
+package com.cbs.depositing;
 
-import com.cbs.accounting.dto.PostingRequest;
-import com.cbs.accounting.dto.PostingResult;
-import com.cbs.accounting.service.PostingEngineService;
+import com.cbs.depositing.dto.PostingRequest;
+import com.cbs.depositing.dto.PostingResult;
+import com.cbs.depositing.service.PostingEngineService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

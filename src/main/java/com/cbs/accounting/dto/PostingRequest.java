@@ -1,4 +1,4 @@
-package com.cbs.accounting.dto;
+package com.cbs.depositing.dto;
 
 import lombok.Builder;
 

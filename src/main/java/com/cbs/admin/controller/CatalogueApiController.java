@@ -1,7 +1,7 @@
 package com.cbs.admin.controller;
 
-import com.cbs.account.domain.DptProductCatalog;
-import com.cbs.account.repository.DptProductCatalogRepository;
+import com.cbs.deposit.domain.DptProductCatalog;
+import com.cbs.deposit.repository.DptProductCatalogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

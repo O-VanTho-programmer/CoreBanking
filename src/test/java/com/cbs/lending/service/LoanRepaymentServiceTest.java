@@ -1,11 +1,11 @@
 package com.cbs.lending.service;
 
-import com.cbs.account.domain.Account;
-import com.cbs.account.repository.AccountRepository;
-import com.cbs.accounting.dto.JournalLeg;
-import com.cbs.accounting.dto.PostingRequest;
-import com.cbs.accounting.dto.PostingResult;
-import com.cbs.accounting.service.PostingEngineService;
+import com.cbs.deposit.domain.Account;
+import com.cbs.deposit.repository.AccountRepository;
+import com.cbs.depositing.dto.JournalLeg;
+import com.cbs.depositing.dto.PostingRequest;
+import com.cbs.depositing.dto.PostingResult;
+import com.cbs.depositing.service.PostingEngineService;
 import com.cbs.admin.service.WorkingDateService;
 import com.cbs.lending.domain.LoanAccount;
 import com.cbs.lending.domain.LoanSchedule;

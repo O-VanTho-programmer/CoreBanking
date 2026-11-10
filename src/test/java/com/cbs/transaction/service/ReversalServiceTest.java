@@ -1,7 +1,7 @@
 package com.cbs.transaction.service;
 
-import com.cbs.account.domain.Account;
-import com.cbs.account.repository.AccountRepository;
+import com.cbs.deposit.domain.Account;
+import com.cbs.deposit.repository.AccountRepository;
 import com.cbs.admin.service.WorkingDateService;
 import com.cbs.common.exception.*;
 import com.cbs.transaction.domain.JournalEntryActive;

@@ -1,6 +1,6 @@
-package com.cbs.accounting.repository;
+package com.cbs.depositing.repository;
 
-import com.cbs.accounting.domain.AccountMapping;
+import com.cbs.depositing.domain.AccountMapping;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

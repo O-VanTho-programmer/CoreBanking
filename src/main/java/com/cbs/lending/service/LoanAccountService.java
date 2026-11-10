@@ -1,7 +1,7 @@
 package com.cbs.lending.service;
 
-import com.cbs.account.domain.Account;
-import com.cbs.account.repository.AccountRepository;
+import com.cbs.deposit.domain.Account;
+import com.cbs.deposit.repository.AccountRepository;
 import com.cbs.common.codelist.service.CodeListService;
 import com.cbs.common.exception.AccountNotFoundException;
 import com.cbs.common.exception.CustomerNotFoundException;

@@ -1,9 +1,9 @@
 package com.cbs.transaction;
 
-import com.cbs.account.domain.Account;
-import com.cbs.account.dto.OpenAccountCommand;
-import com.cbs.account.repository.AccountRepository;
-import com.cbs.account.service.AccountService;
+import com.cbs.deposit.domain.Account;
+import com.cbs.deposit.dto.OpenAccountCommand;
+import com.cbs.deposit.repository.AccountRepository;
+import com.cbs.deposit.service.AccountService;
 import com.cbs.customer.domain.Customer;
 import com.cbs.customer.dto.CreateCustomerCommand;
 import com.cbs.customer.service.CustomerService;

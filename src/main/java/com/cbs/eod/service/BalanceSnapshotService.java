@@ -1,9 +1,9 @@
 package com.cbs.eod.service;
 
-import com.cbs.account.domain.Account;
-import com.cbs.account.domain.DptProductCatalog;
-import com.cbs.account.repository.AccountRepository;
-import com.cbs.account.repository.DptProductCatalogRepository;
+import com.cbs.deposit.domain.Account;
+import com.cbs.deposit.domain.DptProductCatalog;
+import com.cbs.deposit.repository.AccountRepository;
+import com.cbs.deposit.repository.DptProductCatalogRepository;
 import com.cbs.admin.service.WorkingDateService;
 import com.cbs.common.exception.DuplicateSnapshotException;
 import com.cbs.eod.domain.AccountBalanceBucket;

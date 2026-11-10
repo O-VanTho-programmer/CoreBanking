@@ -1,6 +1,6 @@
 package com.cbs.eod.service;
 
-import com.cbs.account.repository.AccountRepository;
+import com.cbs.deposit.repository.AccountRepository;
 import com.cbs.admin.service.WorkingDateService;
 import com.cbs.common.exception.SubledgerGlDiscrepancyException;
 import com.cbs.common.exception.TrialBalanceImbalanceException;

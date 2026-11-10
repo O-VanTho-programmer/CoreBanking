@@ -1,12 +1,12 @@
 package com.cbs.transaction;
 
-import com.cbs.account.domain.Account;
-import com.cbs.account.domain.AccountHold;
-import com.cbs.account.dto.OpenAccountCommand;
-import com.cbs.account.dto.PlaceHoldCommand;
-import com.cbs.account.repository.AccountRepository;
-import com.cbs.account.service.AccountService;
-import com.cbs.account.service.HoldService;
+import com.cbs.deposit.domain.Account;
+import com.cbs.deposit.domain.AccountHold;
+import com.cbs.deposit.dto.OpenAccountCommand;
+import com.cbs.deposit.dto.PlaceHoldCommand;
+import com.cbs.deposit.repository.AccountRepository;
+import com.cbs.deposit.service.AccountService;
+import com.cbs.deposit.service.HoldService;
 import com.cbs.common.exception.CannotReverseReversalException;
 import com.cbs.common.exception.InsufficientFundsException;
 import com.cbs.common.exception.TransactionAlreadyReversedException;

@@ -1,4 +1,4 @@
-package com.cbs.accounting.domain;
+package com.cbs.depositing.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
