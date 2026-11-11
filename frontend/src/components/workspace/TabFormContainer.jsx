@@ -21,6 +21,16 @@ export default function TabFormContainer({
   const [successMessage, setSuccessMessage] = useState(null);
   const [receipt, setReceipt] = useState(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedJournal, setSubmittedJournal] = useState(null);
+
+  const handleResetForm = () => {
+    setSubmittedJournal(null);
+    setIsSubmitted(false);
+    setReceipt(null);
+    setSuccessMessage(null);
+    setErrorMessage(null);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -78,7 +88,8 @@ export default function TabFormContainer({
         resReceipt = {
           ...depReceipt,
           amount: depReceipt.amount ?? depReceipt.totalAmount ?? Number(formData.amount),
-          trxType: 'Cash',
+          trxType: 'Cash Deposit',
+          voucherKind: 'DEPOSIT',
           trxNumber: depReceipt.trxNumber || `TRX-${depReceipt.trxId}`,
           journalId: depReceipt.journalId || (depReceipt.journalEntryIds?.length ? depReceipt.journalEntryIds.join(', ') : (depReceipt.trxId ? `JRN-${depReceipt.trxId}` : 'N/A')),
           accountNumber: formData.accountNumber,
@@ -115,7 +126,8 @@ export default function TabFormContainer({
         resReceipt = {
           ...wdrReceipt,
           amount: wdrReceipt.amount ?? wdrReceipt.totalAmount ?? Number(formData.amount),
-          trxType: 'Cash',
+          trxType: 'Cash Withdrawal',
+          voucherKind: 'WITHDRAWAL',
           trxNumber: wdrReceipt.trxNumber || `TRX-${wdrReceipt.trxId}`,
           journalId: wdrReceipt.journalId || (wdrReceipt.journalEntryIds?.length ? wdrReceipt.journalEntryIds.join(', ') : (wdrReceipt.trxId ? `JRN-${wdrReceipt.trxId}` : 'N/A')),
           accountNumber: formData.accountNumber,
@@ -148,7 +160,8 @@ export default function TabFormContainer({
         resReceipt = {
           ...trfReceipt,
           amount: trfReceipt.amount ?? trfReceipt.totalAmount ?? Number(formData.amount),
-          trxType: 'Transfer',
+          trxType: 'Internal Transfer',
+          voucherKind: 'TRANSFER',
           trxNumber: trfReceipt.trxNumber || `TRX-${trfReceipt.trxId}`,
           journalId: trfReceipt.journalId || (trfReceipt.journalEntryIds?.length ? trfReceipt.journalEntryIds.join(', ') : (trfReceipt.trxId ? `JRN-${trfReceipt.trxId}` : 'N/A')),
           sourceAccountNumber: formData.fromAccountNumber || formData.sourceAccountNumber,
@@ -243,6 +256,14 @@ export default function TabFormContainer({
       if (resReceipt) {
         setReceipt(resReceipt);
         setIsReceiptOpen(true);
+        if (resReceipt.legs && resReceipt.legs.length > 0) {
+          setSubmittedJournal({
+            trxNumber: resReceipt.trxNumber || resReceipt.trxId,
+            timestamp: resReceipt.timestamp,
+            legs: resReceipt.legs,
+          });
+        }
+        setIsSubmitted(true);
       }
 
       if (onTransactionSuccess) onTransactionSuccess();
@@ -302,7 +323,11 @@ export default function TabFormContainer({
         initialData={tab.initialParams || {}}
         onSubmit={handleSubmit}
         onNavigate={onNavigate}
+        onReset={handleResetForm}
         isSubmitting={isSubmitting}
+        isSubmitted={isSubmitted}
+        journalLegs={submittedJournal?.legs}
+        journalMetadata={submittedJournal}
         submitLabel="Submit"
       />
 

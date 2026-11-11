@@ -7436,6 +7436,22 @@ const Search = createLucideIcon("Search", [
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
+const Send = createLucideIcon("Send", [
+  [
+    "path",
+    {
+      d: "M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z",
+      key: "1ffxy3"
+    }
+  ],
+  ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
+]);
+/**
+ * @license lucide-react v0.453.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
 const ShieldCheck = createLucideIcon("ShieldCheck", [
   [
     "path",
@@ -13001,7 +13017,11 @@ function DynamicForm({
   initialData = {},
   onSubmit,
   onNavigate,
+  onReset,
   isSubmitting = false,
+  isSubmitted = false,
+  journalLegs = null,
+  journalMetadata = null,
   submitLabel = "Submit"
 }) {
   var _a;
@@ -13097,12 +13117,13 @@ function DynamicForm({
     }
   }, [schema, triggerEvaluation]);
   const handleOpenLookup = reactExports.useCallback((modalFormCode, field) => {
+    if (isSubmitted || isSubmitting) return;
     setLookupModalState({
       isOpen: true,
       modalFormCode,
       field
     });
-  }, []);
+  }, [isSubmitted, isSubmitting]);
   const handleSelectLookupRecord = reactExports.useCallback(
     (record) => {
       const field = lookupModalState.field;
@@ -13253,7 +13274,7 @@ function DynamicForm({
         onChange: handleChange,
         onBlur: handleBlur,
         error: errors[field.name],
-        disabled: disabledFields.has(field.name) || Boolean(field.readOnly || field.readonly || field.read_only) || isSubmitting,
+        disabled: isSubmitted || disabledFields.has(field.name) || Boolean(field.readOnly || field.readonly || field.read_only) || isSubmitting,
         formData,
         onOpenLookup: handleOpenLookup
       },
@@ -13267,7 +13288,7 @@ function DynamicForm({
       ] })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5", children: schema.actions && schema.actions.length > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap gap-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap gap-2 items-center", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           "button",
           {
@@ -13275,13 +13296,14 @@ function DynamicForm({
             onClick: () => {
               const defaults2 = {};
               (schema.fields || []).forEach((f2) => {
-                defaults2[f2.name] = "";
+                defaults2[f2.name] = f2.defaultValue ?? "";
               });
               setFormData(defaults2);
               setErrors({});
+              if (onReset) onReset();
             },
             disabled: isSubmitting,
-            className: "rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition",
+            className: `rounded-lg border px-4 py-2 text-xs font-bold transition ${isSubmitted ? "border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 ring-2 ring-blue-200 shadow-xs cursor-pointer" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50"}`,
             children: "Reset"
           }
         ),
@@ -13290,7 +13312,7 @@ function DynamicForm({
           {
             type: "button",
             onClick: () => handleActionClick(action),
-            disabled: isSubmitting || isEvaluating,
+            disabled: isSubmitting || isEvaluating || isSubmitted,
             className: `rounded-lg px-4 py-2 text-xs font-semibold shadow-xs transition disabled:opacity-50 ${action.style === "primary" ? "bg-blue-600 text-white hover:bg-blue-700" : action.style === "danger" ? "bg-red-600 text-white hover:bg-red-700" : "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50"}`,
             children: action.label
           },
@@ -13302,8 +13324,8 @@ function DynamicForm({
         {
           type: "button",
           onClick: () => handleActionClick(action),
-          disabled: isSubmitting || isEvaluating,
-          className: "inline-flex items-center space-x-2 rounded-lg bg-blue-700 px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-blue-800 disabled:opacity-50 transition",
+          disabled: isSubmitting || isEvaluating || isSubmitted,
+          className: `inline-flex items-center space-x-2 rounded-lg px-5 py-2 text-xs font-bold shadow-sm transition ${isSubmitted ? "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300" : "bg-blue-700 text-white hover:bg-blue-800 disabled:opacity-50"}`,
           children: isSubmitting ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { className: "h-3.5 w-3.5 animate-spin" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Processing..." })
@@ -13321,13 +13343,14 @@ function DynamicForm({
             onClick: () => {
               const defaults2 = {};
               (schema.fields || []).forEach((f2) => {
-                defaults2[f2.name] = "";
+                defaults2[f2.name] = f2.defaultValue ?? "";
               });
               setFormData(defaults2);
               setErrors({});
+              if (onReset) onReset();
             },
             disabled: isSubmitting,
-            className: "rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition",
+            className: `rounded-lg border px-4 py-2.5 text-sm font-bold transition ${isSubmitted ? "border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 ring-2 ring-blue-200 shadow-xs cursor-pointer" : "border-slate-300 px-4 py-2.5 text-slate-700 hover:bg-slate-50 disabled:opacity-50"}`,
             children: "Reset"
           }
         ),
@@ -13335,8 +13358,8 @@ function DynamicForm({
           "button",
           {
             type: "submit",
-            disabled: isSubmitting || isEvaluating,
-            className: "inline-flex items-center space-x-2 rounded-lg bg-blue-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition",
+            disabled: isSubmitting || isEvaluating || isSubmitted,
+            className: `inline-flex items-center space-x-2 rounded-lg px-6 py-2.5 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ${isSubmitted ? "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300" : "bg-blue-700 text-white hover:bg-blue-800 disabled:opacity-50"}`,
             children: isSubmitting ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { className: "h-4 w-4 animate-spin" }),
               /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Posting Journal..." })
@@ -13345,6 +13368,55 @@ function DynamicForm({
         )
       ] })
     ] }) }),
+    journalLegs && journalLegs.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-xl border border-slate-200 bg-slate-50/90 p-4 space-y-3 font-mono animate-fadeIn", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center justify-between border-b border-slate-200 pb-2.5 gap-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Send, { className: "h-4 w-4 text-blue-700" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-xs font-bold uppercase tracking-wider text-slate-900", children: [
+            "Accounting Journal Entries (",
+            journalLegs.length,
+            " legs)"
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200", children: "BALANCED" })
+        ] }),
+        (journalMetadata == null ? void 0 : journalMetadata.trxNumber) && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-xs text-slate-600 font-bold", children: [
+          "Ref: ",
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-blue-900", children: journalMetadata.trxNumber })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("table", { className: "w-full text-left text-xs", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("thead", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "border-b border-slate-200 text-slate-500 text-[11px]", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2 px-2.5", children: "#" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2 px-2.5", children: "Type" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2 px-2.5", children: "GL Account" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2 px-2.5", children: "Account ID" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2 px-2.5 text-right", children: "Debit (VND)" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2 px-2.5 text-right", children: "Credit (VND)" })
+        ] }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("tbody", { className: "divide-y divide-slate-200/70", children: journalLegs.map((leg, idx) => {
+          const amt = Number(leg.amount || 0);
+          const isDebit = leg.drCr === "D";
+          return /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "hover:bg-white/90 transition", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-2.5 px-2.5 text-slate-400 font-bold", children: idx + 1 }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-2.5 px-2.5", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "span",
+              {
+                className: `rounded px-1.5 py-0.5 text-[10px] font-bold ${isDebit ? "bg-amber-100 text-amber-900 border border-amber-200" : "bg-emerald-100 text-emerald-900 border border-emerald-200"}`,
+                children: isDebit ? "DEBIT" : "CREDIT"
+              }
+            ) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-2.5 px-2.5 font-bold text-slate-800", children: leg.glCode }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-2.5 px-2.5 text-slate-600 font-medium", children: leg.accountId || "-" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-2.5 px-2.5 text-right font-bold text-amber-950", children: isDebit ? new Intl.NumberFormat("vi-VN").format(amt) : "-" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-2.5 px-2.5 text-right font-bold text-emerald-950", children: !isDebit ? new Intl.NumberFormat("vi-VN").format(amt) : "-" })
+          ] }, idx);
+        }) })
+      ] }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between items-center pt-2 border-t border-slate-200 text-xs text-slate-600 font-bold", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Double-entry balance check:" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-emerald-700", children: "OK • Total Debit equals Total Credit" })
+      ] })
+    ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       LookupModal,
       {
@@ -13395,6 +13467,31 @@ function ReceiptModal({ isOpen, onClose, receipt }) {
   const handlePrint = () => {
     window.print();
   };
+  const rawType = (receipt.trxType || receipt.trxCode || receipt.voucherKind || "").toUpperCase();
+  const isWithdraw = receipt.voucherKind === "WITHDRAWAL" || rawType.includes("WDR") || rawType.includes("WITHDRAW");
+  const isTransfer = receipt.voucherKind === "TRANSFER" || rawType.includes("TRF") || rawType.includes("TRANSFER");
+  const isLoan = receipt.voucherKind === "LOAN" || rawType.includes("LOAN") || rawType.includes("DISB");
+  const isAccountOpen = receipt.voucherKind === "ACCOUNT_OPEN" || rawType.includes("ACCOUNT_OPEN");
+  let voucherTitle = "DEPOSIT RECEIPT";
+  let voucherSubtitle = "Branch: VN001 • Counter Cash Deposit Advice";
+  let displayTrxType = receipt.trxType || "Cash Deposit";
+  if (isWithdraw) {
+    voucherTitle = "WITHDRAWAL RECEIPT";
+    voucherSubtitle = "Branch: VN001 • Counter Cash Withdrawal Advice";
+    displayTrxType = receipt.trxType || "Cash Withdrawal";
+  } else if (isTransfer) {
+    voucherTitle = "FUND TRANSFER ADVICE";
+    voucherSubtitle = "Branch: VN001 • Internal Account Transfer Advice";
+    displayTrxType = receipt.trxType || "Internal Transfer";
+  } else if (isLoan) {
+    voucherTitle = "LOAN DISBURSEMENT ADVICE";
+    voucherSubtitle = "Branch: VN001 • Credit Facility Disbursement Advice";
+    displayTrxType = receipt.trxType || "Loan Disbursement";
+  } else if (isAccountOpen) {
+    voucherTitle = "ACCOUNT OPENING ADVICE";
+    voucherSubtitle = "Branch: VN001 • Deposit Account Creation Voucher";
+    displayTrxType = receipt.trxType || "Account Opening";
+  }
   const amountVal = receipt.amount ?? receipt.totalAmount ?? 0;
   const currencyVal = receipt.currency || "VND";
   const statusVal = (receipt.status || "SUCCESS").toUpperCase();
@@ -13404,8 +13501,8 @@ function ReceiptModal({ isOpen, onClose, receipt }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     "div",
     {
-      style: { margin: "0px !important" },
       className: "fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fadeIn",
+      style: { margin: 0 },
       children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative w-full max-w-lg rounded-none bg-white text-black shadow-2xl border-2 border-black overflow-hidden font-mono", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between items-center border-b-2 border-black bg-white px-5 py-2.5", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs font-bold uppercase tracking-widest text-black", children: "OFFICIAL BANK VOUCHER" }),
@@ -13422,13 +13519,19 @@ function ReceiptModal({ isOpen, onClose, receipt }) {
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-6 space-y-4 bg-white text-black print:p-0", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center space-y-1 border-b-2 border-dashed border-black pb-4", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-lg font-black tracking-wider text-black", children: "CORE BANKING SYSTEM" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs font-bold uppercase tracking-widest text-black", children: "DEPOSIT RECEIPT" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[11px] text-black", children: "Branch: VN001 • Counter Transaction Advice" })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs font-bold uppercase tracking-widest text-black", children: voucherTitle }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[11px] text-black", children: voucherSubtitle })
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex justify-left", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-xs font-black tracking-widest", children: [
-            "STATUS: ",
-            isSuccess ? "SUCCESS" : "FAILED"
-          ] }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between items-center", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-xs font-black tracking-widest", children: [
+              "STATUS: ",
+              isSuccess ? "SUCCESS" : "FAILED"
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-[11px] text-black", children: [
+              "Channel: ",
+              receipt.channelId || "BRANCH"
+            ] })
+          ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1.5 border-b border-dashed border-black pb-3 text-xs leading-relaxed", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Transaction ID:" }),
@@ -13447,66 +13550,79 @@ function ReceiptModal({ isOpen, onClose, receipt }) {
             ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Transaction Type:" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right", children: receipt.trxType || "Cash" })
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right", children: displayTrxType })
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Account Number:" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right tracking-wider", children: maskAccountNumber(receipt.accountNumber || receipt.toAccountNumber || receipt.destAccountNumber) })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Account Holder Name:" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right uppercase", children: receipt.accountHolderName || receipt.customerName || "N/A" })
+            isTransfer ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Ordering Account (Debit):" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right tracking-wider", children: maskAccountNumber(receipt.sourceAccountNumber || receipt.fromAccountNumber) })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Beneficiary Account (Credit):" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right tracking-wider", children: maskAccountNumber(receipt.destAccountNumber || receipt.toAccountNumber) })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Beneficiary Name:" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right uppercase", children: receipt.accountHolderName || receipt.destAccountHolderName || "N/A" })
+              ] })
+            ] }) : isWithdraw ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Debited Account:" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right tracking-wider", children: maskAccountNumber(receipt.accountNumber || receipt.fromAccountNumber) })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Account Holder Name:" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right uppercase", children: receipt.accountHolderName || receipt.customerName || "N/A" })
+              ] })
+            ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: isAccountOpen ? "New Account Number:" : isLoan ? "Disbursement Account:" : "Beneficiary Account:" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right tracking-wider", children: maskAccountNumber(receipt.accountNumber || receipt.toAccountNumber || receipt.destAccountNumber) })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Account Holder Name:" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-right uppercase", children: receipt.accountHolderName || receipt.customerName || "N/A" })
+              ] })
             ] })
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Transaction Amount:" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-black font-bold", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between items-center py-1", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black text-sm", children: "Transaction Amount:" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-black font-black text-base", children: [
               formatMoney(amountVal),
               " ",
               currencyVal
             ] })
           ] }),
-          receipt.feeAmount !== void 0 && Number(receipt.feeAmount) > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-[11px] text-black", children: [
-            "Fee: +",
-            formatMoney(receipt.feeAmount),
-            " ",
-            currencyVal
+          receipt.feeAmount !== void 0 && Number(receipt.feeAmount) > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between text-[11px] text-black", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+              "Transfer Fee (",
+              receipt.feePayer || "SOURCE",
+              "):"
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-bold", children: [
+              "+",
+              formatMoney(receipt.feeAmount),
+              " ",
+              currencyVal
+            ] })
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1.5 border-b border-dashed border-black pb-3 text-xs", children: [
+          (balanceBefore !== "N/A" || balanceAfter !== "N/A") && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1.5 border-b border-dashed border-black pb-3 text-xs", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Balance Before:" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: isTransfer ? "Ordering Balance Before:" : "Balance Before:" }),
               /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-black font-medium", children: balanceBefore })
             ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: "Balance After:" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black", children: isTransfer ? "Ordering Balance After:" : "Balance After:" }),
               /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-black font-bold", children: balanceAfter })
             ] })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border-b border-dashed border-black pb-3 text-xs space-y-0.5", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-black block", children: "Narration:" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-black break-words italic pl-2", children: receipt.narration || receipt.description || "Counter cash deposit" })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-black break-words italic pl-2", children: receipt.narration || receipt.description || "Counter transaction" })
           ] }),
-          receipt.legs && receipt.legs.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border-b border-dashed border-black pb-3 text-[11px] space-y-1", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-bold text-black block uppercase tracking-wider", children: [
-              "Accounting Journal Legs (",
-              receipt.legs.length,
-              ")"
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1", children: receipt.legs.map((leg, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between items-center text-black", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-                "[",
-                leg.drCr === "D" ? "DR" : "CR",
-                "] GL ",
-                leg.glCode,
-                " ",
-                leg.accountId ? `(Acc: ${leg.accountId})` : ""
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-bold", children: [
-                formatMoney(leg.amount),
-                " ",
-                leg.currency || currencyVal
-              ] })
-            ] }, idx)) })
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center text-[10px] text-black pt-3 border-t-2 border-dashed border-black space-y-0.5", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-bold", children: "*** PLEASE RETAIN THIS RECEIPT FOR YOUR RECORDS ***" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "Thank you for banking with us!" })
           ] })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between border-t-2 border-black bg-white px-6 py-3", children: [
@@ -13515,7 +13631,7 @@ function ReceiptModal({ isOpen, onClose, receipt }) {
             {
               onClick: handlePrint,
               type: "button",
-              className: "inline-flex items-center space-x-2 border-2 border-black bg-white px-4 py-2 text-xs font-bold text-black hover:bg-black hover:text-white transition rounded-none",
+              className: "inline-flex items-center space-x-2 border-2 border-black bg-white px-4 py-2 text-xs font-bold text-black hover:bg-black hover:text-white transition rounded-none cursor-pointer",
               children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsx(Printer, { className: "h-4 w-4" }),
                 /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "PRINT RECEIPT" })
@@ -13527,7 +13643,7 @@ function ReceiptModal({ isOpen, onClose, receipt }) {
             {
               onClick: onClose,
               type: "button",
-              className: "border-2 border-black bg-black px-6 py-2 text-xs font-bold text-white hover:bg-neutral-800 transition rounded-none",
+              className: "border-2 border-black bg-black px-6 py-2 text-xs font-bold text-white hover:bg-neutral-800 transition rounded-none cursor-pointer",
               children: "CLOSE"
             }
           )
@@ -13598,6 +13714,15 @@ function TabFormContainer({
   const [successMessage, setSuccessMessage] = reactExports.useState(null);
   const [receipt, setReceipt] = reactExports.useState(null);
   const [isReceiptOpen, setIsReceiptOpen] = reactExports.useState(false);
+  const [isSubmitted, setIsSubmitted] = reactExports.useState(false);
+  const [submittedJournal, setSubmittedJournal] = reactExports.useState(null);
+  const handleResetForm = () => {
+    setSubmittedJournal(null);
+    setIsSubmitted(false);
+    setReceipt(null);
+    setSuccessMessage(null);
+    setErrorMessage(null);
+  };
   reactExports.useEffect(() => {
     let isMounted = true;
     async function loadFormSchema() {
@@ -13644,7 +13769,8 @@ function TabFormContainer({
         resReceipt = {
           ...depReceipt,
           amount: depReceipt.amount ?? depReceipt.totalAmount ?? Number(formData.amount),
-          trxType: "Cash",
+          trxType: "Cash Deposit",
+          voucherKind: "DEPOSIT",
           trxNumber: depReceipt.trxNumber || `TRX-${depReceipt.trxId}`,
           journalId: depReceipt.journalId || (((_a = depReceipt.journalEntryIds) == null ? void 0 : _a.length) ? depReceipt.journalEntryIds.join(", ") : depReceipt.trxId ? `JRN-${depReceipt.trxId}` : "N/A"),
           accountNumber: formData.accountNumber,
@@ -13674,7 +13800,8 @@ function TabFormContainer({
         resReceipt = {
           ...wdrReceipt,
           amount: wdrReceipt.amount ?? wdrReceipt.totalAmount ?? Number(formData.amount),
-          trxType: "Cash",
+          trxType: "Cash Withdrawal",
+          voucherKind: "WITHDRAWAL",
           trxNumber: wdrReceipt.trxNumber || `TRX-${wdrReceipt.trxId}`,
           journalId: wdrReceipt.journalId || (((_b = wdrReceipt.journalEntryIds) == null ? void 0 : _b.length) ? wdrReceipt.journalEntryIds.join(", ") : wdrReceipt.trxId ? `JRN-${wdrReceipt.trxId}` : "N/A"),
           accountNumber: formData.accountNumber,
@@ -13707,7 +13834,8 @@ function TabFormContainer({
         resReceipt = {
           ...trfReceipt,
           amount: trfReceipt.amount ?? trfReceipt.totalAmount ?? Number(formData.amount),
-          trxType: "Transfer",
+          trxType: "Internal Transfer",
+          voucherKind: "TRANSFER",
           trxNumber: trfReceipt.trxNumber || `TRX-${trfReceipt.trxId}`,
           journalId: trfReceipt.journalId || (((_c = trfReceipt.journalEntryIds) == null ? void 0 : _c.length) ? trfReceipt.journalEntryIds.join(", ") : trfReceipt.trxId ? `JRN-${trfReceipt.trxId}` : "N/A"),
           sourceAccountNumber: formData.fromAccountNumber || formData.sourceAccountNumber,
@@ -13800,6 +13928,14 @@ function TabFormContainer({
       if (resReceipt) {
         setReceipt(resReceipt);
         setIsReceiptOpen(true);
+        if (resReceipt.legs && resReceipt.legs.length > 0) {
+          setSubmittedJournal({
+            trxNumber: resReceipt.trxNumber || resReceipt.trxId,
+            timestamp: resReceipt.timestamp,
+            legs: resReceipt.legs
+          });
+        }
+        setIsSubmitted(true);
       }
       if (onTransactionSuccess) onTransactionSuccess();
     } catch (err) {
@@ -13843,7 +13979,11 @@ function TabFormContainer({
         initialData: tab.initialParams || {},
         onSubmit: handleSubmit,
         onNavigate,
+        onReset: handleResetForm,
         isSubmitting,
+        isSubmitted,
+        journalLegs: submittedJournal == null ? void 0 : submittedJournal.legs,
+        journalMetadata: submittedJournal,
         submitLabel: "Submit"
       },
       `${tab.id}-${tab.formCode}`
@@ -14430,4 +14570,4 @@ function App() {
 client.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-D1fKLkJt.js.map
+//# sourceMappingURL=index-NL-noXN9.js.map

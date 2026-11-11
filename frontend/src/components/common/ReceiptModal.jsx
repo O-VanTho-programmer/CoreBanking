@@ -43,6 +43,36 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
     window.print();
   };
 
+  const rawType = (receipt.trxType || receipt.trxCode || receipt.voucherKind || '').toUpperCase();
+  const isWithdraw = receipt.voucherKind === 'WITHDRAWAL' || rawType.includes('WDR') || rawType.includes('WITHDRAW');
+  const isTransfer = receipt.voucherKind === 'TRANSFER' || rawType.includes('TRF') || rawType.includes('TRANSFER');
+  const isLoan = receipt.voucherKind === 'LOAN' || rawType.includes('LOAN') || rawType.includes('DISB');
+  const isAccountOpen = receipt.voucherKind === 'ACCOUNT_OPEN' || rawType.includes('ACCOUNT_OPEN');
+  const isDeposit = !isWithdraw && !isTransfer && !isLoan && !isAccountOpen;
+
+  // Determine Title & Subtitle based on transaction kind
+  let voucherTitle = 'DEPOSIT RECEIPT';
+  let voucherSubtitle = 'Branch: VN001 • Counter Cash Deposit Advice';
+  let displayTrxType = receipt.trxType || 'Cash Deposit';
+
+  if (isWithdraw) {
+    voucherTitle = 'WITHDRAWAL RECEIPT';
+    voucherSubtitle = 'Branch: VN001 • Counter Cash Withdrawal Advice';
+    displayTrxType = receipt.trxType || 'Cash Withdrawal';
+  } else if (isTransfer) {
+    voucherTitle = 'FUND TRANSFER ADVICE';
+    voucherSubtitle = 'Branch: VN001 • Internal Account Transfer Advice';
+    displayTrxType = receipt.trxType || 'Internal Transfer';
+  } else if (isLoan) {
+    voucherTitle = 'LOAN DISBURSEMENT ADVICE';
+    voucherSubtitle = 'Branch: VN001 • Credit Facility Disbursement Advice';
+    displayTrxType = receipt.trxType || 'Loan Disbursement';
+  } else if (isAccountOpen) {
+    voucherTitle = 'ACCOUNT OPENING ADVICE';
+    voucherSubtitle = 'Branch: VN001 • Deposit Account Creation Voucher';
+    displayTrxType = receipt.trxType || 'Account Opening';
+  }
+
   const amountVal = receipt.amount ?? receipt.totalAmount ?? 0;
   const currencyVal = receipt.currency || 'VND';
   const statusVal = (receipt.status || 'SUCCESS').toUpperCase();
@@ -60,8 +90,9 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
 
   return (
     <div
-      style={{ margin: "0px !important" }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fadeIn">
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fadeIn"
+      style={{ margin: 0 }}
+    >
       <div className="relative w-full max-w-lg rounded-none bg-white text-black shadow-2xl border-2 border-black overflow-hidden font-mono">
         {/* Top Close Bar */}
         <div className="flex justify-between items-center border-b-2 border-black bg-white px-5 py-2.5">
@@ -83,18 +114,21 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
           <div className="text-center space-y-1 border-b-2 border-dashed border-black pb-4">
             <h2 className="text-lg font-black tracking-wider text-black">CORE BANKING SYSTEM</h2>
             <p className="text-xs font-bold uppercase tracking-widest text-black">
-              DEPOSIT RECEIPT
+              {voucherTitle}
             </p>
-            <p className="text-[11px] text-black">Branch: VN001 • Counter Transaction Advice</p>
+            <p className="text-[11px] text-black">{voucherSubtitle}</p>
           </div>
 
-          <div className="flex justify-left">
+          <div className="flex justify-between items-center">
             <span className="text-xs font-black tracking-widest">
               STATUS: {isSuccess ? 'SUCCESS' : 'FAILED'}
             </span>
+            <span className="text-[11px] text-black">
+              Channel: {receipt.channelId || 'BRANCH'}
+            </span>
           </div>
 
-          {/* Transaction */}
+          {/* Transaction Metadata Section */}
           <div className="space-y-1.5 border-b border-dashed border-black pb-3 text-xs leading-relaxed">
             <div className="flex justify-between">
               <span className="font-bold text-black">Transaction ID:</span>
@@ -114,73 +148,109 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
             </div>
             <div className="flex justify-between">
               <span className="font-bold text-black">Transaction Type:</span>
-              <span className="font-bold text-black text-right">{receipt.trxType || 'Cash'}</span>
+              <span className="font-bold text-black text-right">{displayTrxType}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="font-bold text-black">Account Number:</span>
-              <span className="font-bold text-black text-right tracking-wider">
-                {maskAccountNumber(receipt.accountNumber || receipt.toAccountNumber || receipt.destAccountNumber)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-bold text-black">Account Holder Name:</span>
-              <span className="font-bold text-black text-right uppercase">
-                {receipt.accountHolderName || receipt.customerName || 'N/A'}
-              </span>
-            </div>
+
+            {/* Account Information - Dynamically structured */}
+            {isTransfer ? (
+              <>
+                <div className="flex justify-between">
+                  <span className="font-bold text-black">Ordering Account (Debit):</span>
+                  <span className="font-bold text-black text-right tracking-wider">
+                    {maskAccountNumber(receipt.sourceAccountNumber || receipt.fromAccountNumber)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-bold text-black">Beneficiary Account (Credit):</span>
+                  <span className="font-bold text-black text-right tracking-wider">
+                    {maskAccountNumber(receipt.destAccountNumber || receipt.toAccountNumber)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-bold text-black">Beneficiary Name:</span>
+                  <span className="font-bold text-black text-right uppercase">
+                    {receipt.accountHolderName || receipt.destAccountHolderName || 'N/A'}
+                  </span>
+                </div>
+              </>
+            ) : isWithdraw ? (
+              <>
+                <div className="flex justify-between">
+                  <span className="font-bold text-black">Debited Account:</span>
+                  <span className="font-bold text-black text-right tracking-wider">
+                    {maskAccountNumber(receipt.accountNumber || receipt.fromAccountNumber)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-bold text-black">Account Holder Name:</span>
+                  <span className="font-bold text-black text-right uppercase">
+                    {receipt.accountHolderName || receipt.customerName || 'N/A'}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex justify-between">
+                  <span className="font-bold text-black">
+                    {isAccountOpen ? 'New Account Number:' : isLoan ? 'Disbursement Account:' : 'Beneficiary Account:'}
+                  </span>
+                  <span className="font-bold text-black text-right tracking-wider">
+                    {maskAccountNumber(receipt.accountNumber || receipt.toAccountNumber || receipt.destAccountNumber)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-bold text-black">Account Holder Name:</span>
+                  <span className="font-bold text-black text-right uppercase">
+                    {receipt.accountHolderName || receipt.customerName || 'N/A'}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Amount Box */}
-          <div className="flex justify-between">
-            <span className="font-bold text-black">Transaction Amount:</span>
-            <span className="text-black font-bold">{formatMoney(amountVal)} {currencyVal}</span>
+          <div className="flex justify-between items-center py-1">
+            <span className="font-bold text-black text-sm">Transaction Amount:</span>
+            <span className="text-black font-black text-base">{formatMoney(amountVal)} {currencyVal}</span>
           </div>
           {receipt.feeAmount !== undefined && Number(receipt.feeAmount) > 0 && (
-            <div className="text-[11px] text-black">
-              Fee: +{formatMoney(receipt.feeAmount)} {currencyVal}
+            <div className="flex justify-between text-[11px] text-black">
+              <span>Transfer Fee ({receipt.feePayer || 'SOURCE'}):</span>
+              <span className="font-bold">+{formatMoney(receipt.feeAmount)} {currencyVal}</span>
             </div>
           )}
 
-          {/* Balance Before & After */}
-          <div className="space-y-1.5 border-b border-dashed border-black pb-3 text-xs">
-            <div className="flex justify-between">
-              <span className="font-bold text-black">Balance Before:</span>
-              <span className="text-black font-medium">{balanceBefore}</span>
+          {/* Balance Before & After (Not applicable to pure registration) */}
+          {(balanceBefore !== 'N/A' || balanceAfter !== 'N/A') && (
+            <div className="space-y-1.5 border-b border-dashed border-black pb-3 text-xs">
+              <div className="flex justify-between">
+                <span className="font-bold text-black">
+                  {isTransfer ? 'Ordering Balance Before:' : 'Balance Before:'}
+                </span>
+                <span className="text-black font-medium">{balanceBefore}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-bold text-black">
+                  {isTransfer ? 'Ordering Balance After:' : 'Balance After:'}
+                </span>
+                <span className="text-black font-bold">{balanceAfter}</span>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="font-bold text-black">Balance After:</span>
-              <span className="text-black font-bold">{balanceAfter}</span>
-            </div>
-          </div>
+          )}
 
           {/* Narration */}
           <div className="border-b border-dashed border-black pb-3 text-xs space-y-0.5">
             <span className="font-bold text-black block">Narration:</span>
             <p className="text-black break-words italic pl-2">
-              {receipt.narration || receipt.description || 'Counter cash deposit'}
+              {receipt.narration || receipt.description || 'Counter transaction'}
             </p>
           </div>
 
-          {/* Accounting Journal Legs */}
-          {receipt.legs && receipt.legs.length > 0 && (
-            <div className="border-b border-dashed border-black pb-3 text-[11px] space-y-1">
-              <span className="font-bold text-black block uppercase tracking-wider">
-                Accounting Journal Legs ({receipt.legs.length})
-              </span>
-              <div className="space-y-1">
-                {receipt.legs.map((leg, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-black">
-                    <span>
-                      [{leg.drCr === 'D' ? 'DR' : 'CR'}] GL {leg.glCode} {leg.accountId ? `(Acc: ${leg.accountId})` : ''}
-                    </span>
-                    <span className="font-bold">
-                      {formatMoney(leg.amount)} {leg.currency || currencyVal}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Receipt Footer Notice */}
+          <div className="text-center text-[10px] text-black pt-3 border-t-2 border-dashed border-black space-y-0.5">
+            <p className="font-bold">*** PLEASE RETAIN THIS RECEIPT FOR YOUR RECORDS ***</p>
+            <p>Thank you for banking with us!</p>
+          </div>
         </div>
 
         {/* Modal Action Buttons (Black and White) */}
@@ -188,7 +258,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
           <button
             onClick={handlePrint}
             type="button"
-            className="inline-flex items-center space-x-2 border-2 border-black bg-white px-4 py-2 text-xs font-bold text-black hover:bg-black hover:text-white transition rounded-none"
+            className="inline-flex items-center space-x-2 border-2 border-black bg-white px-4 py-2 text-xs font-bold text-black hover:bg-black hover:text-white transition rounded-none cursor-pointer"
           >
             <Printer className="h-4 w-4" />
             <span>PRINT RECEIPT</span>
@@ -197,7 +267,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
           <button
             onClick={onClose}
             type="button"
-            className="border-2 border-black bg-black px-6 py-2 text-xs font-bold text-white hover:bg-neutral-800 transition rounded-none"
+            className="border-2 border-black bg-black px-6 py-2 text-xs font-bold text-white hover:bg-neutral-800 transition rounded-none cursor-pointer"
           >
             CLOSE
           </button>
