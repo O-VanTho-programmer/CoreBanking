@@ -14056,8 +14056,12 @@ function EodAccountingCockpit({ onSystemDateChange }) {
       };
       setEodStatus(normalizedStatus);
       if (normalizedStatus == null ? void 0 : normalizedStatus.workingDate) {
-        const tbData = await eodApi.getTrialBalance(normalizedStatus.workingDate);
-        setTrialBalance(tbData);
+        try {
+          const tbData = await eodApi.getTrialBalance(normalizedStatus.workingDate);
+          setTrialBalance(tbData);
+        } catch (tbErr) {
+          console.warn("Trial balance fetch:", tbErr.message);
+        }
       }
     } catch (err) {
       setErrorMessage(`Unable to load operational status: ${err.message}`);
@@ -14585,4 +14589,4 @@ function App() {
 client.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-FbM84N-z.js.map
+//# sourceMappingURL=index-RhfEGk6J.js.map

@@ -11,7 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/eod")
@@ -40,13 +42,25 @@ public class EodApiController {
     }
 
     @GetMapping("/trial-balance")
-    public ResponseEntity<TrialBalanceReport> getTrialBalance(@RequestParam(required = false) String date) {
+    public ResponseEntity<?> getTrialBalance(@RequestParam(required = false) String date) {
         LocalDate workingDate = (date != null && !date.isBlank())
                 ? LocalDate.parse(date)
                 : workingDateService.getCurrentWorkingDate();
 
-        TrialBalanceReport report = trialBalanceService.verifyTrialBalance(workingDate);
-        return ResponseEntity.ok(report);
+        try {
+            TrialBalanceReport report = trialBalanceService.verifyTrialBalance(workingDate);
+            return ResponseEntity.ok(report);
+        } catch (Exception e) {
+            log.warn("Trial balance reconciliation warning for {}: {}", workingDate, e.getMessage());
+            return ResponseEntity.ok(TrialBalanceReport.builder()
+                    .workingDate(workingDate)
+                    .macroDebitSum(BigDecimal.ZERO)
+                    .macroCreditSum(BigDecimal.ZERO)
+                    .isBalanced(false)
+                    .message(e.getMessage())
+                    .entries(List.of())
+                    .build());
+        }
     }
 
     @PostMapping("/cutoff")

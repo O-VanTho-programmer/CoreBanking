@@ -56,8 +56,12 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
       setEodStatus(normalizedStatus);
 
       if (normalizedStatus?.workingDate) {
-        const tbData = await eodApi.getTrialBalance(normalizedStatus.workingDate);
-        setTrialBalance(tbData);
+        try {
+          const tbData = await eodApi.getTrialBalance(normalizedStatus.workingDate);
+          setTrialBalance(tbData);
+        } catch (tbErr) {
+          console.warn('Trial balance fetch:', tbErr.message);
+        }
       }
     } catch (err) {
       setErrorMessage(`Unable to load operational status: ${err.message}`);

@@ -5,6 +5,7 @@ import lombok.Builder;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * Report containing the full Trial Balance reconciliation breakdown.
@@ -21,6 +22,19 @@ public record TrialBalanceReport(
         BigDecimal liveAccountTotalBalance,
         BigDecimal bucketTotalClosingBalance,
         boolean isBalanced,
-        OffsetDateTime reconciledAt
+        List<TrialBalanceEntry> entries,
+        OffsetDateTime reconciledAt,
+        String message
 ) {
+    public BigDecimal totalDebit() {
+        return macroDebitSum;
+    }
+
+    public BigDecimal totalCredit() {
+        return macroCreditSum;
+    }
+
+    public boolean balanced() {
+        return isBalanced;
+    }
 }

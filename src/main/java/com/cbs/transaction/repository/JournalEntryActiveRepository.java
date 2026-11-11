@@ -40,4 +40,7 @@ public interface JournalEntryActiveRepository extends JpaRepository<JournalEntry
 
     @Query("SELECT j.drCr, COALESCE(SUM(j.amount), 0) FROM JournalEntryActive j WHERE j.valueDate = :valueDate AND j.glCode = :glCode GROUP BY j.drCr")
     List<Object[]> sumTurnoverByGlCodeAndDrCr(@Param("valueDate") LocalDate valueDate, @Param("glCode") String glCode);
+
+    @Query("SELECT j.glCode, j.drCr, COALESCE(SUM(j.amount), 0) FROM JournalEntryActive j WHERE j.valueDate = :valueDate GROUP BY j.glCode, j.drCr")
+    List<Object[]> sumTurnoverByGlCode(@Param("valueDate") LocalDate valueDate);
 }
