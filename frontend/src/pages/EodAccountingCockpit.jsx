@@ -47,10 +47,16 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
       setIsLoadingStatus(true);
       setErrorMessage(null);
       const statusData = await eodApi.getStatus();
-      setEodStatus(statusData);
+      const normalizedStatus = {
+        ...statusData,
+        workingDate: statusData?.workingDate || statusData?.currentWorkingDate,
+        nextWorkingDate: statusData?.nextWorkingDate,
+        cutoffClosed: statusData?.cutoffClosed ?? statusData?.isCutoff ?? false,
+      };
+      setEodStatus(normalizedStatus);
 
-      if (statusData?.workingDate) {
-        const tbData = await eodApi.getTrialBalance(statusData.workingDate);
+      if (normalizedStatus?.workingDate) {
+        const tbData = await eodApi.getTrialBalance(normalizedStatus.workingDate);
         setTrialBalance(tbData);
       }
     } catch (err) {
@@ -65,16 +71,22 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
     try {
       setIsTogglingCutoff(true);
       setErrorMessage(null);
-      const newClosedState = !eodStatus.cutoffClosed;
+      const newClosedState = !Boolean(eodStatus.cutoffClosed);
       const res = await eodApi.toggleCutoff(newClosedState);
-      setEodStatus((prev) => ({ ...prev, cutoffClosed: res.cutoffClosed ?? newClosedState }));
+      const resolvedClosed = res?.cutoffClosed ?? res?.isCutoff ?? newClosedState;
+      setEodStatus((prev) => ({
+        ...prev,
+        cutoffClosed: resolvedClosed,
+        workingDate: res?.workingDate || res?.currentWorkingDate || prev?.workingDate,
+        nextWorkingDate: res?.nextWorkingDate || prev?.nextWorkingDate,
+      }));
       setSuccessMessage(
-        newClosedState
+        resolvedClosed
           ? 'Cutoff executed. External channels frozen. Ready for EOD Batch pipeline.'
           : 'Online mode re-opened. External transactions enabled.'
       );
     } catch (err) {
-      setErrorMessage(`Error toggling Cutoff: ${err.message}`);
+      setErrorMessage(`Error toggling Cutoff: ${err.response?.data?.message || err.message}`);
     } finally {
       setIsTogglingCutoff(false);
     }

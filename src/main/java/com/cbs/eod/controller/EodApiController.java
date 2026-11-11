@@ -50,8 +50,11 @@ public class EodApiController {
     }
 
     @PostMapping("/cutoff")
-    public ResponseEntity<EodStatusResponse> setCutoff(@RequestParam boolean cutoff) {
-        workingDateService.setCutoff(cutoff);
+    public ResponseEntity<EodStatusResponse> setCutoff(
+            @RequestParam(name = "cutoff", required = false) Boolean cutoff,
+            @RequestParam(name = "closed", required = false) Boolean closed) {
+        boolean effectiveCutoff = cutoff != null ? cutoff : (closed != null ? closed : true);
+        workingDateService.setCutoff(effectiveCutoff);
         return getEodStatus();
     }
 }

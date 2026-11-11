@@ -13503,7 +13503,7 @@ function ReceiptModal({ isOpen, onClose, receipt }) {
     {
       className: "fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fadeIn",
       style: { margin: 0 },
-      children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative w-full max-w-lg rounded-none bg-white text-black shadow-2xl border-2 border-black overflow-hidden font-mono", children: [
+      children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative w-full max-w-lg rounded-none bg-white text-black shadow-2xl border-2 border-black overflow-y-auto top-[40px] font-mono", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between items-center border-b-2 border-black bg-white px-5 py-2.5", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs font-bold uppercase tracking-widest text-black", children: "OFFICIAL BANK VOUCHER" }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -14015,7 +14015,7 @@ const eodApi = {
   },
   toggleCutoff: async (closed) => {
     const res = await apiClient.post("/eod/cutoff", null, {
-      params: { closed }
+      params: { cutoff: closed, closed }
     });
     return res.data;
   }
@@ -14048,9 +14048,15 @@ function EodAccountingCockpit({ onSystemDateChange }) {
       setIsLoadingStatus(true);
       setErrorMessage(null);
       const statusData = await eodApi.getStatus();
-      setEodStatus(statusData);
-      if (statusData == null ? void 0 : statusData.workingDate) {
-        const tbData = await eodApi.getTrialBalance(statusData.workingDate);
+      const normalizedStatus = {
+        ...statusData,
+        workingDate: (statusData == null ? void 0 : statusData.workingDate) || (statusData == null ? void 0 : statusData.currentWorkingDate),
+        nextWorkingDate: statusData == null ? void 0 : statusData.nextWorkingDate,
+        cutoffClosed: (statusData == null ? void 0 : statusData.cutoffClosed) ?? (statusData == null ? void 0 : statusData.isCutoff) ?? false
+      };
+      setEodStatus(normalizedStatus);
+      if (normalizedStatus == null ? void 0 : normalizedStatus.workingDate) {
+        const tbData = await eodApi.getTrialBalance(normalizedStatus.workingDate);
         setTrialBalance(tbData);
       }
     } catch (err) {
@@ -14060,18 +14066,25 @@ function EodAccountingCockpit({ onSystemDateChange }) {
     }
   };
   const handleToggleCutoff = async () => {
+    var _a, _b;
     if (!eodStatus) return;
     try {
       setIsTogglingCutoff(true);
       setErrorMessage(null);
-      const newClosedState = !eodStatus.cutoffClosed;
+      const newClosedState = !Boolean(eodStatus.cutoffClosed);
       const res = await eodApi.toggleCutoff(newClosedState);
-      setEodStatus((prev) => ({ ...prev, cutoffClosed: res.cutoffClosed ?? newClosedState }));
+      const resolvedClosed = (res == null ? void 0 : res.cutoffClosed) ?? (res == null ? void 0 : res.isCutoff) ?? newClosedState;
+      setEodStatus((prev) => ({
+        ...prev,
+        cutoffClosed: resolvedClosed,
+        workingDate: (res == null ? void 0 : res.workingDate) || (res == null ? void 0 : res.currentWorkingDate) || (prev == null ? void 0 : prev.workingDate),
+        nextWorkingDate: (res == null ? void 0 : res.nextWorkingDate) || (prev == null ? void 0 : prev.nextWorkingDate)
+      }));
       setSuccessMessage(
-        newClosedState ? "Cutoff executed. External channels frozen. Ready for EOD Batch pipeline." : "Online mode re-opened. External transactions enabled."
+        resolvedClosed ? "Cutoff executed. External channels frozen. Ready for EOD Batch pipeline." : "Online mode re-opened. External transactions enabled."
       );
     } catch (err) {
-      setErrorMessage(`Error toggling Cutoff: ${err.message}`);
+      setErrorMessage(`Error toggling Cutoff: ${((_b = (_a = err.response) == null ? void 0 : _a.data) == null ? void 0 : _b.message) || err.message}`);
     } finally {
       setIsTogglingCutoff(false);
     }
@@ -14285,8 +14298,10 @@ function App() {
   const fetchSystemStatus = async () => {
     try {
       const status = await eodApi.getStatus();
-      if (status == null ? void 0 : status.workingDate) setWorkingDate(status.workingDate);
-      if ((status == null ? void 0 : status.cutoffClosed) !== void 0) setIsCutoff(status.cutoffClosed);
+      const wDate = (status == null ? void 0 : status.workingDate) || (status == null ? void 0 : status.currentWorkingDate);
+      const closed = (status == null ? void 0 : status.cutoffClosed) ?? (status == null ? void 0 : status.isCutoff);
+      if (wDate) setWorkingDate(wDate);
+      if (closed !== void 0) setIsCutoff(closed);
     } catch (err) {
       console.warn("System status poll:", err.message);
     }
@@ -14570,4 +14585,4 @@ function App() {
 client.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-NL-noXN9.js.map
+//# sourceMappingURL=index-FbM84N-z.js.map

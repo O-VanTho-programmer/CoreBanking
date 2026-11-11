@@ -552,6 +552,9 @@ video {
 .top-16 {
   top: 4rem;
 }
+.top-\[40px\] {
+  top: 40px;
+}
 .isolate {
   isolation: isolate;
 }
@@ -905,9 +908,6 @@ video {
 }
 .divide-slate-200\/70 > :not([hidden]) ~ :not([hidden]) {
   border-color: rgb(226 232 240 / 0.7);
-}
-.overflow-hidden {
-  overflow: hidden;
 }
 .overflow-x-auto {
   overflow-x: auto;

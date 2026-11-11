@@ -17,7 +17,7 @@ export const eodApi = {
   },
   toggleCutoff: async (closed) => {
     const res = await apiClient.post('/eod/cutoff', null, {
-      params: { closed },
+      params: { cutoff: closed, closed },
     });
     return res.data;
   },

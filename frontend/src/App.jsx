@@ -38,8 +38,10 @@ export default function App() {
   const fetchSystemStatus = async () => {
     try {
       const status = await eodApi.getStatus();
-      if (status?.workingDate) setWorkingDate(status.workingDate);
-      if (status?.cutoffClosed !== undefined) setIsCutoff(status.cutoffClosed);
+      const wDate = status?.workingDate || status?.currentWorkingDate;
+      const closed = status?.cutoffClosed ?? status?.isCutoff;
+      if (wDate) setWorkingDate(wDate);
+      if (closed !== undefined) setIsCutoff(closed);
     } catch (err) {
       console.warn('System status poll:', err.message);
     }
