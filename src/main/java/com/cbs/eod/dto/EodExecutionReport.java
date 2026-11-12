@@ -1,5 +1,6 @@
 package com.cbs.eod.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 
 import java.time.LocalDate;
@@ -18,4 +19,8 @@ public record EodExecutionReport(
         TrialBalanceReport trialBalanceReport,
         OffsetDateTime completedAt
 ) {
+    @JsonProperty("nextWorkingDate")
+    public LocalDate nextWorkingDate() {
+        return newWorkingDate;
+    }
 }

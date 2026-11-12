@@ -552,9 +552,6 @@ video {
 .top-16 {
   top: 4rem;
 }
-.top-\[40px\] {
-  top: 40px;
-}
 .isolate {
   isolation: isolate;
 }

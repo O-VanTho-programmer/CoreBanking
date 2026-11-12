@@ -13503,7 +13503,7 @@ function ReceiptModal({ isOpen, onClose, receipt }) {
     {
       className: "fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fadeIn",
       style: { margin: 0 },
-      children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative w-full max-w-lg rounded-none bg-white text-black shadow-2xl border-2 border-black overflow-y-auto top-[40px] font-mono", children: [
+      children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative w-full max-w-lg rounded-none bg-white text-black shadow-2xl border-2 border-black overflow-y-auto font-mono", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-between items-center border-b-2 border-black bg-white px-5 py-2.5", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs font-bold uppercase tracking-widest text-black", children: "OFFICIAL BANK VOUCHER" }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -14051,7 +14051,7 @@ function EodAccountingCockpit({ onSystemDateChange }) {
       const normalizedStatus = {
         ...statusData,
         workingDate: (statusData == null ? void 0 : statusData.workingDate) || (statusData == null ? void 0 : statusData.currentWorkingDate),
-        nextWorkingDate: statusData == null ? void 0 : statusData.nextWorkingDate,
+        nextWorkingDate: (statusData == null ? void 0 : statusData.nextWorkingDate) || (statusData == null ? void 0 : statusData.newWorkingDate),
         cutoffClosed: (statusData == null ? void 0 : statusData.cutoffClosed) ?? (statusData == null ? void 0 : statusData.isCutoff) ?? false
       };
       setEodStatus(normalizedStatus);
@@ -14082,7 +14082,7 @@ function EodAccountingCockpit({ onSystemDateChange }) {
         ...prev,
         cutoffClosed: resolvedClosed,
         workingDate: (res == null ? void 0 : res.workingDate) || (res == null ? void 0 : res.currentWorkingDate) || (prev == null ? void 0 : prev.workingDate),
-        nextWorkingDate: (res == null ? void 0 : res.nextWorkingDate) || (prev == null ? void 0 : prev.nextWorkingDate)
+        nextWorkingDate: (res == null ? void 0 : res.nextWorkingDate) || (res == null ? void 0 : res.newWorkingDate) || (prev == null ? void 0 : prev.nextWorkingDate)
       }));
       setSuccessMessage(
         resolvedClosed ? "Cutoff executed. External channels frozen. Ready for EOD Batch pipeline." : "Online mode re-opened. External transactions enabled."
@@ -14106,11 +14106,12 @@ function EodAccountingCockpit({ onSystemDateChange }) {
         setCompletedSteps((prev) => /* @__PURE__ */ new Set([...prev, i]));
       }
       const res = await eodApi.runEod(eodStatus.workingDate);
+      const transitionedDate = (res == null ? void 0 : res.nextWorkingDate) || (res == null ? void 0 : res.newWorkingDate);
       setSuccessMessage(
-        `EOD Batch cycle completed successfully! Working date transitioned from [${eodStatus.workingDate}] to [${res.nextWorkingDate}].`
+        `EOD Batch cycle completed successfully! Working date transitioned from [${eodStatus.workingDate}] to [${transitionedDate}].`
       );
       await loadStatus();
-      if (onSystemDateChange) onSystemDateChange(res.nextWorkingDate);
+      if (onSystemDateChange && transitionedDate) onSystemDateChange(transitionedDate);
     } catch (err) {
       setErrorMessage(`EOD Batch failed: ${err.message}`);
     } finally {
@@ -14589,4 +14590,4 @@ function App() {
 client.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-RhfEGk6J.js.map
+//# sourceMappingURL=index-CHKN5laH.js.map

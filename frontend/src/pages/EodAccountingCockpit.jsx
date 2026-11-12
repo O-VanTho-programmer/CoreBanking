@@ -50,7 +50,7 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
       const normalizedStatus = {
         ...statusData,
         workingDate: statusData?.workingDate || statusData?.currentWorkingDate,
-        nextWorkingDate: statusData?.nextWorkingDate,
+        nextWorkingDate: statusData?.nextWorkingDate || statusData?.newWorkingDate,
         cutoffClosed: statusData?.cutoffClosed ?? statusData?.isCutoff ?? false,
       };
       setEodStatus(normalizedStatus);
@@ -82,7 +82,7 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
         ...prev,
         cutoffClosed: resolvedClosed,
         workingDate: res?.workingDate || res?.currentWorkingDate || prev?.workingDate,
-        nextWorkingDate: res?.nextWorkingDate || prev?.nextWorkingDate,
+        nextWorkingDate: res?.nextWorkingDate || res?.newWorkingDate || prev?.nextWorkingDate,
       }));
       setSuccessMessage(
         resolvedClosed
@@ -113,14 +113,15 @@ export default function EodAccountingCockpit({ onSystemDateChange }) {
 
       // Backend call to execute real 8-step pipeline
       const res = await eodApi.runEod(eodStatus.workingDate);
+      const transitionedDate = res?.nextWorkingDate || res?.newWorkingDate;
 
       setSuccessMessage(
-        `EOD Batch cycle completed successfully! Working date transitioned from [${eodStatus.workingDate}] to [${res.nextWorkingDate}].`
+        `EOD Batch cycle completed successfully! Working date transitioned from [${eodStatus.workingDate}] to [${transitionedDate}].`
       );
 
       // Refresh status and trial balance
       await loadStatus();
-      if (onSystemDateChange) onSystemDateChange(res.nextWorkingDate);
+      if (onSystemDateChange && transitionedDate) onSystemDateChange(transitionedDate);
     } catch (err) {
       setErrorMessage(`EOD Batch failed: ${err.message}`);
     } finally {
