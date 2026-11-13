@@ -176,7 +176,7 @@ $$\sum \text{Debit} = \text{Debit}_{4211}^{\text{principal}} + \text{Debit}_{421
 
 ## 6. DPD Aging & Provisioning Integration
 
-Following the repayment step, the EOD batch executes `loanAgingStep` ([`LoanAgingService.java`](file:///D:/MyProgram/CoreBanking/src/main/java/com/cbs/lending/service/LoanAgingService.java)) to assess loan health and provisioning according to Circular 11/2021/TT-NHNN:
+Following the repayment step, the EOD batch executes `loanAgingStep` ([`LoanAgingService.java`](../src/main/java/com/cbs/lending/service/LoanAgingService.java)) to assess loan health and provisioning according to Circular 11/2021/TT-NHNN:
 
 ```mermaid
 flowchart LR
@@ -195,9 +195,9 @@ $$\text{Credit (CR): } \mathbf{7911} \text{ (SYS\_PROV\_REVERSAL\_INCOME - Loan 
 
 ## 7. Implementation Artifacts & Cross-References
 
-- **Repayment Service**: [`LoanRepaymentService.java`](file:///D:/MyProgram/CoreBanking/src/main/java/com/cbs/lending/service/LoanRepaymentService.java)
-- **Aging & Provisioning Service**: [`LoanAgingService.java`](file:///D:/MyProgram/CoreBanking/src/main/java/com/cbs/lending/service/LoanAgingService.java)
-- **Batch Step Configuration**: [`EodBatchConfig.java`](file:///D:/MyProgram/CoreBanking/src/main/java/com/cbs/eod/config/EodBatchConfig.java)
-- **Database Rules & Schema**: [`V10__seed_loan_repayment_rules.sql`](file:///D:/MyProgram/CoreBanking/src/main/resources/db/migration/V10__seed_loan_repayment_rules.sql)
-- **Unit Verification**: [`LoanRepaymentServiceTest.java`](file:///D:/MyProgram/CoreBanking/src/test/java/com/cbs/lending/service/LoanRepaymentServiceTest.java) | [`LoanAgingServiceTest.java`](file:///D:/MyProgram/CoreBanking/src/test/java/com/cbs/lending/service/LoanAgingServiceTest.java)
-- **End-to-End Integration**: [`EodLendingIntegrationTest.java`](file:///D:/MyProgram/CoreBanking/src/test/java/com/cbs/lending/EodLendingIntegrationTest.java)
+- **Repayment Service**: [`LoanRepaymentService.java`](../src/main/java/com/cbs/lending/service/LoanRepaymentService.java)
+- **Aging & Provisioning Service**: [`LoanAgingService.java`](../src/main/java/com/cbs/lending/service/LoanAgingService.java)
+- **Batch Step Configuration**: [`EodBatchConfig.java`](../src/main/java/com/cbs/eod/config/EodBatchConfig.java)
+- **Database Rules & Schema**: [`V10__seed_loan_repayment_rules.sql`](../src/main/resources/db/migration/V10__seed_loan_repayment_rules.sql)
+- **Unit Verification**: [`LoanRepaymentServiceTest.java`](../src/test/java/com/cbs/lending/service/LoanRepaymentServiceTest.java) | [`LoanAgingServiceTest.java`](../src/test/java/com/cbs/lending/service/LoanAgingServiceTest.java)
+- **End-to-End Integration**: [`EodLendingIntegrationTest.java`](../src/test/java/com/cbs/lending/EodLendingIntegrationTest.java)

@@ -26,6 +26,22 @@
 
 ---
 
+## 📚 Architecture Deep Dives & Domain Specifications
+
+For in-depth Architectural Decision Records (ADRs), sequence diagrams, and regulatory compliance specifications, refer to the documentation in [`docs/`](docs/):
+
+| Document | Core Topic & Banking Standard |
+| :--- | :--- |
+| [Posting-Driven Architecture](docs/POSTING_DRIVEN_ARCHITECTURE.md) | Why banking engines enforce Posting-First instead of Balance-First mutations |
+| [Transaction Lifecycle & Invariants](docs/TRANSACTION_LIFECYCLE.md) | End-to-end 12-step OLTP execution, distributed idempotency & locking order |
+| [EOD Batch Pipeline](docs/EOD_BATCH_PIPELINE.md) | 8-step Spring Batch End-of-Day cycle, cutoff freeze & GL reconciliation |
+| [Waterfall Repayment Mechanism](docs/WATERFALL_REPAYMENT_MECHANISM.md) | Statutory debt recovery priority conforming to SBV Circular 39/2016/TT-NHNN |
+| [Pluggable Multi-Charge IFC Pricing Engine](docs/IFC_PRICING_ENGINE_ARCHITECTURE.md) | Decoupled interest and fee pricing rules for deposit & lending products |
+| [Dynamic Form Engine (SDUI ADR)](docs/DYNAMIC_FORM_ENGINE_DESIGN_DECISION.md) | Architectural rationale behind Server-Driven UI at Core Banking scale |
+| [Core Banking Portfolio Showcase](docs/PORTFOLIO_CORE_BANKING_SHOWCASE.md) | Executive summary & benchmark against Temenos T24, Oracle FLEXCUBE & Neptune CBS |
+
+---
+
 ## 🛠️ Tech Stack
 
 ### Backend
@@ -65,6 +81,7 @@ Key frontend capabilities:
 CoreBanking/
 ├── pom.xml                           # Maven dependencies and build plugins
 ├── mvnw.cmd                          # Maven wrapper for Windows
+├── docs/                             # Architecture specifications & Domain ADRs
 ├── frontend/                         # Modern Teller Portal SPA (React 18 + Vite)
 │   ├── src/
 │   │   ├── components/engine/        # SDUI Form Engine & Field Renderers

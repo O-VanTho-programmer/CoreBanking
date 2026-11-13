@@ -145,7 +145,7 @@ flowchart TD
   - **Debit**: GL `4211` (`CUSTOMER_ACCOUNT` - CASA Deposit reduction)
   - **Credit**: GL `7020` (`SYS_INT_REVENUE` - Interest Income recognition)
   - **Credit**: GL `2111` / `2112` (`SYS_LOAN_PRINCIPAL` / `SYS_LOAN_OVERDUE` - Loan Asset reduction)
-- **Detailed Specification**: See [Waterfall Repayment Mechanism](file:///D:/MyProgram/CoreBanking/.github/doc/WATERFALL_REPAYMENT_MECHANISM.md).
+- **Detailed Specification**: See [Waterfall Repayment Mechanism](WATERFALL_REPAYMENT_MECHANISM.md).
 
 ### Stage 4: Loan Aging, Classification & Dual Provisioning
 - **Purpose**: Calculates Days Past Due (DPD) for loans, updates classification groups (Groups 1–5), transfers overdue principal to GL `2112`, and posts dual loan loss provisions.
