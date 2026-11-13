@@ -34,3 +34,7 @@ frontend/node_modules/
 frontend/dist/
 frontend/.vite/
 
+# AI-assisted development notes & agents
+.agents/
+GEMINI.md
+
