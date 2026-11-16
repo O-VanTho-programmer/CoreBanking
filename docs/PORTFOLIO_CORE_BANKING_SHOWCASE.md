@@ -106,14 +106,14 @@ sequenceDiagram
 ## Lending Engine & Symmetrical IFC Pricing
 
 ### 1. Symmetrical Multi-Charge IFC Architecture
-A uniform, catalog-driven fee & interest charging engine for both Tiền gửi (Deposit) và Cho vay (Credit):
+A uniform, catalog-driven fee & interest charging engine for both Deposits (CASA) and Lending (Credit):
 - **Dictionary**: `DEPOSIT_IFC_DEFINITION` & `CREDIT_IFC_DEFINITION` with `ifc_type CHAR(1)` (`'I'` = Interest, `'F'` = Fee).
 - **Bundling**: $N-N$ mapping into Product Catalogs (`DEPOSIT_PRODUCT_IFC_MAPPING`, `CREDIT_PRODUCT_IFC_MAPPING`).
 - **Contract Decoupling**: Bundled IFCs are cloned to `ACCOUNT_IFC` and `LOAN_ACCOUNT_IFC` on account opening, insulating active contracts from future catalog changes and allowing personalized VIP waivers/margins.
 
 ### 2. Two-Tier Margin Rate Floating Interest
 $$\text{Effective Rate} = \text{Base Rate} + \text{Margin Rate}$$
-- Teller negotiates within allowable product bounds: $\text{min\_margin\_rate} \le \text{margin} \le \text{max\_margin\_rate}$.
+- Teller negotiates within allowable product bounds: `min_margin_rate` &le; `margin` &le; `max_margin_rate`.
 - Automatically binds `applied_rate` and `margin_rate` into `LOAN_ACCOUNT_IFC`.
 
 ### 3. Credit Aging & Dual-Provisioning (SBV Circular 11/2021)
@@ -121,7 +121,7 @@ $$\text{Effective Rate} = \text{Base Rate} + \text{Margin Rate}$$
 - Dual provisioning calculation:
   - **General Provision**: $0.75\%$ on unclassified eligible principal.
   - **Specific Provision**: $0\% \rightarrow 5\% \rightarrow 20\% \rightarrow 50\% \rightarrow 100\%$ according to Debt Group.
-- **Accounting Invariant**: When a loan is paid off, all loss provisions are reversed via **TK 7911 (Thu nhập khác từ hoàn nhập dự phòng)**, maintaining balance sheet hygiene.
+- **Accounting Invariant**: When a loan is paid off, all loss provisions are reversed via **GL 7911 (Other Income from Loan Loss Provision Reversals)**, maintaining balance sheet hygiene.
 
 ---
 

@@ -134,8 +134,8 @@ flowchart TD
   - Skips zero or negative balances.
 - **Sub-ledger Update**: Increments `ACCOUNT.accrued_interest`.
 - **General Ledger Postings (`EOD_ACCRUAL`)**:
-  - **Debit**: GL `8011` (Chi phí trả lãi tiền gửi CASA / `SYS_INTEREST_EXPENSE`).
-  - **Credit**: GL `4911` (Lãi phải trả cho tiền gửi CASA / `SYS_ACCRUED_INTEREST_PAYABLE`).
+  - **Debit**: GL `8011` (CASA Deposit Interest Expense / `SYS_INTEREST_EXPENSE`).
+  - **Credit**: GL `4911` (CASA Accrued Interest Payable / `SYS_ACCRUED_INTEREST_PAYABLE`).
   - Verified by `PostingEngineService` to guarantee $\sum \text{Debit} == \sum \text{Credit}$.
 
 ### Stage 3: Loan Auto-Repayment (Waterfall Allocation)
