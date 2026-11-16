@@ -7,7 +7,7 @@ This document details the General Ledger (GL) design, the statutory Chart of Acc
 ## 1. Banking Domain Background: Statutory COA vs. Internal Sub-GLs
 
 Banking Chart of Accounts (COA) balances two requirements:
-- **Central Bank Statutory Mandate**: Unified 1-to-4 digit accounts (e.g. SBV Decision 479/2004/QD-NHNN) ensuring identical regulatory reporting across all institutions.
+- **Central Bank Statutory Mandate**: Unified 1-to-4 digit accounts (e.g. State Bank of Vietnam Decision 479/2004/QD-NHNN) ensuring identical regulatory reporting across all institutions.
 - **Commercial Bank Customization**: Sub-accounts (level 4+) defined internally by each bank to segregate branches, currencies, and customer segments.
 
 ### The Hybrid COA Hierarchy

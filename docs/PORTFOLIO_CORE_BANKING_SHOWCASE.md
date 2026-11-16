@@ -1,6 +1,6 @@
 # CORE BANKING SYSTEM ARCHITECTURE & PORTFOLIO SHOWCASE
 > **High-Performance, Double-Entry Core Banking Platform**  
-> *Engineered in compliance with SBV (State Bank of Vietnam) regulations and Tier-1 Banking Standards (Temenos T24, Oracle FLEXCUBE, Neptune CBS).*
+> *Engineered in compliance with State Bank of Vietnam regulations and Tier-1 Banking Standards (Temenos T24, Oracle FLEXCUBE, Neptune CBS).*
 
 ---
 
@@ -116,7 +116,7 @@ $$\text{Effective Rate} = \text{Base Rate} + \text{Margin Rate}$$
 - Teller negotiates within allowable product bounds: `min_margin_rate` &le; `margin` &le; `max_margin_rate`.
 - Automatically binds `applied_rate` and `margin_rate` into `LOAN_ACCOUNT_IFC`.
 
-### 3. Credit Aging & Dual-Provisioning (SBV Circular 11/2021)
+### 3. Credit Aging & Dual-Provisioning (State Bank of Vietnam Circular 11/2021)
 - Automatic classification into 5 Debt Groups based on Days Past Due (DPD): Group 1 (Current), Group 2 (Special Mention), Group 3 (Sub-standard), Group 4 (Doubtful), Group 5 (Loss).
 - Dual provisioning calculation:
   - **General Provision**: $0.75\%$ on unclassified eligible principal.

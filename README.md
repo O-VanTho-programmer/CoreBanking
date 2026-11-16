@@ -7,22 +7,13 @@
 
 ## 📌 Core Banking Invariants & Architecture Highlights
 
-1. **Inviolable Double-Entry Bookkeeping**:
-   $$\sum \text{Debit} == \sum \text{Credit}$$
-   Every accounting movement generates balanced debit and credit journal legs grouped by entry groups. Immutability and balance invariants are validated by the `PostingEngineService` prior to database commit.
-2. **Deterministic Locking (Deadlock Prevention)**:
-   All multi-account operations (such as internal fund transfers between accounts A and B) order target account IDs in strictly ascending order (`ORDER BY account_id ASC FOR UPDATE`). This completely eliminates cyclic wait deadlock conditions, even during high-concurrency opposing transfers (A &rarr; B and B &rarr; A simultaneously).
-3. **Strict Balance Invariant**:
-   $$\text{Available Balance} = \text{Ledger Balance} - \text{Hold Balance}$$
-   Transactions are rejected with `InsufficientFundsException` if the debited amount exceeds available balance, ensuring accounts can never go into unauthorized overdraft.
-4. **Dynamic CodeLists via Redis**:
-   Zero hardcoded status check constraints in the DB. Validations are enforced at the Java record/DTO layer via `@ValidCodeList(group = "...")` backed by local/distributed Redis cache with write-through warmup.
-5. **Two-Tier Composite Idempotency & Hot/Cold Ledger Separation**:
-   Guarantees zero double-charges via Redis L1 fast filter (24h TTL) + distributed thundering-herd mutex + hot ledger (`TRX_JOURNAL_ACTIVE`). Daytime OLTP completely avoids querying cold historical archives (`TRX_JOURNAL_DONE`), eliminating cold-table disk seek latency while maintaining sub-millisecond replay protection. Active journals are archived to cold storage (`_DONE`) during End-of-Day (EOD) batch processing.
-6. **Decoupled Operational Calendar**:
-   All financial mutations use the logical banking date from `SYSTEM_OPERATIONAL_STATUS.current_working_date` rather than system physical clocks (`LocalDate.now()`), allowing automated business day rollover and holiday processing.
-7. **Server-Driven UI (SDUI)**:
-   Transaction screens, dynamic fields, and multi-step workflows are driven by backend JSON form schemas (`FORM`, `FORM_SHORTCUT`), decoupling UI presentation from frontend releases.
+1. **Double-Entry Bookkeeping**: $\sum \text{Debit} == \sum \text{Credit}$ verified in-memory per entry group and transaction by `PostingEngineService` prior to DB commit.
+2. **Deterministic Locking**: Acquires row locks in strictly ascending order (`ORDER BY account_id ASC FOR UPDATE`), mathematically eliminating cyclic deadlocks.
+3. **Strict Balance Invariant**: $\text{Available} = \text{Ledger} - \text{Hold}$. Unauthorized overdrafts are immediately rejected with `InsufficientFundsException`.
+4. **Dynamic CodeLists**: Validations enforced at Java DTO layer via `@ValidCodeList` backed by Redis cache, removing hardcoded DB check constraints.
+5. **Two-Tier Idempotency & Hot/Cold Ledgers**: Redis L1 filter (24h TTL) + hot ledger (`TRX_JOURNAL_ACTIVE`) guarantee zero double-charges. Daytime OLTP never queries cold archives (`_DONE`).
+6. **Decoupled Operational Calendar**: Mutations bind to the logical banking date (`SYSTEM_OPERATIONAL_STATUS.current_working_date`), never server clocks (`LocalDate.now()`).
+7. **Server-Driven UI (SDUI)**: Teller forms, dynamic fields, and workflows are rendered from backend JSON schemas (`FORM`, `FORM_SHORTCUT`).
 
 ---
 
@@ -36,7 +27,7 @@ For in-depth Architectural Decision Records (ADRs), sequence diagrams, and regul
 | [Chart of Accounts & GL Mapping](docs/CHART_OF_ACCOUNTS_AND_GL_MAPPING.md) | Statutory Chart of Accounts (COA) hierarchy & 4-tier dynamic account abstraction |
 | [Transaction Lifecycle & Invariants](docs/TRANSACTION_LIFECYCLE.md) | End-to-end 12-step OLTP execution, distributed idempotency & locking order |
 | [EOD Batch Pipeline](docs/EOD_BATCH_PIPELINE.md) | 8-step Spring Batch End-of-Day cycle, cutoff freeze & GL reconciliation |
-| [Waterfall Repayment Mechanism](docs/WATERFALL_REPAYMENT_MECHANISM.md) | Statutory debt recovery priority conforming to SBV Circular 39/2016/TT-NHNN |
+| [Waterfall Repayment Mechanism](docs/WATERFALL_REPAYMENT_MECHANISM.md) | Statutory debt recovery priority conforming to State Bank of Vietnam Circular 39/2016/TT-NHNN |
 | [Pluggable Multi-Charge IFC Pricing Engine](docs/IFC_PRICING_ENGINE_ARCHITECTURE.md) | Decoupled interest and fee pricing rules for deposit & lending products |
 | [Dynamic Form Engine (SDUI ADR)](docs/DYNAMIC_FORM_ENGINE_DESIGN_DECISION.md) | Architectural rationale behind Server-Driven UI at Core Banking scale |
 | [Core Banking Portfolio Showcase](docs/PORTFOLIO_CORE_BANKING_SHOWCASE.md) | Executive summary & benchmark against Temenos T24, Oracle FLEXCUBE & Neptune CBS |

@@ -6,7 +6,7 @@ In retail and commercial banking, loan repayment is rarely an ad-hoc manual acti
 
 When a borrower has insufficient funds to satisfy the entire installment obligation, banking regulations strictly prohibit arbitrary fund distribution. Instead, Core Banking systems must execute a statutory **Waterfall Allocation Mechanism** (Priority-Based Debt Recovery).
 
-### Statutory Precedence (SBV Circular 39/2016/TT-NHNN):
+### Statutory Precedence (State Bank of Vietnam Circular 39/2016/TT-NHNN):
 1. **Late Fees & Penalties** (`penalty_due`)
 2. **Overdue Interest** (`overdue_interest_due`)
 3. **In-Term / Accrued Interest Due** (`interest_due`)
