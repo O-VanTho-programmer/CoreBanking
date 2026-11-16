@@ -16,7 +16,7 @@ In commercial banking, 24/7 transaction processing is split into two operational
   $$\text{Debit GL 8011 (Interest Expense)} \equiv \text{Credit GL 4911 (Accrued Interest Payable)}$$
 - **Invariant 2 (Balance Integrity & Historical Bucketing)**: Daily closing balances are recorded into immutable snapshot buckets (`ACCOUNT_BALANCE_BUCKET`).
 - **Zero-Tolerance Trial Balance Reconciliation**: The fundamental core banking equation must balance across all general ledger accounts:
-  $$\sum \text{Debit Balances} \equiv \sum \text{Credit Balances} \quad \text{and} \quad \text{GL 4211 Balance} \equiv \sum_{a \in \text{CASA}} a.\text{ledger\_balance}$$
+  $$\sum \text{Debit Balances} \equiv \sum \text{Credit Balances} \quad \text{and} \quad \text{GL 4211 Balance} \equiv \sum_{a \in \text{CASA}} a.\text{balance}$$
   *If a discrepancy of even 0.0001 is detected, the EOD pipeline halts immediately and prevents business date rollover.*
 - **Hot-to-Cold Data Archival (`MoveDataHis`)**: Moves finished transactions from hot active tables (`*_ACTIVE`) to cold history tables (`*_DONE`) to ensure the OLTP database remains ultra-lean and sub-millisecond fast.
 
@@ -129,7 +129,7 @@ flowchart TD
 
 ### Stage 2: Daily Savings & CASA Interest Accrual
 - **Formula**:
-  $$\text{Daily Accrual} = \text{round}\left( \text{ledger\_balance} \times \frac{\text{annual\_rate}}{\text{day\_count\_basis}}, 4 \right)$$
+  $$\text{Daily Accrual} = \text{round}\left( \text{ledger balance} \times \frac{\text{annual rate}}{\text{day count basis}}, 4 \right)$$
   - Supported conventions: `ACT_365` (365 days) and `ACT_360` (360 days).
   - Skips zero or negative balances.
 - **Sub-ledger Update**: Increments `ACCOUNT.accrued_interest`.
@@ -167,7 +167,7 @@ flowchart TD
 - **Equilibrium Check**:
   $$\sum_{\text{All Postable GLs}} \text{Debit Total} - \sum_{\text{All Postable GLs}} \text{Credit Total} = 0$$
 - **Sub-Ledger Parity Check**:
-  $$\text{GL 4211 Net Balance} \equiv \sum_{a \in \text{CASA Accounts}} a.\text{ledger\_balance}$$
+  $$\text{GL 4211 Net Balance} \equiv \sum_{a \in \text{CASA Accounts}} a.\text{balance}$$
 - **Fail-Safe Mechanism**: If even 0.0001 discrepancy is detected, `TrialBalanceUnbalancedException` is raised, aborting Step 8.
 
 ### Stage 8: Operational Date Rollover & Cut-off Release

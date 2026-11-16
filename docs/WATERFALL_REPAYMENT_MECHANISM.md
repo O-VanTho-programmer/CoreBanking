@@ -137,29 +137,29 @@ $$\sum \text{Debit} = \text{Debit}_{4211}^{\text{principal}} + \text{Debit}_{421
 ### Scenario A: Full Repayment (Sufficient CASA Balance)
 - **CASA Balance**: 10,000,000 VND
 - **Waterfall Allocation**:
-  1. Penalty paid: $0$ VND
-  2. Interest paid: $100,000$ VND
-  3. Principal paid: $1,000,000$ VND
+  1. Penalty paid: `0 VND`
+  2. Interest paid: `100,000 VND`
+  3. Principal paid: `1,000,000 VND`
   4. Total deduction: **1,100,000 VND**
 - **Post-Transaction State**:
-  - CASA Balance: $10,000,000 - 1,100,000 = \mathbf{8,900,000\text{ VND}}$
-  - Schedule #1 Status: $\mathbf{PAID}$
-  - Loan Remaining Principal: $12,000,000 - 1,000,000 = \mathbf{11,000,000\text{ VND}}$
+  - CASA Balance: `10,000,000 - 1,100,000` = **8,900,000 VND**
+  - Schedule #1 Status: `PAID`
+  - Loan Remaining Principal: `12,000,000 - 1,000,000` = **11,000,000 VND**
 
 ---
 
 ### Scenario B: Partial Repayment (Waterfall Protection)
 - **CASA Balance**: 250,000 VND (Insufficient to cover 1,100,000 VND)
 - **Waterfall Allocation**:
-  1. Penalty paid: $0$ VND
-  2. Interest paid: $\min(100,000, 250,000) = \mathbf{100,000\text{ VND}}$ (Interest satisfied 100%)
-  3. Available remaining: $250,000 - 100,000 = 150,000$ VND
-  4. Principal paid: $\min(1,000,000, 150,000) = \mathbf{150,000\text{ VND}}$
+  1. Penalty paid: `0 VND`
+  2. Interest paid: $\min(100000, 250000)$ = **100,000 VND** (Interest satisfied 100%)
+  3. Available remaining: `250,000 - 100,000` = **150,000 VND**
+  4. Principal paid: $\min(1000000, 150000)$ = **150,000 VND**
   5. Total deduction: **250,000 VND**
 - **Post-Transaction State**:
-  - CASA Balance: $250,000 - 250,000 = \mathbf{0\text{ VND}}$
-  - Schedule #1 Status: $\mathbf{PARTIALLY\_PAID}$ (Remaining due: $850,000$ VND principal)
-  - Loan Remaining Principal: $12,000,000 - 150,000 = \mathbf{11,850,000\text{ VND}}$
+  - CASA Balance: `250,000 - 250,000` = **0 VND**
+  - Schedule #1 Status: `PARTIALLY_PAID` (Remaining due: 850,000 VND principal)
+  - Loan Remaining Principal: `12,000,000 - 150,000` = **11,850,000 VND**
   - *Accounting Result*: Bank successfully booked 100,000 VND into interest revenue (GL 7020) without suffering uncollected interest loss.
 
 ---
@@ -169,7 +169,7 @@ $$\sum \text{Debit} = \text{Debit}_{4211}^{\text{principal}} + \text{Debit}_{421
 - **Waterfall Allocation**:
   1. Total deduction: **0 VND** (No journal entry posted)
 - **Post-Transaction State**:
-  - If $\text{due\_date} < \text{workingDate}$: Schedule #1 is transitioned to $\mathbf{OVERDUE}$.
+  - If `due_date < working_date`: Schedule #1 is transitioned to `OVERDUE`.
   - In subsequent EOD step (`loanAgingStep`), the loan's DPD increases, triggering overdue transfer to GL `2112` and loan loss provisioning.
 
 ---
@@ -188,8 +188,8 @@ flowchart LR
 
 ### Statutory Provision Reversal on Payoff (`LOAN_PROVISION_RELEASE`):
 When a loan is resolved or paid off (`remaining_principal == 0`), accumulated provisions are **never credited back to expense 88xx**. Instead, they are reversed into miscellaneous revenue:
-$$\text{Debit (DR): } \mathbf{2191} \text{ / } \mathbf{2192} \text{ (General / Specific Provision Fund)}$$
-$$\text{Credit (CR): } \mathbf{7911} \text{ (SYS\_PROV\_REVERSAL\_INCOME - Loan Loss Provision Reversal Revenue)}$$
+* **Debit (DR)**: **2191** / **2192** (General / Specific Provision Fund)
+* **Credit (CR)**: **7911** (`SYS_PROV_REVERSAL_INCOME` - Loan Loss Provision Reversal Revenue)
 
 ---
 
