@@ -6,9 +6,9 @@ This document details the General Ledger (GL) design, the statutory Chart of Acc
 
 ## 1. Banking Domain Background: Statutory COA vs. Internal Sub-GLs
 
-In commercial banking, accounting structures must satisfy two conflicting demands:
-1. **Regulatory Standardization**: Central Banks and financial authorities (such as the State Bank of Vietnam under Decision 479/2004/QD-NHNN and Circular 10/2014/TT-NHNN, the Federal Reserve, or the European Central Bank) mandate a unified Chart of Accounts. Every licensed financial institution must report balance sheets, trial balances, and prudential ratios using identical high-level account numbers.
-2. **Operational Flexibility**: Each commercial bank operates with distinct organizational hierarchies, regional branch networks, currency offerings, customer segments (Retail, SME, Corporate, Private Banking), and product variants.
+Banking Chart of Accounts (COA) balances two requirements:
+- **Central Bank Statutory Mandate**: Unified 1-to-4 digit accounts (e.g. SBV Decision 479/2004/QD-NHNN) ensuring identical regulatory reporting across all institutions.
+- **Commercial Bank Customization**: Sub-accounts (level 4+) defined internally by each bank to segregate branches, currencies, and customer segments.
 
 ### The Hybrid COA Hierarchy
 
@@ -203,38 +203,22 @@ sequenceDiagram
 
 A fundamental principle of core banking architecture is the structural separation between the **Sub-Ledger** and the **General Ledger**:
 
-```text
-                         GENERAL LEDGER (GL_ACCOUNT)
-                     ┌─────────────────────────────────┐
-                     │ Control Account: GL 4211        │
-                     │ (Demand Deposits - Aggregate)   │
-                     └────────────────┬────────────────┘
-                                      │
-              Reconciled at EOD       │   Must Match Exactly
-              (Zero-Tolerance)        │   (Variance == 0.0000)
-                                      │
-                                      ▼
-                         SUB-LEDGER (ACCOUNT Table)
-    ┌───────────────────────┬───────────────────────┬───────────────────────┐
-    │ Customer Account 1001 │ Customer Account 1002 │ Customer Account 1003 │
-    │ Balance: 5,000,000    │ Balance: 12,000,000   │ Balance: 3,000,000    │
-    └───────────────────────┴───────────────────────┴───────────────────────┘
+```mermaid
+flowchart TD
+    subgraph GL["General Ledger (GL_ACCOUNT)"]
+        GL4211["Control Account: GL 4211<br/>(Demand Deposits - Aggregate)"]
+    end
+
+    subgraph Subledger["Sub-Ledger (ACCOUNT Table)"]
+        Acct1["Customer Account 1001<br/>Balance: 5,000,000"]
+        Acct2["Customer Account 1002<br/>Balance: 12,000,000"]
+        Acct3["Customer Account 1003<br/>Balance: 3,000,000"]
+    end
+
+    GL4211 -->|"EOD Parity Check (Variance == 0.0000)"| Subledger
 ```
 
 During Step 7 of the End-of-Day batch pipeline ([`TrialBalanceService.java`](../src/main/java/com/cbs/eod/service/TrialBalanceService.java)), the engine enforces:
 $$\sum_{a \in \text{CASA Accounts}} a.\text{balance} \equiv \text{Net Balance of GL 4211}$$
 
 If even `0.0001` variance is detected between the individual sub-ledger accounts and the control GL balance, the pipeline immediately raises a `SubledgerGlDiscrepancyException` and halts EOD processing, preventing date rollover until resolved.
-
----
-
-## 8. Real-World Core Banking Industry Comparison
-
-The parameter-driven design implemented in this system directly matches tier-1 commercial banking platforms:
-
-| Banking Engine | Abstraction Mechanism | Concrete GL Binding |
-| :--- | :--- | :--- |
-| **Mini Core Banking (This System)** | `ACCOUNT_MAPPING` (Abstract Roles) | `ACCOUNT_MAPPING_DETAIL` (4-Tier Matrix + Redis L1) |
-| **Temenos Transact (T24)** | Internal Accounts / Category Codes | `ACCOUNT.PARAMETER` & `COMPANY` tables |
-| **Oracle FLEXCUBE** | Role Definitions (Accounting Roles) | `STDCFCLD` / Accounting Role to Head Mapping |
-| **Neptune CBS** | CodeList / System Parameter Matrix | Screen Dictionary & System GL Setup Matrix |
