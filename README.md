@@ -33,6 +33,7 @@ For in-depth Architectural Decision Records (ADRs), sequence diagrams, and regul
 | Document | Core Topic & Banking Standard |
 | :--- | :--- |
 | [Posting-Driven Architecture](docs/POSTING_DRIVEN_ARCHITECTURE.md) | Why banking engines enforce Posting-First instead of Balance-First mutations |
+| [Chart of Accounts & GL Mapping](docs/CHART_OF_ACCOUNTS_AND_GL_MAPPING.md) | Statutory Chart of Accounts (COA) hierarchy & 4-tier dynamic account abstraction |
 | [Transaction Lifecycle & Invariants](docs/TRANSACTION_LIFECYCLE.md) | End-to-end 12-step OLTP execution, distributed idempotency & locking order |
 | [EOD Batch Pipeline](docs/EOD_BATCH_PIPELINE.md) | 8-step Spring Batch End-of-Day cycle, cutoff freeze & GL reconciliation |
 | [Waterfall Repayment Mechanism](docs/WATERFALL_REPAYMENT_MECHANISM.md) | Statutory debt recovery priority conforming to SBV Circular 39/2016/TT-NHNN |
