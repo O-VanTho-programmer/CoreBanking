@@ -1,4 +1,4 @@
-# 🏦 End-to-End Transaction Lifecycle in Core Banking
+# End-to-End Transaction Lifecycle in Core Banking
 
 This document provides the definitive, comprehensive architecture and sequence diagram for the transaction lifecycle of the Mini Core Banking System.
 

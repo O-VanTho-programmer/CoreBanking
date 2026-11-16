@@ -1,4 +1,4 @@
-# 🏦 End-of-Day (EOD) Batch Pipeline Architecture
+# End-of-Day (EOD) Batch Pipeline Architecture
 
 This document provides the definitive architecture, sequence diagrams, and financial guarantees for the **End-of-Day (EOD) Batch Processing Pipeline** of the Core Banking System.
 
@@ -71,7 +71,7 @@ sequenceDiagram
         Archival->>DB: INSERT INTO JOURNAL_ENTRY_DONE SELECT * FROM JOURNAL_ENTRY_ACTIVE WHERE trx_id IN (archived_ids)
         Archival->>DB: DELETE FROM JOURNAL_ENTRY_ACTIVE WHERE trx_id IN (archived_ids)
         Archival->>DB: DELETE FROM TRX_JOURNAL_ACTIVE WHERE trx_id IN (archived_ids)
-        Note over Archival, DB: Keeps active tables compact; preserves idempotency in cold archive
+        Note over Archival, DB: Keeps active tables compact, preserves idempotency in cold archive
     end
 
     rect rgb(248, 240, 255)
@@ -81,7 +81,7 @@ sequenceDiagram
         Trial->>DB: SELECT GL 4211 balance VS SUM(CASA ledger_balance)
         alt Unbalanced Ledger or Subledger Mismatch Detected
             Trial-->>EOD: Throw TrialBalanceUnbalancedException
-            Note over EOD, Admin: CRITICAL HALT: Date rollover aborted; Cutoff remains active
+            Note over EOD, Admin: CRITICAL HALT: Date rollover aborted - Cutoff remains active
         end
         Trial-->>EOD: Ledger Equilibrium Confirmed
     end

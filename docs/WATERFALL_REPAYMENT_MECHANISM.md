@@ -1,4 +1,4 @@
-# 🌊 Waterfall Allocation & Loan Repayment Mechanism in Core Banking
+# Waterfall Allocation & Loan Repayment Mechanism in Core Banking
 
 ## 1. Executive Summary & Regulatory Framework
 

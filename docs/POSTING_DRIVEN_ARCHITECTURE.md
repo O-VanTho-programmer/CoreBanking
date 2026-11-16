@@ -1,4 +1,4 @@
-# 🏦 Posting-Driven Transaction Architecture in Core Banking
+# Posting-Driven Transaction Architecture in Core Banking
 
 ## 1. Overview & Comparison
 

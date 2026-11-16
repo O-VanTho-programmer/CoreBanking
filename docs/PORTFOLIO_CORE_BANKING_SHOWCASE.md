@@ -1,10 +1,10 @@
-# 🏦 CORE BANKING SYSTEM ARCHITECTURE & PORTFOLIO SHOWCASE
+# CORE BANKING SYSTEM ARCHITECTURE & PORTFOLIO SHOWCASE
 > **High-Performance, Double-Entry Core Banking Platform**  
 > *Engineered in compliance with SBV (State Bank of Vietnam) regulations and Tier-1 Banking Standards (Temenos T24, Oracle FLEXCUBE, Neptune CBS).*
 
 ---
 
-## 🌟 Executive Summary
+## Executive Summary
 
 This project is a modern, enterprise-grade **Core Banking Engine** built from the ground up to solve the most difficult technical challenges in financial software engineering:
 * **Strict Double-Entry Bookkeeping**: Absolute preservation of debit-credit equilibrium ($\sum \text{Debit} = \sum \text{Credit}$) across every financial event.
@@ -15,7 +15,7 @@ This project is a modern, enterprise-grade **Core Banking Engine** built from th
 
 ---
 
-## 🏛️ System Architecture Overview
+## System Architecture Overview
 
 ```mermaid
 flowchart TD
@@ -57,7 +57,7 @@ flowchart TD
 
 ---
 
-## ⚖️ The 6 Core Accounting Invariants
+## The 6 Core Accounting Invariants
 
 Every financial operation in the system is governed by 6 non-negotiable architectural invariants:
 
@@ -72,7 +72,7 @@ Every financial operation in the system is governed by 6 non-negotiable architec
 
 ---
 
-## 🔄 High Concurrency Stress Benchmark (Java 21 Virtual Threads)
+## High Concurrency Stress Benchmark (Java 21 Virtual Threads)
 
 The system includes a dedicated stress testing suite demonstrating massive concurrent throughput and mathematical reliability:
 
@@ -84,10 +84,10 @@ sequenceDiagram
     participant DB as Oracle 19c (Row Lock Order)
     participant Engine as Posting Engine
     
-    Client->>Lock: Concurrent Request with Identical/Ring Keys
+    Client->>Lock: Concurrent Request with Identical or Ring Keys
     alt Same Idempotency Key (Thundering Herd)
-        Lock-->>Client: 1 Thread acquires lock; 19 Threads wait & replay canonical receipt
-    else Ring Transfers (A -> B -> C -> D -> A)
+        Lock-->>Client: 1 Thread acquires lock, 19 Threads wait and replay canonical receipt
+    else Ring Transfers (A to B to C to D to A)
         Client->>DB: Lock A, B, C, D in ASCENDING order (account_id ASC)
         Note over DB: ZERO Circular Wait Deadlocks (0 ORA-00060)
         Client->>Engine: Post verified double-entry legs
@@ -103,7 +103,7 @@ sequenceDiagram
 
 ---
 
-## 💳 Lending Engine & Symmetrical IFC Pricing
+## Lending Engine & Symmetrical IFC Pricing
 
 ### 1. Symmetrical Multi-Charge IFC Architecture
 A uniform, catalog-driven fee & interest charging engine for both Tiền gửi (Deposit) và Cho vay (Credit):
@@ -125,7 +125,7 @@ $$\text{Effective Rate} = \text{Base Rate} + \text{Margin Rate}$$
 
 ---
 
-## 🌙 Automated 8-Step Spring Batch EOD Pipeline
+## Automated 8-Step Spring Batch EOD Pipeline
 
 ```mermaid
 flowchart LR
@@ -146,7 +146,7 @@ flowchart LR
 
 ---
 
-## 🔢 Account Numbering Standard (Pure 16 Digits)
+## Account Numbering Standard (Pure 16 Digits)
 
 The system strictly bans alphabetic prefixes (`LN...`, etc.) across all accounts to guarantee interoperability with payment switches:
 
@@ -155,7 +155,7 @@ $$\mathbf{Loan\ Account\ (Credit)}: \quad \mathbf{Branch}\ (3) + \mathbf{GL\ 211
 
 ---
 
-## 🧪 Test Suite & Code Quality Metrics
+## Test Suite & Code Quality Metrics
 
 - **Total Test Cases**: **136 automated test cases** across Unit, Integration, Batch, and High-Concurrency Stress tests.
 - **Pass Rate**: **100% (136/136 PASSED, 0 FAILURES, 0 ERRORS)**.

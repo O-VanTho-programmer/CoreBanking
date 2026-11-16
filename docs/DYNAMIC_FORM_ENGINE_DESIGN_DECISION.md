@@ -1,4 +1,4 @@
-# 📐 Dynamic Form & Rule Engine: Architecture Design Decision (ADR)
+# Dynamic Form & Rule Engine: Architecture Design Decision (ADR)
 
 > **Context & Intent**:  
 > In real-world enterprise Core Banking platforms (such as Neptune CBS, Temenos T24, Oracle FLEXCUBE, Infosys Finacle), transaction screens, teller input behaviors, and accounting rules are almost **never hard-coded** into static UI forms. Instead, they rely on a **Metadata & Configuration-Driven Architecture**.  

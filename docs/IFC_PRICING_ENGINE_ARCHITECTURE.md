@@ -1,4 +1,4 @@
-# 🏛️ Pluggable Multi-Charge IFC Pricing Engine Architecture
+# Pluggable Multi-Charge IFC Pricing Engine Architecture
 
 ## 1. Executive Summary & Design Philosophy
 
