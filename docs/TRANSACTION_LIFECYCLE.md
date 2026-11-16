@@ -15,7 +15,7 @@ Every financial transaction processed by the banking engine adheres to five stri
    ```
    This mathematically prevents database deadlocks (`ORA-00060`) regardless of concurrency direction ($A \rightarrow B$ vs $B \rightarrow A$).
 4. **Invariant 4 (Decoupled Operational Calendar)**: Financial value dates are driven by `SYSTEM_OPERATIONAL_STATUS.current_working_date`, not physical server clocks (`LocalDate.now()`).
-5. **Invariant 5 (Two-Tier Composite Idempotency)**: Uniqueness of `(channel_id, idempotency_key)` is enforced across Redis, Hot Journal (`TRX_JOURNAL_ACTIVE`), and Cold Archive (`TRX_JOURNAL_DONE`).
+5. **Invariant 5 (Two-Tier Composite Idempotency)**: Uniqueness of `(channel_id, idempotency_key)` is enforced across Redis L1 (24h TTL) and Hot Journal (`TRX_JOURNAL_ACTIVE`). The cold archive (`TRX_JOURNAL_DONE`) is never queried during daytime OLTP, eliminating cold-table disk seek latency.
 
 ---
 
@@ -46,11 +46,6 @@ sequenceDiagram
         end
         IdempService->>JournalRepo: Query Hot Table (TRX_JOURNAL_ACTIVE)
         opt Exists in Hot Table
-            IdempService-->>Orchestrator: Return existing TransactionReceipt
-            Orchestrator-->>Client: HTTP 200 (Idempotent Replay)
-        end
-        IdempService->>JournalRepo: Query Cold Table (TRX_JOURNAL_DONE)
-        opt Exists in Cold Table
             IdempService-->>Orchestrator: Return existing TransactionReceipt
             Orchestrator-->>Client: HTTP 200 (Idempotent Replay)
         end
@@ -114,7 +109,7 @@ sequenceDiagram
     rect rgb(230, 255, 230)
         Note over Orchestrator, RedisCache: STAGE 8: Finalization, Cache Population & Commit
         Orchestrator->>JournalRepo: UPDATE TRX_JOURNAL_ACTIVE SET status = 'COMPLETED'
-        Orchestrator->>RedisCache: SET cbs:idemp:{channel_id}:{idempotency_key} = receipt (TTL 2 hours)
+        Orchestrator->>RedisCache: SET cbs:idemp:{channel_id}:{idempotency_key} = receipt (TTL 24 hours)
         Note over Orchestrator, JournalRepo: Database COMMIT (Single Atomic Unit of Work)
         Orchestrator-->>Client: Return TransactionReceipt (trxNumber, status='COMPLETED', newAvailableBalances)
     end
@@ -127,9 +122,9 @@ sequenceDiagram
 ### Stage 1: Two-Tier Composite Idempotency & Replay Gate
 - Network retries, mobile app double-taps, and timeout recoveries are standard in financial channels.
 - Before acquiring any expensive database row locks, the engine checks whether `(channel_id, idempotency_key)` has already been processed:
-  1. **L1 (Redis Fast Filter)**: Key `cbs:idemp:{channel_id}:{idempotency_key}` provides sub-millisecond replay.
-  2. **Hot Ledger Table**: Queries `TRX_JOURNAL_ACTIVE`.
-  3. **Cold Archive Table**: Queries `TRX_JOURNAL_DONE` for transactions settled on earlier dates.
+  1. **L1 (Redis Fast Filter)**: Key `cbs:idemp:{channel_id}:{idempotency_key}` with 24-hour TTL provides sub-millisecond replay and absorbs cross-day retries in memory (<1ms).
+  2. **L2 (Hot Ledger Table)**: Queries `TRX_JOURNAL_ACTIVE` for today's active window.
+  3. If not found in Redis or Hot Table, it is recognized immediately as a fresh daytime transaction without incurring slow disk seek operations on historical cold archives (`TRX_JOURNAL_DONE`).
 - If found, it returns the previous receipt without executing financial mutations twice (**Idempotent Replay**).
 
 ### Stage 2: Operational Cutoff & Working Date Guard

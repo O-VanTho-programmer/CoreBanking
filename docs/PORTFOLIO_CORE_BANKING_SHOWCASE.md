@@ -9,7 +9,7 @@
 This project is a modern, enterprise-grade **Core Banking Engine** built from the ground up to solve the most difficult technical challenges in financial software engineering:
 * **Strict Double-Entry Bookkeeping**: Absolute preservation of debit-credit equilibrium ($\sum \text{Debit} = \sum \text{Credit}$) across every financial event.
 * **Zero-Deadlock Concurrency**: Mathematical deadlock prevention ($ORA\text{-}00060$) on multi-account transactions using deterministic row locking (`ORDER BY account_id ASC FOR UPDATE`) under massive Java 21 Virtual Thread load.
-* **Two-Tier Composite Idempotency**: Redis L1 cache + Distributed Thundering-Herd Mutex + Hot/Cold Ledger checks guaranteeing zero double-charges.
+* **Two-Tier Composite Idempotency**: Redis L1 Fast Filter (24h TTL) + Distributed Thundering-Herd Mutex + Hot Ledger (`TRX_JOURNAL_ACTIVE`) guaranteeing zero double-charges while strictly avoiding slow disk I/O on cold historical archives during daytime OLTP.
 * **Symmetrical Multi-Charge IFC Pricing Engine**: Dynamic catalog-driven bundling and contract-level cloning for both Deposit (`ACCOUNT_IFC`) and Credit (`LOAN_ACCOUNT_IFC`).
 * **Lending & EOD Batch Pipeline**: Complete loan lifecycle (Origination, Schedule Generation, Disbursement, Waterfall Auto-Repayment, Circular 11/2021 Aging & Provisioning via TK 7911, and 8-Step Spring Batch EOD).
 
@@ -26,7 +26,7 @@ flowchart TD
     end
 
     subgraph Security_Idemp["Channel Gateway & Idempotency Layer"]
-        IDEMP["Two-Tier Idempotency Guard\n(Redis SETNX Mutex + Hot/Cold Check)"]
+        IDEMP["Two-Tier Idempotency Guard\n(Redis SETNX Mutex + Hot Journal Check)"]
         DATE["Working Date Decoupling & Cutoff Guard\n(ADMIN_BANK_CALENDAR)"]
     end
 
@@ -67,7 +67,7 @@ Every financial operation in the system is governed by 6 non-negotiable architec
 | **Invariant 2** | **Balance Integrity** | $\text{Available} = \text{Ledger} - \text{Hold} \ge 0$. Pre-debit and pre-hold validation prevents phantom withdrawals or negative available balances. |
 | **Invariant 3** | **Deterministic Row Locking** | Multi-account locks (`from_account`, `to_account`) are strictly sorted in memory (`ORDER BY account_id ASC`) before issuing `SELECT ... FOR UPDATE`, rendering circular wait deadlocks ($ORA\text{-}00060$) impossible. |
 | **Invariant 4** | **Working Date Decoupling** | All financial postings and interest accruals bind to `working_date` from `ADMIN_BANK_CALENDAR`, completely decoupled from server wall-clock (`SYSDATE`). Strict cutoff enforcement rejects transactions after EOD trigger. |
-| **Invariant 5** | **Two-Tier Composite Idempotency** | Composite key `(channel_id, idempotency_key)`. Redis L1 fast filter + Redis distributed lock for thundering herd + Hot table (`TRX_JOURNAL_ACTIVE`) + Cold archive (`TRX_JOURNAL_DONE`). |
+| **Invariant 5** | **Two-Tier Composite Idempotency** | Composite key `(channel_id, idempotency_key)`. Redis L1 fast filter (24h TTL) + Redis distributed lock for thundering herd + Hot table (`TRX_JOURNAL_ACTIVE`). Cold archive (`TRX_JOURNAL_DONE`) is never queried during daytime OLTP to eliminate disk I/O latency. |
 | **Invariant 6** | **Audit Lineage & Storno Reversals** | No `UPDATE` or `DELETE` on financial entries. Reversals create exact symmetric opposite legs (`DR <-> CR`, `ST_REV` prefix) with parent-child linkage (`original_trx_id`). |
 
 ---

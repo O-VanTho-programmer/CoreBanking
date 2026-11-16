@@ -1,10 +1,8 @@
 package com.cbs.transaction.service;
 
 import com.cbs.transaction.domain.TrxJournalActive;
-import com.cbs.transaction.domain.TrxJournalDone;
 import com.cbs.transaction.dto.TransactionReceipt;
 import com.cbs.transaction.repository.TrxJournalActiveRepository;
-import com.cbs.transaction.repository.TrxJournalDoneRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +18,6 @@ import org.springframework.data.redis.core.ValueOperations;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.Collections;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,9 +31,6 @@ class IdempotencyServiceTest {
 
     @Mock
     private TrxJournalActiveRepository activeRepository;
-
-    @Mock
-    private TrxJournalDoneRepository doneRepository;
 
     @Mock
     private StringRedisTemplate stringRedisTemplate;
@@ -60,7 +54,7 @@ class IdempotencyServiceTest {
     }
 
     @Test
-    @DisplayName("L1 Fast Path: Cached receipt in Redis returned directly without hitting database")
+    @DisplayName("L1 Fast Path: Cached receipt in Redis (24h TTL) returned directly without hitting database")
     void shouldReturnReceiptFromRedisWhenCacheHit() throws Exception {
         TransactionReceipt mockReceipt = TransactionReceipt.builder()
                 .trxId(100L)
@@ -79,11 +73,10 @@ class IdempotencyServiceTest {
         assertThat(result.get().trxId()).isEqualTo(100L);
         assertThat(result.get().trxNumber()).isEqualTo("TRX-20261022-00000001");
         verifyNoInteractions(activeRepository);
-        verifyNoInteractions(doneRepository);
     }
 
     @Test
-    @DisplayName("L2 Hot Ledger: Found in TRX_JOURNAL_ACTIVE -> returns receipt and populates Redis")
+    @DisplayName("L2 Hot Ledger: Found in TRX_JOURNAL_ACTIVE -> returns receipt and populates Redis with 24h TTL")
     void shouldReturnReceiptFromHotTableWhenRedisMisses() throws JsonProcessingException {
         when(valueOperations.get(CACHE_KEY)).thenReturn(null);
 
@@ -108,8 +101,7 @@ class IdempotencyServiceTest {
         assertThat(result.get().trxId()).isEqualTo(200L);
         assertThat(result.get().status()).isEqualTo("COMPLETED");
 
-        verify(valueOperations).set(eq(CACHE_KEY), eq("{\"trxId\":200}"), any(Duration.class));
-        verifyNoInteractions(doneRepository);
+        verify(valueOperations).set(eq(CACHE_KEY), eq("{\"trxId\":200}"), eq(Duration.ofHours(24)));
     }
 
     @Test
@@ -131,52 +123,18 @@ class IdempotencyServiceTest {
         assertThatThrownBy(() -> idempotencyService.checkExisting(CHANNEL_ID, IDEMPOTENCY_KEY))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("IN_FLIGHT");
-
-        verifyNoInteractions(doneRepository);
     }
 
     @Test
-    @DisplayName("L3 Cold Archive: Found in TRX_JOURNAL_DONE -> returns receipt and populates Redis")
-    void shouldReturnReceiptFromColdTableWhenActiveMisses() throws JsonProcessingException {
+    @DisplayName("Daytime Fast Path: When Redis and Hot Table miss, returns empty immediately without querying cold archive")
+    void shouldReturnEmptyWhenKeyNotFoundInHotTable() {
         when(valueOperations.get(CACHE_KEY)).thenReturn(null);
         when(activeRepository.findByChannelIdAndIdempotencyKey(CHANNEL_ID, IDEMPOTENCY_KEY))
-                .thenReturn(Optional.empty());
-
-        TrxJournalDone done = TrxJournalDone.builder()
-                .trxId(300L)
-                .trxNumber("TRX-20261020-00000099")
-                .channelId(CHANNEL_ID)
-                .idempotencyKey(IDEMPOTENCY_KEY)
-                .trxCode("TRF_INTERNAL")
-                .workingDate(LocalDate.of(2026, 10, 20))
-                .status("COMPLETED")
-                .createdAt(OffsetDateTime.now().minusDays(2))
-                .build();
-
-        when(doneRepository.findByChannelIdAndIdempotencyKey(CHANNEL_ID, IDEMPOTENCY_KEY))
-                .thenReturn(Optional.of(done));
-        when(objectMapper.writeValueAsString(any())).thenReturn("{\"trxId\":300}");
-
-        Optional<TransactionReceipt> result = idempotencyService.checkExisting(CHANNEL_ID, IDEMPOTENCY_KEY);
-
-        assertThat(result).isPresent();
-        assertThat(result.get().trxId()).isEqualTo(300L);
-        assertThat(result.get().status()).isEqualTo("COMPLETED");
-
-        verify(valueOperations).set(eq(CACHE_KEY), eq("{\"trxId\":300}"), any(Duration.class));
-    }
-
-    @Test
-    @DisplayName("Complete Miss: Transaction not found anywhere -> returns empty Optional")
-    void shouldReturnEmptyWhenKeyNotFoundAnywhere() {
-        when(valueOperations.get(CACHE_KEY)).thenReturn(null);
-        when(activeRepository.findByChannelIdAndIdempotencyKey(CHANNEL_ID, IDEMPOTENCY_KEY))
-                .thenReturn(Optional.empty());
-        when(doneRepository.findByChannelIdAndIdempotencyKey(CHANNEL_ID, IDEMPOTENCY_KEY))
                 .thenReturn(Optional.empty());
 
         Optional<TransactionReceipt> result = idempotencyService.checkExisting(CHANNEL_ID, IDEMPOTENCY_KEY);
 
         assertThat(result).isEmpty();
+        verify(activeRepository, times(1)).findByChannelIdAndIdempotencyKey(CHANNEL_ID, IDEMPOTENCY_KEY);
     }
 }

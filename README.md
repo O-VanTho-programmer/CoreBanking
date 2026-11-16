@@ -17,8 +17,8 @@
    Transactions are rejected with `InsufficientFundsException` if the debited amount exceeds available balance, ensuring accounts can never go into unauthorized overdraft.
 4. **Dynamic CodeLists via Redis**:
    Zero hardcoded status check constraints in the DB. Validations are enforced at the Java record/DTO layer via `@ValidCodeList(group = "...")` backed by local/distributed Redis cache with write-through warmup.
-5. **Hot / Cold Transaction Ledger Separation**:
-   Daily active operations write to hot journal tables (`TRX_JOURNAL_ACTIVE`, `JOURNAL_ENTRY_ACTIVE`) and are archived to cold storage (`_DONE`) during End-of-Day (EOD) batch processing, maintaining lightning-fast OLTP daytime queries.
+5. **Two-Tier Composite Idempotency & Hot/Cold Ledger Separation**:
+   Guarantees zero double-charges via Redis L1 fast filter (24h TTL) + distributed thundering-herd mutex + hot ledger (`TRX_JOURNAL_ACTIVE`). Daytime OLTP completely avoids querying cold historical archives (`TRX_JOURNAL_DONE`), eliminating cold-table disk seek latency while maintaining sub-millisecond replay protection. Active journals are archived to cold storage (`_DONE`) during End-of-Day (EOD) batch processing.
 6. **Decoupled Operational Calendar**:
    All financial mutations use the logical banking date from `SYSTEM_OPERATIONAL_STATUS.current_working_date` rather than system physical clocks (`LocalDate.now()`), allowing automated business day rollover and holiday processing.
 7. **Server-Driven UI (SDUI)**:
@@ -129,7 +129,7 @@ Unit tests execute fast in-memory without requiring external database or Redis i
 - **Deterministic Row Locking & Deadlock Prevention** (`DeterministicLockingUnitTest`):
   Validates Invariant 3: Verifies that multi-account transfers always acquire pessimistic locks in ascending account ID order (`ORDER BY account_id ASC`) regardless of transfer direction. Validates self-transfer rejection and multi-leg reversal locking deduplication.
 - **Idempotency & Thundering Herd Guard** (`IdempotencyServiceTest`):
-  Validates request deduplication across Hot/Cold storage and Redis distributed lock protection.
+  Validates two-tier request deduplication (Redis L1 24h filter + hot ledger `TRX_JOURNAL_ACTIVE`) with zero cold table seek overhead, and Redis distributed lock protection.
 - **Account Resolution Matrix** (`AccountResolverServiceTest`):
   Validates 3-tier fallback resolution (Account-specific &rarr; Product-specific &rarr; Default system GL).
 
